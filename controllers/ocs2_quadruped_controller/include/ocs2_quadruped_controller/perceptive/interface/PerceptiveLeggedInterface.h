@@ -16,6 +16,15 @@ namespace ocs2::legged_robot
     public:
         using LeggedInterface::LeggedInterface;
 
+        void setPerceptiveDebugOptions(bool enableReferenceModification,
+                                       bool enableFootPlacementConstraint,
+                                       bool enableFootCollisionConstraint)
+        {
+            enableReferenceModification_ = enableReferenceModification;
+            enableFootPlacementConstraint_ = enableFootPlacementConstraint;
+            enableFootCollisionConstraint_ = enableFootCollisionConstraint;
+        }
+
         void setupOptimalControlProblem(const std::string& taskFile,
                                         const std::string& urdfFile,
                                         const std::string& referenceFile,
@@ -48,6 +57,9 @@ namespace ocs2::legged_robot
 
     protected:
         size_t numVertices_ = 16;
+        bool enableReferenceModification_ = true;
+        bool enableFootPlacementConstraint_ = true;
+        bool enableFootCollisionConstraint_ = true;
 
         std::shared_ptr<convex_plane_decomposition::PlanarTerrain> planarTerrainPtr_;
         std::shared_ptr<grid_map::SignedDistanceField> signedDistanceFieldPtr_;

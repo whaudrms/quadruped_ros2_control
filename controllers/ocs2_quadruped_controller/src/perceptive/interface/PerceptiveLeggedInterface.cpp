@@ -66,19 +66,25 @@ namespace ocs2::legged_robot
                 new RelaxedBarrierPenalty(RelaxedBarrierPenalty::Config(1e-2, 1e-3)));
 
             // For foot placement
-            std::unique_ptr<FootPlacementConstraint> footPlacementConstraint(
-                new FootPlacementConstraint(*reference_manager_ptr_, *eeKinematicsPtr, i, numVertices_));
-            problem_ptr_->stateSoftConstraintPtr->add(
-                footName + "_footPlacement",
-                std::make_unique<StateSoftConstraint>(std::move(footPlacementConstraint), std::move(placementPenalty)));
+            if (enableFootPlacementConstraint_)
+            {
+                std::unique_ptr<FootPlacementConstraint> footPlacementConstraint(
+                    new FootPlacementConstraint(*reference_manager_ptr_, *eeKinematicsPtr, i, numVertices_));
+                problem_ptr_->stateSoftConstraintPtr->add(
+                    footName + "_footPlacement",
+                    std::make_unique<StateSoftConstraint>(std::move(footPlacementConstraint), std::move(placementPenalty)));
+            }
 
             // For foot Collision
-            std::unique_ptr<FootCollisionConstraint> footCollisionConstraint(
-                new FootCollisionConstraint(*reference_manager_ptr_, *eeKinematicsPtr, signedDistanceFieldPtr_, i,
-                                            0.03));
-            problem_ptr_->stateSoftConstraintPtr->add(
-                footName + "_footCollision",
-                std::make_unique<StateSoftConstraint>(std::move(footCollisionConstraint), std::move(collisionPenalty)));
+            if (enableFootCollisionConstraint_)
+            {
+                std::unique_ptr<FootCollisionConstraint> footCollisionConstraint(
+                    new FootCollisionConstraint(*reference_manager_ptr_, *eeKinematicsPtr, signedDistanceFieldPtr_, i,
+                                                0.03));
+                problem_ptr_->stateSoftConstraintPtr->add(
+                    footName + "_footCollision",
+                    std::make_unique<StateSoftConstraint>(std::move(footCollisionConstraint), std::move(collisionPenalty)));
+            }
         }
 
         // For collision avoidance
@@ -121,6 +127,8 @@ namespace ocs2::legged_robot
             centroidal_model_info_, loadGaitSchedule(referenceFile, verbose),
             std::move(swingTrajectoryPlanner), std::move(convexRegionSelector),
             *eeKinematicsPtr, comHeight));
+        dynamic_cast<PerceptiveLeggedReferenceManager&>(*reference_manager_ptr_).setEnableReferenceModification(
+            enableReferenceModification_);
     }
 
     void PerceptiveLeggedInterface::setupPreComputation(const std::string& /*taskFile*/,

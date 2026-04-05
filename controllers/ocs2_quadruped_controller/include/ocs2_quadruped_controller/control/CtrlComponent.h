@@ -67,6 +67,9 @@ namespace ocs2::legged_robot
         void publishPerceptiveReferencePaths();
 
         bool enable_perceptive_ = false;
+        bool enable_perceptive_reference_modification_ = true;
+        bool enable_perceptive_foot_placement_constraint_ = true;
+        bool enable_perceptive_foot_collision_constraint_ = true;
         CtrlInterfaces& ctrl_interfaces_;
         std::unique_ptr<StateEstimateBase> estimator_;
         std::unique_ptr<CentroidalModelRbdConversions> rbd_conversions_;

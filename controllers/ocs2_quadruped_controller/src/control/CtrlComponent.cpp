@@ -30,11 +30,20 @@ namespace ocs2::legged_robot
         node_->declare_parameter("robot_pkg", robot_pkg_);
         node_->declare_parameter("feet", feet_names_);
         node_->declare_parameter("enable_perceptive", enable_perceptive_);
+        node_->declare_parameter("enable_perceptive_reference_modification", enable_perceptive_reference_modification_);
+        node_->declare_parameter("enable_perceptive_foot_placement_constraint", enable_perceptive_foot_placement_constraint_);
+        node_->declare_parameter("enable_perceptive_foot_collision_constraint", enable_perceptive_foot_collision_constraint_);
 
         robot_pkg_ = node_->get_parameter("robot_pkg").as_string();
         joint_names_ = node_->get_parameter("joints").as_string_array();
         feet_names_ = node_->get_parameter("feet").as_string_array();
         enable_perceptive_ = node_->get_parameter("enable_perceptive").as_bool();
+        enable_perceptive_reference_modification_ =
+            node_->get_parameter("enable_perceptive_reference_modification").as_bool();
+        enable_perceptive_foot_placement_constraint_ =
+            node_->get_parameter("enable_perceptive_foot_placement_constraint").as_bool();
+        enable_perceptive_foot_collision_constraint_ =
+            node_->get_parameter("enable_perceptive_foot_collision_constraint").as_bool();
 
 
         const std::string package_share_directory = ament_index_cpp::get_package_share_directory(robot_pkg_);
@@ -175,6 +184,10 @@ namespace ocs2::legged_robot
         if (enable_perceptive_)
         {
             legged_interface_ = std::make_unique<PerceptiveLeggedInterface>(task_file_, urdf_file_, reference_file_);
+            dynamic_cast<PerceptiveLeggedInterface&>(*legged_interface_).setPerceptiveDebugOptions(
+                enable_perceptive_reference_modification_,
+                enable_perceptive_foot_placement_constraint_,
+                enable_perceptive_foot_collision_constraint_);
         }
         else
         {

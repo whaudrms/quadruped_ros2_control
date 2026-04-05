@@ -26,6 +26,8 @@ namespace ocs2::legged_robot
 
         contact_flag_t getFootPlacementFlags(scalar_t time) const;
 
+        void setEnableReferenceModification(bool enable) { enableReferenceModification_ = enable; }
+
         bool getLatestReferencePaths(
             std::vector<vector3_t, Eigen::aligned_allocator<vector3_t>>& rawBasePath,
             std::vector<vector3_t, Eigen::aligned_allocator<vector3_t>>& terrainAwareBasePath) const;
@@ -54,6 +56,7 @@ namespace ocs2::legged_robot
         std::unique_ptr<EndEffectorKinematics<scalar_t>> endEffectorKinematicsPtr_;
 
         scalar_t comHeight_;
+        bool enableReferenceModification_ = true;
 
         mutable std::mutex latestReferenceTrajectoriesMutex_;
         std::vector<vector3_t, Eigen::aligned_allocator<vector3_t>> latestRawBasePath_;

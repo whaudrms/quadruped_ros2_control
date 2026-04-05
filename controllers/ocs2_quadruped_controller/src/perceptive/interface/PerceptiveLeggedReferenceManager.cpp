@@ -53,45 +53,49 @@ namespace ocs2::legged_robot
         modeSchedule = getGaitSchedule()->getModeSchedule(initTime - timeHorizon, finalTime + timeHorizon);
         const auto rawTargetTrajectories = targetTrajectories;
 
-        TargetTrajectories newTargetTrajectories;
-        int nodeNum = 11;
-        for (size_t i = 0; i < nodeNum; ++i)
+        if (enableReferenceModification_)
         {
-            scalar_t time = initTime + static_cast<double>(i) * timeHorizon / (nodeNum - 1);
-            vector_t state = targetTrajectories.getDesiredState(time);
-            vector_t input = targetTrajectories.getDesiredState(time);
+            TargetTrajectories newTargetTrajectories;
+            int nodeNum = 11;
+            for (size_t i = 0; i < nodeNum; ++i)
+            {
+                scalar_t time = initTime + static_cast<double>(i) * timeHorizon / (nodeNum - 1);
+                vector_t state = targetTrajectories.getDesiredState(time);
+                vector_t input = targetTrajectories.getDesiredState(time);
 
-            const auto& map = convexRegionSelectorPtr_->getPlanarTerrainPtr()->gridMap;
-            vector_t pos = centroidal_model::getBasePose(state, info_).head(3);
+                const auto& map = convexRegionSelectorPtr_->getPlanarTerrainPtr()->gridMap;
+                vector_t pos = centroidal_model::getBasePose(state, info_).head(3);
 
-            // Base Orientation
-            scalar_t step = 0.3;
-            grid_map::Vector3 normalVector;
-            normalVector(0) = (map.atPosition("smooth_planar", pos + grid_map::Position(-step, 0)) -
-                    map.atPosition("smooth_planar", pos + grid_map::Position(step, 0))) /
-                (2 * step);
-            normalVector(1) = (map.atPosition("smooth_planar", pos + grid_map::Position(0, -step)) -
-                    map.atPosition("smooth_planar", pos + grid_map::Position(0, step))) /
-                (2 * step);
-            normalVector(2) = 1;
-            normalVector.normalize();
-            matrix3_t R;
-            scalar_t z = centroidal_model::getBasePose(state, info_)(3);
-            R << cos(z), -sin(z), 0, // clang-format off
-             sin(z), cos(z), 0,
-             0, 0, 1;  // clang-format on
-            vector_t v = R.transpose() * normalVector;
-            centroidal_model::getBasePose(state, info_)(4) = atan(v.x() / v.z());
+                // Base Orientation
+                scalar_t step = 0.3;
+                grid_map::Vector3 normalVector;
+                normalVector(0) = (map.atPosition("smooth_planar", pos + grid_map::Position(-step, 0)) -
+                        map.atPosition("smooth_planar", pos + grid_map::Position(step, 0))) /
+                    (2 * step);
+                normalVector(1) = (map.atPosition("smooth_planar", pos + grid_map::Position(0, -step)) -
+                        map.atPosition("smooth_planar", pos + grid_map::Position(0, step))) /
+                    (2 * step);
+                normalVector(2) = 1;
+                normalVector.normalize();
+                matrix3_t R;
+                scalar_t z = centroidal_model::getBasePose(state, info_)(3);
+                R << cos(z), -sin(z), 0, // clang-format off
+                 sin(z), cos(z), 0,
+                 0, 0, 1;  // clang-format on
+                vector_t v = R.transpose() * normalVector;
+                centroidal_model::getBasePose(state, info_)(4) = atan(v.x() / v.z());
 
-            // Base Z Position
-            centroidal_model::getBasePose(state, info_)(2) =
-                map.atPosition("smooth_planar", pos) + comHeight_ / cos(centroidal_model::getBasePose(state, info_)(4));
+                // Base Z Position
+                centroidal_model::getBasePose(state, info_)(2) =
+                    map.atPosition("smooth_planar", pos) + comHeight_ / cos(centroidal_model::getBasePose(state, info_)(4));
 
-            newTargetTrajectories.timeTrajectory.push_back(time);
-            newTargetTrajectories.stateTrajectory.push_back(state);
-            newTargetTrajectories.inputTrajectory.push_back(input);
+                newTargetTrajectories.timeTrajectory.push_back(time);
+                newTargetTrajectories.stateTrajectory.push_back(state);
+                newTargetTrajectories.inputTrajectory.push_back(input);
+            }
+            targetTrajectories = newTargetTrajectories;
         }
-        targetTrajectories = newTargetTrajectories;
+
         {
             std::lock_guard lock(latestReferenceTrajectoriesMutex_);
             latestRawBasePath_ = extractBasePath(rawTargetTrajectories, info_);

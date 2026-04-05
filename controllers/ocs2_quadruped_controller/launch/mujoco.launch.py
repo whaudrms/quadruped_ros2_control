@@ -16,6 +16,9 @@ package_controller = "ocs2_quadruped_controller"
 def launch_setup(context, *args, **kwargs):
     package_description = context.launch_configurations['pkg_description']
     enable_perceptive = context.launch_configurations['enable_perceptive'].lower() in ("true", "1", "yes", "on")
+    enable_perceptive_reference_modification = context.launch_configurations['enable_perceptive_reference_modification'].lower() in ("true", "1", "yes", "on")
+    enable_perceptive_foot_placement_constraint = context.launch_configurations['enable_perceptive_foot_placement_constraint'].lower() in ("true", "1", "yes", "on")
+    enable_perceptive_foot_collision_constraint = context.launch_configurations['enable_perceptive_foot_collision_constraint'].lower() in ("true", "1", "yes", "on")
     publish_static_terrain = context.launch_configurations['publish_static_terrain'].lower() in ("true", "1", "yes", "on")
     terrain_scene_file = context.launch_configurations['terrain_scene_file']
     pkg_path = os.path.join(get_package_share_directory(package_description))
@@ -26,6 +29,9 @@ def launch_setup(context, *args, **kwargs):
             "ocs2_quadruped_controller:\n"
             "  ros__parameters:\n"
             f"    enable_perceptive: {'true' if enable_perceptive else 'false'}\n"
+            f"    enable_perceptive_reference_modification: {'true' if enable_perceptive_reference_modification else 'false'}\n"
+            f"    enable_perceptive_foot_placement_constraint: {'true' if enable_perceptive_foot_placement_constraint else 'false'}\n"
+            f"    enable_perceptive_foot_collision_constraint: {'true' if enable_perceptive_foot_collision_constraint else 'false'}\n"
         )
         controller_override_file = controller_param_file.name
 
@@ -174,6 +180,24 @@ def generate_launch_description():
         description='Publish a static PlanarTerrain message for perceptive mode'
     )
 
+    enable_perceptive_reference_modification = DeclareLaunchArgument(
+        'enable_perceptive_reference_modification',
+        default_value='true',
+        description='Enable terrain-aware target trajectory modification inside perceptive reference manager'
+    )
+
+    enable_perceptive_foot_placement_constraint = DeclareLaunchArgument(
+        'enable_perceptive_foot_placement_constraint',
+        default_value='true',
+        description='Enable perceptive foot placement soft constraints'
+    )
+
+    enable_perceptive_foot_collision_constraint = DeclareLaunchArgument(
+        'enable_perceptive_foot_collision_constraint',
+        default_value='true',
+        description='Enable perceptive foot collision soft constraints'
+    )
+
     terrain_scene_file = DeclareLaunchArgument(
         'terrain_scene_file',
         default_value='/home/tony/unitree_mujoco/unitree_robots/go2/basic_step.xml',
@@ -183,6 +207,9 @@ def generate_launch_description():
     return LaunchDescription([
         pkg_description,
         enable_perceptive,
+        enable_perceptive_reference_modification,
+        enable_perceptive_foot_placement_constraint,
+        enable_perceptive_foot_collision_constraint,
         publish_static_terrain,
         terrain_scene_file,
         OpaqueFunction(function=launch_setup),
