@@ -5,6 +5,7 @@
 #pragma once
 
 #include <memory>
+#include <mutex>
 
 #include "ocs2_quadruped_controller/perceptive/interface/ConvexRegionSelector.h"
 
@@ -24,6 +25,10 @@ namespace ocs2::legged_robot
         const std::shared_ptr<ConvexRegionSelector>& getConvexRegionSelectorPtr() { return convexRegionSelectorPtr_; }
 
         contact_flag_t getFootPlacementFlags(scalar_t time) const;
+
+        bool getLatestReferencePaths(
+            std::vector<vector3_t, Eigen::aligned_allocator<vector3_t>>& rawBasePath,
+            std::vector<vector3_t, Eigen::aligned_allocator<vector3_t>>& terrainAwareBasePath) const;
 
     protected:
         void modifyReferences(scalar_t initTime, scalar_t finalTime, const vector_t& initState,
@@ -49,5 +54,10 @@ namespace ocs2::legged_robot
         std::unique_ptr<EndEffectorKinematics<scalar_t>> endEffectorKinematicsPtr_;
 
         scalar_t comHeight_;
+
+        mutable std::mutex latestReferenceTrajectoriesMutex_;
+        std::vector<vector3_t, Eigen::aligned_allocator<vector3_t>> latestRawBasePath_;
+        std::vector<vector3_t, Eigen::aligned_allocator<vector3_t>> latestTerrainAwareBasePath_;
+        bool hasLatestReferenceTrajectories_ = false;
     };
 } // namespace legged

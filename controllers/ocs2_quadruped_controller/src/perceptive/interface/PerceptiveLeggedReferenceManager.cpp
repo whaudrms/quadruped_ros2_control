@@ -9,6 +9,24 @@
 
 namespace ocs2::legged_robot
 {
+    namespace
+    {
+        std::vector<vector3_t, Eigen::aligned_allocator<vector3_t>> extractBasePath(
+            const TargetTrajectories& targetTrajectories,
+            const CentroidalModelInfo& info)
+        {
+            std::vector<vector3_t, Eigen::aligned_allocator<vector3_t>> basePath;
+            basePath.reserve(targetTrajectories.stateTrajectory.size());
+
+            for (const auto& state : targetTrajectories.stateTrajectory)
+            {
+                basePath.push_back(centroidal_model::getBasePose(state, info).head<3>());
+            }
+
+            return basePath;
+        }
+    } // namespace
+
     PerceptiveLeggedReferenceManager::PerceptiveLeggedReferenceManager(CentroidalModelInfo info,
                                                                        std::shared_ptr<GaitSchedule> gaitSchedulePtr,
                                                                        std::shared_ptr<SwingTrajectoryPlanner>
@@ -33,6 +51,7 @@ namespace ocs2::legged_robot
     {
         const auto timeHorizon = finalTime - initTime;
         modeSchedule = getGaitSchedule()->getModeSchedule(initTime - timeHorizon, finalTime + timeHorizon);
+        const auto rawTargetTrajectories = targetTrajectories;
 
         TargetTrajectories newTargetTrajectories;
         int nodeNum = 11;
@@ -73,6 +92,12 @@ namespace ocs2::legged_robot
             newTargetTrajectories.inputTrajectory.push_back(input);
         }
         targetTrajectories = newTargetTrajectories;
+        {
+            std::lock_guard lock(latestReferenceTrajectoriesMutex_);
+            latestRawBasePath_ = extractBasePath(rawTargetTrajectories, info_);
+            latestTerrainAwareBasePath_ = extractBasePath(targetTrajectories, info_);
+            hasLatestReferenceTrajectories_ = true;
+        }
 
         // Footstep
         convexRegionSelectorPtr_->update(modeSchedule, initTime, initState, targetTrajectories);
@@ -202,5 +227,20 @@ namespace ocs2::legged_robot
             flag[i] = getContactFlags(time)[i] && time >= finalTime[i];
         }
         return flag;
+    }
+
+    bool PerceptiveLeggedReferenceManager::getLatestReferencePaths(
+        std::vector<vector3_t, Eigen::aligned_allocator<vector3_t>>& rawBasePath,
+        std::vector<vector3_t, Eigen::aligned_allocator<vector3_t>>& terrainAwareBasePath) const
+    {
+        std::lock_guard lock(latestReferenceTrajectoriesMutex_);
+        if (!hasLatestReferenceTrajectories_)
+        {
+            return false;
+        }
+
+        rawBasePath = latestRawBasePath_;
+        terrainAwareBasePath = latestTerrainAwareBasePath_;
+        return true;
     }
 } // namespace legged

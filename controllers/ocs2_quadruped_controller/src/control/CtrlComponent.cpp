@@ -13,6 +13,7 @@
 #include <ocs2_quadruped_controller/estimator/LinearKalmanFilter.h>
 
 #include <ocs2_centroidal_model/CentroidalModelRbdConversions.h>
+#include <ocs2_centroidal_model/AccessHelperFunctions.h>
 #include <ocs2_core/thread_support/ExecuteAndSleep.h>
 #include <ocs2_legged_robot_ros/visualization/LeggedRobotVisualizer.h>
 #include <ocs2_quadruped_controller/control/GaitManager.h>
@@ -70,6 +71,29 @@ namespace ocs2::legged_robot
         observation_.mode = STANCE;
     }
 
+    nav_msgs::msg::Path CtrlComponent::pathFromBasePositions(
+        const std::vector<vector3_t, Eigen::aligned_allocator<vector3_t>>& basePositions,
+        const rclcpp::Time& stamp) const
+    {
+        nav_msgs::msg::Path path;
+        path.header.frame_id = "odom";
+        path.header.stamp = stamp;
+        path.poses.reserve(basePositions.size());
+
+        for (const auto& position : basePositions)
+        {
+            geometry_msgs::msg::PoseStamped pose;
+            pose.header = path.header;
+            pose.pose.position.x = position.x();
+            pose.pose.position.y = position.y();
+            pose.pose.position.z = position.z();
+            pose.pose.orientation.w = 1.0;
+            path.poses.push_back(std::move(pose));
+        }
+
+        return path;
+    }
+
     void CtrlComponent::setupStateEstimate(const std::string& estimator_type)
     {
         if (estimator_type == "ground_truth")
@@ -114,6 +138,7 @@ namespace ocs2::legged_robot
         {
             footPlacementVisualizationPtr_->update(observation_);
             sphereVisualizationPtr_->update(observation_);
+            publishPerceptiveReferencePaths();
         }
 
         // Compute target trajectory
@@ -169,6 +194,11 @@ namespace ocs2::legged_robot
             sphereVisualizationPtr_ = std::make_unique<SphereVisualization>(
                 legged_interface_->getPinocchioInterface(), legged_interface_->getCentroidalModelInfo(),
                 *dynamic_cast<PerceptiveLeggedInterface&>(*legged_interface_).getPinocchioSphereInterfacePtr(), node_);
+
+            rawReferencePathPublisherPtr_ =
+                node_->create_publisher<nav_msgs::msg::Path>("/perceptive_reference/raw_base_path", 1);
+            terrainAwareReferencePathPublisherPtr_ =
+                node_->create_publisher<nav_msgs::msg::Path>("/perceptive_reference/terrain_aware_base_path", 1);
         }
     }
 
@@ -242,5 +272,37 @@ namespace ocs2::legged_robot
         });
         setThreadPriority(legged_interface_->sqpSettings().threadPriority, mpc_thread_);
         RCLCPP_INFO(node_->get_logger(), "MRT initialized. MPC thread started.");
+    }
+
+    void CtrlComponent::publishPerceptiveReferencePaths()
+    {
+        if (!rawReferencePathPublisherPtr_ || !terrainAwareReferencePathPublisherPtr_)
+        {
+            return;
+        }
+
+        if (observation_.time - lastReferencePathPublishTime_ < minReferencePathPublishTimeDifference_)
+        {
+            return;
+        }
+
+        auto* perceptiveReferenceManager = dynamic_cast<PerceptiveLeggedReferenceManager*>(
+            legged_interface_->getReferenceManagerPtr().get());
+        if (perceptiveReferenceManager == nullptr)
+        {
+            return;
+        }
+
+        std::vector<vector3_t, Eigen::aligned_allocator<vector3_t>> rawBasePath;
+        std::vector<vector3_t, Eigen::aligned_allocator<vector3_t>> terrainAwareBasePath;
+        if (!perceptiveReferenceManager->getLatestReferencePaths(rawBasePath, terrainAwareBasePath))
+        {
+            return;
+        }
+
+        const auto stamp = node_->now();
+        rawReferencePathPublisherPtr_->publish(pathFromBasePositions(rawBasePath, stamp));
+        terrainAwareReferencePathPublisherPtr_->publish(pathFromBasePositions(terrainAwareBasePath, stamp));
+        lastReferencePathPublishTime_ = observation_.time;
     }
 }

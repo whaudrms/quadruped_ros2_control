@@ -3,7 +3,6 @@
 //
 
 #include <ocs2_quadruped_controller/perceptive/interface/ConvexRegionSelector.h>
-
 #include <ocs2_centroidal_model/AccessHelperFunctions.h>
 #include <ocs2_core/misc/Lookup.h>
 #include <ocs2_legged_robot/gait/MotionPhaseDefinition.h>

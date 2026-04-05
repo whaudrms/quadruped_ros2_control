@@ -82,10 +82,9 @@ namespace ocs2::legged_robot
         }
 
         // For collision avoidance
-        scalar_t thighExcess = 0.025;
         scalar_t calfExcess = 0.02;
 
-        std::vector<std::string> collisionLinks = {"LF_calf", "RF_calf", "LH_calf", "RH_calf"};
+        std::vector<std::string> collisionLinks = {"FL_calf", "FR_calf", "RL_calf", "RR_calf"};
         const std::vector<scalar_t>& maxExcesses = {calfExcess, calfExcess, calfExcess, calfExcess};
 
         pinocchioSphereInterfacePtr_ = std::make_shared<PinocchioSphereInterface>(
