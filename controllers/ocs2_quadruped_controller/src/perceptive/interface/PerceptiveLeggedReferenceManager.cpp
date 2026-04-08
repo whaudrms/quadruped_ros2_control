@@ -40,7 +40,7 @@ namespace ocs2::legged_robot
         {
             scalar_t time = initTime + static_cast<double>(i) * timeHorizon / (nodeNum - 1);
             vector_t state = targetTrajectories.getDesiredState(time);
-            vector_t input = targetTrajectories.getDesiredState(time);
+            vector_t input = targetTrajectories.getDesiredInput(time);
 
             const auto& map = convexRegionSelectorPtr_->getPlanarTerrainPtr()->gridMap;
             vector_t pos = centroidal_model::getBasePose(state, info_).head(3);
@@ -58,9 +58,9 @@ namespace ocs2::legged_robot
             normalVector.normalize();
             matrix3_t R;
             scalar_t z = centroidal_model::getBasePose(state, info_)(3);
-            R << cos(z), -sin(z), 0, // clang-format off
-             sin(z), cos(z), 0,
-             0, 0, 1;  // clang-format on
+            R << cos(z), -sin(z), 0,
+                 sin(z), cos(z), 0,
+                 0, 0, 1;
             vector_t v = R.transpose() * normalVector;
             centroidal_model::getBasePose(state, info_)(4) = atan(v.x() / v.z());
 

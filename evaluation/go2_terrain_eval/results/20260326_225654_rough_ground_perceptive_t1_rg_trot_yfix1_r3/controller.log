@@ -1,0 +1,185 @@
+[INFO] [launch]: All log files can be found below /home/ho/.ros/log/2026-03-26-22-56-57-797680-ho-14532
+[INFO] [launch]: Default logging verbosity is set to INFO
+[INFO] [rviz2-1]: process started with pid [14568]
+[INFO] [robot_state_publisher-2]: process started with pid [14569]
+[INFO] [ros2_control_node-3]: process started with pid [14570]
+[INFO] [fake_elevation_map_node-4]: process started with pid [14571]
+[INFO] [convex_plane_decomposition_ros_node-5]: process started with pid [14572]
+[INFO] [spawner-6]: process started with pid [14573]
+[robot_state_publisher-2] [INFO] [1774533418.044667578] [robot_state_publisher]: Robot initialized
+[ros2_control_node-3] [INFO] [1774533418.047703687] [controller_manager]: Using Steady (Monotonic) clock for triggering controller manager cycles.
+[ros2_control_node-3] [INFO] [1774533418.054636086] [controller_manager]: Subscribing to '/robot_description' topic for robot description.
+[ros2_control_node-3] [INFO] [1774533418.058318842] [controller_manager]: update rate is 1000 Hz
+[ros2_control_node-3] [INFO] [1774533418.058365309] [controller_manager]: Overruns handling is : enabled
+[ros2_control_node-3] [INFO] [1774533418.058376437] [controller_manager]: Spawning controller_manager RT thread with scheduler priority: 50
+[ros2_control_node-3] [WARN] [1774533418.058466658] [controller_manager]: Could not enable FIFO RT scheduling policy: with error number <1>(Operation not permitted). See [https://control.ros.org/master/doc/ros2_control/controller_manager/doc/userdoc.html] for details on how to enable realtime scheduling.
+[ros2_control_node-3] [WARN] [1774533418.105669716] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 1000 Hz. The loop took 1.274545 ms (missed cycles : 2).
+[fake_elevation_map_node-4] [INFO] [1774533418.143487041] [fake_elevation_map_node]: Loaded terrain image: /home/ho/ros2_ws/src/quadruped_ros2_control/evaluation/go2_terrain_eval/assets/rough_ground_eval.png
+[fake_elevation_map_node-4] [INFO] [1774533418.143651673] [fake_elevation_map_node]: Publishing static elevation map on: /elevation_mapping/elevation_map_raw
+[ros2_control_node-3] [INFO] [1774533418.216040979] [controller_manager]: Received robot description from topic.
+[ros2_control_node-3] [INFO] [1774533418.222496210] [controller_manager]: Loading hardware 'UnitreeSystem' 
+[ros2_control_node-3] [INFO] [1774533418.230391224] [controller_manager]: Loaded hardware 'UnitreeSystem' from plugin 'hardware_unitree_sdk2/HardwareUnitree'
+[ros2_control_node-3] [INFO] [1774533418.230712864] [controller_manager]: Initialize hardware 'UnitreeSystem' 
+[ros2_control_node-3] [INFO] [1774533418.239104779] [controller_manager.hardware_component.system.UnitreeSystem]:  network_interface: lo, domain: 1
+[ros2_control_node-3] 1774533418.241763 [1] ros2_contr: selected interface "lo" is not multicast-capable: disabling multicast
+[ros2_control_node-3] [INFO] [1774533418.351169820] [controller_manager]: Successful initialization of hardware 'UnitreeSystem'
+[ros2_control_node-3] [INFO] [1774533418.352962410] [resource_manager]: 'configure' hardware 'UnitreeSystem' 
+[ros2_control_node-3] [INFO] [1774533418.352997053] [resource_manager]: Successful 'configure' of hardware 'UnitreeSystem'
+[ros2_control_node-3] [INFO] [1774533418.353021191] [resource_manager]: 'activate' hardware 'UnitreeSystem' 
+[ros2_control_node-3] [INFO] [1774533418.353033881] [resource_manager]: Successful 'activate' of hardware 'UnitreeSystem'
+[ros2_control_node-3] [INFO] [1774533418.353148529] [controller_manager]: Registering statistics for : UnitreeSystem
+[ros2_control_node-3] [INFO] [1774533418.353233269] [controller_manager]: Resource Manager has been successfully initialized. Starting Controller Manager services...
+[ros2_control_node-3] [INFO] [1774533418.373393467] [controller_manager]: Received robot description from topic.
+[ros2_control_node-3] [WARN] [1774533418.373447915] [controller_manager]: ResourceManager has already loaded a urdf. Ignoring attempt to reload a robot description.
+[rviz2-1] [INFO] [1774533418.389132027] [rviz2]: Stereo is NOT SUPPORTED
+[rviz2-1] [INFO] [1774533418.389221536] [rviz2]: OpenGl version: 4.6 (GLSL 4.6)
+[rviz2-1] [INFO] [1774533418.408154616] [rviz2]: Stereo is NOT SUPPORTED
+[spawner-6] [INFO] [1774533418.626493981] [spawner_joint_state_broadcaster]: waiting for service /controller_manager/list_controllers to become available...
+[ros2_control_node-3] [WARN] [1774533418.657474474] [controller_manager]: Overrun might occur, Total time : 1981.405 us (Expected < 1000.000 us) --> Read time : 14.678 us, Update time : 14.476 us, Write time : 1952.251 us
+[ros2_control_node-3] [INFO] [1774533418.880391241] [controller_manager]: Loading controller : 'joint_state_broadcaster' of type 'joint_state_broadcaster/JointStateBroadcaster'
+[ros2_control_node-3] [INFO] [1774533418.880455424] [controller_manager]: Loading controller 'joint_state_broadcaster'
+[ros2_control_node-3] [INFO] [1774533418.884999672] [controller_manager]: Controller 'joint_state_broadcaster' node arguments: --ros-args --params-file /home/ho/ros2_ws/install/go2_description_test1/share/go2_description_test1/config/robot_control_perceptive_test1.yaml 
+[spawner-6] [INFO] [1774533418.902426939] [spawner_joint_state_broadcaster]: Loaded joint_state_broadcaster
+[ros2_control_node-3] [INFO] [1774533418.988352746] [controller_manager]: Configuring controller: 'joint_state_broadcaster'
+[ros2_control_node-3] [INFO] [1774533418.988723636] [joint_state_broadcaster]: 'joints' or 'interfaces' parameter is empty. All available state interfaces will be published
+[ros2_control_node-3] [INFO] [1774533419.090625948] [controller_manager]: Activating controllers: [ joint_state_broadcaster ]
+[ros2_control_node-3] [INFO] [1774533419.091715640] [controller_manager]: Successfully switched controllers!
+[spawner-6] [INFO] [1774533419.096710782] [spawner_joint_state_broadcaster]: Configured and activated joint_state_broadcaster
+[ros2_control_node-3] [WARN] [1774533419.129558697] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 1000 Hz. The loop took 1.163779 ms (missed cycles : 2).
+[INFO] [spawner-6]: process has finished cleanly [pid 14573]
+[INFO] [spawner-7]: process started with pid [14728]
+[ros2_control_node-3] [WARN] [1774533419.774486937] [controller_manager]: Overrun might occur, Total time : 1013.454 us (Expected < 1000.000 us) --> Read time : 18.382 us, Update time : 62.999 us, Write time : 932.073 us
+[spawner-7] [INFO] [1774533419.980156982] [spawner_imu_sensor_broadcaster]: waiting for service /controller_manager/list_controllers to become available...
+[spawner-7] [WARN] [1774533420.075734749] [spawner_imu_sensor_broadcaster]: Controller already loaded, skipping load_controller
+[ros2_control_node-3] [INFO] [1774533420.081187816] [controller_manager]: Configuring controller: 'imu_sensor_broadcaster'
+[ros2_control_node-3] [ERROR] [1774533420.081276544] [controller_manager]: Could not configure controller with name 'imu_sensor_broadcaster' because no controller with this name exists
+[spawner-7] [ERROR] [1774533420.083189422] [spawner_imu_sensor_broadcaster]: Failed to configure controller
+[ERROR] [spawner-7]: process has died [pid 14728, exit code 1, cmd '/opt/ros/jazzy/lib/controller_manager/spawner imu_sensor_broadcaster --controller-manager /controller_manager --ros-args'].
+[INFO] [spawner-8]: process started with pid [14750]
+[ros2_control_node-3] [WARN] [1774533420.324842039] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 1000 Hz. The loop took 2.447931 ms (missed cycles : 3).
+[ros2_control_node-3] [WARN] [1774533420.793748978] [controller_manager]: Overrun might occur, Total time : 1240.981 us (Expected < 1000.000 us) --> Read time : 12.762 us, Update time : 726.269 us, Write time : 501.950 us
+[ros2_control_node-3] [INFO] [1774533420.825939234] [controller_manager]: Received robot description from topic.
+[ros2_control_node-3] [WARN] [1774533420.825998755] [controller_manager]: ResourceManager has already loaded a urdf. Ignoring attempt to reload a robot description.
+[ros2_control_node-3] [WARN] [1774533421.338883653] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 1000 Hz. The loop took 1.488261 ms (missed cycles : 2).
+[spawner-8] [WARN] [1774533421.505772257] [spawner_ocs2_quadruped_controller_test1]: Controller already loaded, skipping load_controller
+[spawner-8] [ERROR] [1774533421.522515423] [spawner_ocs2_quadruped_controller_test1]: Failed to configure controller
+[ERROR] [spawner-8]: process has died [pid 14750, exit code 1, cmd '/opt/ros/jazzy/lib/controller_manager/spawner ocs2_quadruped_controller_test1 --controller-manager /controller_manager --ros-args'].
+[ros2_control_node-3] [WARN] [1774533421.844799441] [controller_manager]: Overrun might occur, Total time : 1322.666 us (Expected < 1000.000 us) --> Read time : 30.193 us, Update time : 276.404 us, Write time : 1016.069 us
+[ros2_control_node-3] [WARN] [1774533422.361892257] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 1000 Hz. The loop took 1.498122 ms (missed cycles : 2).
+[ros2_control_node-3] [INFO] [1774533422.698393729] [controller_manager]: Configuring controller: 'joint_state_broadcaster'
+[ros2_control_node-3] [ERROR] [1774533422.698476436] [controller_manager]: Controller 'joint_state_broadcaster' can not be configured from 'active' state.
+[ros2_control_node-3] [WARN] [1774533422.847407963] [controller_manager]: Overrun might occur, Total time : 1839.471 us (Expected < 1000.000 us) --> Read time : 11.494 us, Update time : 40.337 us, Write time : 1787.640 us
+[ros2_control_node-3] [WARN] [1774533423.363066418] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 1000 Hz. The loop took 1.672524 ms (missed cycles : 2).
+[ros2_control_node-3] [WARN] [1774533423.856920803] [controller_manager]: Overrun might occur, Total time : 1439.776 us (Expected < 1000.000 us) --> Read time : 15.950 us, Update time : 31.494 us, Write time : 1392.332 us
+[ros2_control_node-3] [WARN] [1774533424.365527646] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 1000 Hz. The loop took 1.133485 ms (missed cycles : 2).
+[ros2_control_node-3] [WARN] [1774533424.900496942] [controller_manager]: Overrun might occur, Total time : 4949.725 us (Expected < 1000.000 us) --> Read time : 12.447 us, Update time : 35.800 us, Write time : 4901.478 us
+[ros2_control_node-3] [INFO] [1774533424.936886798] [controller_manager]: Configuring controller: 'imu_sensor_broadcaster'
+[ros2_control_node-3] [ERROR] [1774533424.936985918] [controller_manager]: Could not configure controller with name 'imu_sensor_broadcaster' because no controller with this name exists
+[ros2_control_node-3] [WARN] [1774533425.365812839] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 1000 Hz. The loop took 3.418116 ms (missed cycles : 4).
+[ros2_control_node-3] [WARN] [1774533425.900904812] [controller_manager]: Overrun might occur, Total time : 1438.208 us (Expected < 1000.000 us) --> Read time : 10.749 us, Update time : 1258.802 us, Write time : 168.657 us
+[ros2_control_node-3] [WARN] [1774533426.368424826] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 1000 Hz. The loop took 1.029632 ms (missed cycles : 2).
+[ros2_control_node-3] [WARN] [1774533426.907714875] [controller_manager]: Overrun might occur, Total time : 2143.756 us (Expected < 1000.000 us) --> Read time : 19.923 us, Update time : 69.555 us, Write time : 2054.278 us
+[ros2_control_node-3] [WARN] [1774533427.373542877] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 1000 Hz. The loop took 1.146061 ms (missed cycles : 2).
+[ros2_control_node-3] [WARN] [1774533427.922798783] [controller_manager]: Overrun might occur, Total time : 1343.281 us (Expected < 1000.000 us) --> Read time : 14.603 us, Update time : 212.514 us, Write time : 1116.164 us
+[ros2_control_node-3] [WARN] [1774533428.377107761] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 1000 Hz. The loop took 3.713718 ms (missed cycles : 4).
+[ros2_control_node-3] [WARN] [1774533428.949999082] [controller_manager]: Overrun might occur, Total time : 1953.771 us (Expected < 1000.000 us) --> Read time : 23.499 us, Update time : 56.821 us, Write time : 1873.451 us
+[ros2_control_node-3] [WARN] [1774533429.379089992] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 1000 Hz. The loop took 1.696180 ms (missed cycles : 2).
+[ros2_control_node-3] [WARN] [1774533429.962465871] [controller_manager]: Overrun might occur, Total time : 1022.528 us (Expected < 1000.000 us) --> Read time : 12.470 us, Update time : 32.354 us, Write time : 977.704 us
+[ros2_control_node-3] [WARN] [1774533430.381224540] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 1000 Hz. The loop took 3.829323 ms (missed cycles : 4).
+[ros2_control_node-3] [WARN] [1774533430.974769169] [controller_manager]: Overrun might occur, Total time : 1176.215 us (Expected < 1000.000 us) --> Read time : 47.013 us, Update time : 49.518 us, Write time : 1079.684 us
+[ros2_control_node-3] [WARN] [1774533431.393797896] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 1000 Hz. The loop took 1.403606 ms (missed cycles : 2).
+[ros2_control_node-3] [WARN] [1774533431.987451910] [controller_manager]: Overrun might occur, Total time : 2659.309 us (Expected < 1000.000 us) --> Read time : 14.860 us, Update time : 137.849 us, Write time : 2506.600 us
+[ros2_control_node-3] [WARN] [1774533432.395840056] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 1000 Hz. The loop took 1.445368 ms (missed cycles : 2).
+[ros2_control_node-3] [WARN] [1774533433.028469645] [controller_manager]: Overrun might occur, Total time : 1903.215 us (Expected < 1000.000 us) --> Read time : 15.218 us, Update time : 178.634 us, Write time : 1709.363 us
+[ros2_control_node-3] [WARN] [1774533433.396433030] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 1000 Hz. The loop took 2.038900 ms (missed cycles : 3).
+[ros2_control_node-3] [WARN] [1774533434.049560820] [controller_manager]: Overrun might occur, Total time : 1168.191 us (Expected < 1000.000 us) --> Read time : 19.270 us, Update time : 44.841 us, Write time : 1104.080 us
+[ros2_control_node-3] [WARN] [1774533434.405451508] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 1000 Hz. The loop took 1.057244 ms (missed cycles : 2).
+[ros2_control_node-3] [WARN] [1774533435.059051437] [controller_manager]: Overrun might occur, Total time : 1061.212 us (Expected < 1000.000 us) --> Read time : 22.069 us, Update time : 53.698 us, Write time : 985.445 us
+[ros2_control_node-3] [WARN] [1774533435.408488069] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 1000 Hz. The loop took 2.091161 ms (missed cycles : 3).
+[ros2_control_node-3] [WARN] [1774533436.073798218] [controller_manager]: Overrun might occur, Total time : 1402.760 us (Expected < 1000.000 us) --> Read time : 65.267 us, Update time : 222.104 us, Write time : 1115.389 us
+[ros2_control_node-3] [WARN] [1774533436.409436646] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 1000 Hz. The loop took 1.041467 ms (missed cycles : 2).
+[ros2_control_node-3] [WARN] [1774533437.076993388] [controller_manager]: Overrun might occur, Total time : 1511.516 us (Expected < 1000.000 us) --> Read time : 9.835 us, Update time : 28.666 us, Write time : 1473.015 us
+[ros2_control_node-3] [WARN] [1774533437.410158318] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 1000 Hz. The loop took 1.764158 ms (missed cycles : 2).
+[ros2_control_node-3] [WARN] [1774533438.084662210] [controller_manager]: Overrun might occur, Total time : 1132.770 us (Expected < 1000.000 us) --> Read time : 15.318 us, Update time : 47.382 us, Write time : 1070.070 us
+[ros2_control_node-3] [WARN] [1774533438.410532962] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 1000 Hz. The loop took 1.138822 ms (missed cycles : 2).
+[ros2_control_node-3] [WARN] [1774533439.108526516] [controller_manager]: Overrun might occur, Total time : 1030.048 us (Expected < 1000.000 us) --> Read time : 12.910 us, Update time : 250.013 us, Write time : 767.125 us
+[ros2_control_node-3] [WARN] [1774533439.412977883] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 1000 Hz. The loop took 1.583646 ms (missed cycles : 2).
+[ros2_control_node-3] [WARN] [1774533440.113728323] [controller_manager]: Overrun might occur, Total time : 1148.541 us (Expected < 1000.000 us) --> Read time : 86.383 us, Update time : 70.302 us, Write time : 991.856 us
+[ros2_control_node-3] [WARN] [1774533440.423236087] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 1000 Hz. The loop took 5.841706 ms (missed cycles : 6).
+[ros2_control_node-3] [WARN] [1774533441.115157378] [controller_manager]: Overrun might occur, Total time : 1689.291 us (Expected < 1000.000 us) --> Read time : 10.949 us, Update time : 1545.120 us, Write time : 133.222 us
+[ros2_control_node-3] [WARN] [1774533441.424026427] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 1000 Hz. The loop took 2.632116 ms (missed cycles : 3).
+[ros2_control_node-3] [WARN] [1774533442.124975962] [controller_manager]: Overrun might occur, Total time : 1295.519 us (Expected < 1000.000 us) --> Read time : 14.650 us, Update time : 71.292 us, Write time : 1209.577 us
+[ros2_control_node-3] [WARN] [1774533442.436702401] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 1000 Hz. The loop took 1.306693 ms (missed cycles : 2).
+[ros2_control_node-3] [WARN] [1774533443.128952510] [controller_manager]: Overrun might occur, Total time : 1491.070 us (Expected < 1000.000 us) --> Read time : 14.492 us, Update time : 103.691 us, Write time : 1372.887 us
+[ros2_control_node-3] [WARN] [1774533443.448433551] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 1000 Hz. The loop took 2.038955 ms (missed cycles : 3).
+[ros2_control_node-3] [WARN] [1774533444.141122909] [controller_manager]: Overrun might occur, Total time : 1112.511 us (Expected < 1000.000 us) --> Read time : 11.809 us, Update time : 32.501 us, Write time : 1068.201 us
+[ros2_control_node-3] [WARN] [1774533444.451754416] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 1000 Hz. The loop took 1.360379 ms (missed cycles : 2).
+[ros2_control_node-3] [WARN] [1774533445.147481361] [controller_manager]: Overrun might occur, Total time : 1017.036 us (Expected < 1000.000 us) --> Read time : 11.378 us, Update time : 117.252 us, Write time : 888.406 us
+[ros2_control_node-3] [WARN] [1774533445.687887107] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 1000 Hz. The loop took 1.492075 ms (missed cycles : 2).
+[WARNING] [launch]: user interrupted with ctrl-c (SIGINT)
+[INFO] [convex_plane_decomposition_ros_node-5]: sending signal 'SIGINT' to process[convex_plane_decomposition_ros_node-5]
+[INFO] [fake_elevation_map_node-4]: sending signal 'SIGINT' to process[fake_elevation_map_node-4]
+[INFO] [ros2_control_node-3]: sending signal 'SIGINT' to process[ros2_control_node-3]
+[INFO] [robot_state_publisher-2]: sending signal 'SIGINT' to process[robot_state_publisher-2]
+[INFO] [rviz2-1]: sending signal 'SIGINT' to process[rviz2-1]
+[ros2_control_node-3] [INFO] [1774533449.699285159] [rclcpp]: signal_handler(SIGINT/SIGTERM)
+[ros2_control_node-3] [INFO] [1774533449.699375619] [controller_manager]: Shutdown request received....
+[ros2_control_node-3] [INFO] [1774533449.699416624] [controller_manager]: Shutting down all controllers in the controller manager.
+[ros2_control_node-3] [INFO] [1774533449.699433525] [controller_manager]: Deactivating controller 'joint_state_broadcaster'
+[ros2_control_node-3] [INFO] [1774533449.699496198] [controller_manager]: Shutting down controller 'joint_state_broadcaster'
+[ros2_control_node-3] [INFO] [1774533449.699708807] [resource_manager]: 'deactivate' hardware 'UnitreeSystem' 
+[ros2_control_node-3] [INFO] [1774533449.699745948] [resource_manager]: Successful 'deactivate' of hardware 'UnitreeSystem'
+[ros2_control_node-3] [INFO] [1774533449.699750731] [resource_manager]: 'shutdown' hardware 'UnitreeSystem' 
+[ros2_control_node-3] [INFO] [1774533449.699753184] [resource_manager]: Successful 'shutdown' of hardware 'UnitreeSystem'
+[ros2_control_node-3] [INFO] [1774533449.699872804] [controller_manager]: Shutting down the controller manager.
+[fake_elevation_map_node-4] [INFO] [1774533449.699291470] [rclcpp]: signal_handler(SIGINT/SIGTERM)
+[convex_plane_decomposition_ros_node-5] [INFO] [1774533449.699278355] [rclcpp]: signal_handler(SIGINT/SIGTERM)
+[rviz2-1] [INFO] [1774533449.699310606] [rclcpp]: signal_handler(SIGINT/SIGTERM)
+[robot_state_publisher-2] [INFO] [1774533449.700605759] [rclcpp]: signal_handler(SIGINT/SIGTERM)
+[fake_elevation_map_node-4] [INFO] [1774533449.704402974] [rclcpp]: signal_handler(SIGINT/SIGTERM)
+[robot_state_publisher-2] [INFO] [1774533449.705797167] [rclcpp]: signal_handler(SIGINT/SIGTERM)
+[convex_plane_decomposition_ros_node-5] [INFO] [1774533449.710716548] [rclcpp]: signal_handler(SIGINT/SIGTERM)
+[rviz2-1] [INFO] [1774533449.711841924] [rclcpp]: signal_handler(SIGINT/SIGTERM)
+[ros2_control_node-3] [INFO] [1774533449.712147469] [rclcpp]: signal_handler(SIGINT/SIGTERM)
+[ros2_control_node-3] [INFO] [1774533449.713322750] [controller_manager.pal_statistics]: Async messages lost 0
+[ros2_control_node-3] [INFO] [1774533449.713341798] [controller_manager.pal_statistics]: publish_async_failures_ 3
+[ros2_control_node-3] [INFO] [1774533449.719665975] [controller_manager.pal_statistics]: Async messages lost 0
+[ros2_control_node-3] [INFO] [1774533449.719686569] [controller_manager.pal_statistics]: publish_async_failures_ 5
+[ros2_control_node-3] ros2_control_node: /home/wjh/dev/dds/0.10.2__noshm/cyclonedds-cxx-0.10.2/src/ddscxx/src/org/eclipse/cyclonedds/core/EntityDelegate.cpp:255: void org::eclipse::cyclonedds::core::EntityDelegate::prevent_callbacks(): Assertion `false' failed.
+[ros2_control_node-3] Stack trace (most recent call last) in thread 14671:
+[ros2_control_node-3] #31   Object "/usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2", at 0xffffffffffffffff, in 
+[INFO] [robot_state_publisher-2]: process has finished cleanly [pid 14569]
+[ros2_control_node-3] #30   Source "../sysdeps/unix/sysv/linux/x86_64/clone3.S", line 78, in clone3 [0x76fe4c529c6b]
+[ros2_control_node-3] #29   Source "./nptl/pthread_create.c", line 447, in start_thread [0x76fe4c49caa3]
+[ros2_control_node-3] #28   Source "/home/wjh/dev/dds/0.10.2__noshm/cyclonedds-0.10.2/src/ddsrt/src/threads/posix/threads.c", line 175, in os_startRoutineWrapper [0x76fe403affab]
+[ros2_control_node-3] #27   Source "/home/wjh/dev/dds/0.10.2__noshm/cyclonedds-0.10.2/src/core/ddsi/src/q_thread.c", line 257, in create_thread_wrapper [0x76fe4037781a]
+[ros2_control_node-3] #26   Source "/home/wjh/dev/dds/0.10.2__noshm/cyclonedds-0.10.2/src/core/ddsi/src/q_receive.c", line 3520, in recv_thread [0x76fe40376522]
+[INFO] [fake_elevation_map_node-4]: process has finished cleanly [pid 14571]
+[ros2_control_node-3] #25 | Source "/home/wjh/dev/dds/0.10.2__noshm/cyclonedds-0.10.2/src/core/ddsi/src/q_receive.c", line 3312, in handle_rtps_message
+[ros2_control_node-3]       Source "/home/wjh/dev/dds/0.10.2__noshm/cyclonedds-0.10.2/src/core/ddsi/src/q_receive.c", line 3188, in do_packet [0x76fe40376149]
+[ros2_control_node-3] #24 | Source "/home/wjh/dev/dds/0.10.2__noshm/cyclonedds-0.10.2/src/core/ddsi/src/q_receive.c", line 3214, in handle_submsg_sequence
+[ros2_control_node-3]     | Source "/home/wjh/dev/dds/0.10.2__noshm/cyclonedds-0.10.2/src/core/ddsi/src/q_receive.c", line 3116, in handle_Data
+[ros2_control_node-3]       Source "/home/wjh/dev/dds/0.10.2__noshm/cyclonedds-0.10.2/src/core/ddsi/src/q_receive.c", line 2668, in handle_rtps_message [0x76fe40373623]
+[ros2_control_node-3] #23   Source "/home/wjh/dev/dds/0.10.2__noshm/cyclonedds-0.10.2/src/core/ddsi/src/q_receive.c", line 2516, in handle_regular [0x76fe403704ad]
+[ros2_control_node-3] #22   Source "/home/wjh/dev/dds/0.10.2__noshm/cyclonedds-0.10.2/src/core/ddsi/src/q_receive.c", line 2284, in deliver_user_data_synchronously [0x76fe4036fcde]
+[ros2_control_node-3] #21   Source "/home/wjh/dev/dds/0.10.2__noshm/cyclonedds-0.10.2/src/core/ddsi/src/q_receive.c", line 2254, in deliver_user_data [0x76fe4036fae8]
+[ros2_control_node-3] #20 | Source "/home/wjh/dev/dds/0.10.2__noshm/cyclonedds-0.10.2/src/core/ddsi/src/ddsi_deliver_locally.c", line 150, in ddsi_rhc_store
+[ros2_control_node-3]       Source "/home/wjh/dev/dds/0.10.2__noshm/cyclonedds-0.10.2/src/core/ddsi/include/dds/ddsi/ddsi_rhc.h", line 66, in deliver_locally_one [0x76fe4032c039]
+[ros2_control_node-3] #19   Source "/home/wjh/dev/dds/0.10.2__noshm/cyclonedds-0.10.2/src/core/ddsc/src/dds_rhc_default.c", line 1755, in dds_rhc_default_store [0x76fe403930ec]
+[ros2_control_node-3] #18   Source "/home/wjh/dev/dds/0.10.2__noshm/cyclonedds-0.10.2/src/core/ddsc/src/dds_reader.c", line 254, in dds_reader_data_available_cb [0x76fe4038d1f4]
+[INFO] [rviz2-1]: process has finished cleanly [pid 14568]
+[convex_plane_decomposition_ros_node-5] 
+[convex_plane_decomposition_ros_node-5] ########################################################################
+[convex_plane_decomposition_ros_node-5] The benchmarking is computed over 53 iterations. 
+[convex_plane_decomposition_ros_node-5] PlaneExtraction Benchmarking    : Average time [ms], Max time [ms]
+[convex_plane_decomposition_ros_node-5] 	Pre-process        	:              0.61,          2.46
+[convex_plane_decomposition_ros_node-5] 	Sliding window     	:            496.79,        707.71
+[convex_plane_decomposition_ros_node-5] 	Contour extraction 	:              0.66,          1.68
+[convex_plane_decomposition_ros_node-5] 	Post-process       	:             89.61,        129.29
+[convex_plane_decomposition_ros_node-5] 	Total callback     	:            591.27,        821.48
+[convex_plane_decomposition_ros_node-5] 
+[INFO] [convex_plane_decomposition_ros_node-5]: process has finished cleanly [pid 14572]
+[ros2_control_node-3] #17   Object "/home/ho/unitree_sdk2/thirdparty/lib/x86_64/libddscxx.so", at 0x76fe1c54d0cd, in callback_on_data_available
+[ERROR] [ros2_control_node-3]: process[ros2_control_node-3] failed to terminate '5' seconds after receiving 'SIGINT', escalating to 'SIGTERM'
+[INFO] [ros2_control_node-3]: sending signal 'SIGTERM' to process[ros2_control_node-3]
+[ERROR] [ros2_control_node-3]: process has died [pid 14570, exit code -15, cmd '/opt/ros/jazzy/lib/controller_manager/ros2_control_node --ros-args --params-file /home/ho/ros2_ws/install/go2_description_test1/share/go2_description_test1/config/robot_control_perceptive_test1.yaml -r ~/robot_description:=/robot_description'].

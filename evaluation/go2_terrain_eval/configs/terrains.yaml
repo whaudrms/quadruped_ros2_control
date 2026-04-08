@@ -1,0 +1,222 @@
+terrains:
+  flat:
+    type: flat
+    description: "No obstacle, flat baseline scene"
+    scene_file: "/home/ho/unitree_mujoco/unitree_robots/go2/eval_flat.xml"
+    perceptive_supported: true
+    perceptive_image: "/home/ho/ros2_ws/src/quadruped_ros2_control/controllers/ocs2_quadruped_controller/config/flat_terrain.png"
+    terrain_height_scale: 0.02
+
+  box_obstacle:
+    type: box
+    description: "Single box obstacle ahead"
+    scene_file: "/home/ho/unitree_mujoco/unitree_robots/go2/eval_box_obstacle.xml"
+    perceptive_supported: false
+    parameters:
+      position: [1.0, 0.0, 0.1]
+      size: [0.8, 1.2, 0.2]
+
+  slope:
+    type: slope
+    description: "Single slope ahead"
+    scene_file: "/home/ho/unitree_mujoco/unitree_robots/go2/eval_slope.xml"
+    perceptive_supported: true
+    perceptive_image: "/home/ho/ros2_ws/src/quadruped_ros2_control/evaluation/go2_terrain_eval/assets/slope_eval.png"
+    terrain_height_scale: 0.18
+    parameters:
+      position: [1.15, 0.0, 0.32]
+      euler: [0.0, -0.38, 0.0]
+      size: [2.4, 1.2, 0.08]
+
+  stairs:
+    type: stairs
+    description: "Regular stairs ahead"
+    scene_file: "/home/ho/unitree_mujoco/unitree_robots/go2/eval_stairs.xml"
+    enabled: false
+    perceptive_supported: false
+    parameters:
+      init_pos: [0.85, 0.0, 0.0]
+      yaw: 0.0
+      width: 0.18
+      height: 0.08
+      length: 1.1
+      stair_nums: 8
+
+  suspend_stairs:
+    type: suspend_stairs
+    description: "Suspended stairs ahead"
+    scene_file: "/home/ho/unitree_mujoco/unitree_robots/go2/eval_suspend_stairs.xml"
+    perceptive_supported: false
+    parameters:
+      init_pos: [0.85, 0.0, 0.0]
+      yaw: 0.0
+      width: 0.18
+      height: 0.08
+      length: 1.1
+      gap: 0.03
+      stair_nums: 8
+
+  rough_ground:
+    type: rough_ground
+    description: "Rough box field ahead"
+    scene_file: "/home/ho/unitree_mujoco/unitree_robots/go2/eval_rough_ground.xml"
+    perceptive_supported: true
+    perceptive_image: "/home/ho/ros2_ws/src/quadruped_ros2_control/evaluation/go2_terrain_eval/assets/rough_ground_eval.png"
+    terrain_height_scale: 0.04
+    parameters:
+      init_pos: [0.40, -0.9, 0.0]
+      euler: [0.0, 0.0, 0.0]
+      nums: [8, 5]
+      box_size: [0.30, 0.30, 0.06]
+      separation: [0.28, 0.28]
+      box_size_rand: [0.04, 0.04, 0.02]
+      box_euler_rand: [0.08, 0.08, 0.08]
+      separation_rand: [0.03, 0.03]
+
+  rough_ground_rgdemo_low:
+    type: rough_ground
+    description: "Rough box field lowered slightly for rgdemo"
+    scene_file: "/home/ho/unitree_mujoco/unitree_robots/go2/eval_rough_ground_rgdemo_low.xml"
+    perceptive_supported: true
+    perceptive_image: "/home/ho/ros2_ws/src/quadruped_ros2_control/evaluation/go2_terrain_eval/assets/rough_ground_rgdemo_low.png"
+    terrain_height_scale: 0.04
+
+  rough_ground_softedge:
+    type: rough_ground
+    description: "Rough box field with softened entry edge"
+    scene_file: "/home/ho/unitree_mujoco/unitree_robots/go2/eval_rough_ground_softedge.xml"
+    perceptive_supported: true
+    perceptive_image: "/home/ho/ros2_ws/src/quadruped_ros2_control/evaluation/go2_terrain_eval/assets/rough_ground_softedge_eval.png"
+    terrain_height_scale: 0.04
+
+  rough_ground_softedge_near:
+    type: rough_ground
+    description: "Softedge rough ground with robot starting slightly closer to the terrain"
+    scene_file: "/home/ho/unitree_mujoco/unitree_robots/go2/eval_rough_ground_softedge_near.xml"
+    perceptive_supported: true
+    perceptive_image: "/home/ho/ros2_ws/src/quadruped_ros2_control/evaluation/go2_terrain_eval/assets/rough_ground_softedge_eval.png"
+    terrain_height_scale: 0.04
+
+  rough_ground_softedge_near2:
+    type: rough_ground
+    description: "Softedge rough ground with robot starting much closer to the terrain"
+    scene_file: "/home/ho/unitree_mujoco/unitree_robots/go2/eval_rough_ground_softedge_near2.xml"
+    perceptive_supported: true
+    perceptive_image: "/home/ho/ros2_ws/src/quadruped_ros2_control/evaluation/go2_terrain_eval/assets/rough_ground_softedge_eval.png"
+    terrain_height_scale: 0.04
+
+  rough_ground_softedge_near3:
+    type: rough_ground
+    description: "Softedge rough ground with robot starting very close to the terrain"
+    scene_file: "/home/ho/unitree_mujoco/unitree_robots/go2/eval_rough_ground_softedge_near3.xml"
+    perceptive_supported: true
+    perceptive_image: "/home/ho/ros2_ws/src/quadruped_ros2_control/evaluation/go2_terrain_eval/assets/rough_ground_softedge_eval.png"
+    terrain_height_scale: 0.04
+
+  rough_ground_softedge_near4:
+    type: rough_ground
+    description: "Softedge rough ground with robot starting at the maximum likely-safe near offset"
+    scene_file: "/home/ho/unitree_mujoco/unitree_robots/go2/eval_rough_ground_softedge_near4.xml"
+    perceptive_supported: true
+    perceptive_image: "/home/ho/ros2_ws/src/quadruped_ros2_control/evaluation/go2_terrain_eval/assets/rough_ground_softedge_eval.png"
+    terrain_height_scale: 0.04
+
+  rough_ground_softedge_aggressive:
+    type: rough_ground
+    description: "Softedge rough ground with robot starting aggressively close to the terrain"
+    scene_file: "/home/ho/unitree_mujoco/unitree_robots/go2/eval_rough_ground_softedge_aggressive.xml"
+    perceptive_supported: true
+    perceptive_image: "/home/ho/ros2_ws/src/quadruped_ros2_control/evaluation/go2_terrain_eval/assets/rough_ground_softedge_eval.png"
+    terrain_height_scale: 0.04
+
+  rough_ground_softedge_aggressive2:
+    type: rough_ground
+    description: "Softedge rough ground with robot starting extremely close to the terrain"
+    scene_file: "/home/ho/unitree_mujoco/unitree_robots/go2/eval_rough_ground_softedge_aggressive2.xml"
+    perceptive_supported: true
+    perceptive_image: "/home/ho/ros2_ws/src/quadruped_ros2_control/evaluation/go2_terrain_eval/assets/rough_ground_softedge_eval.png"
+    terrain_height_scale: 0.04
+
+  rough_ground_softedge_mid:
+    type: rough_ground
+    description: "Softedge rough ground with robot starting at a balanced closer midpoint"
+    scene_file: "/home/ho/unitree_mujoco/unitree_robots/go2/eval_rough_ground_softedge_mid.xml"
+    perceptive_supported: true
+    perceptive_image: "/home/ho/ros2_ws/src/quadruped_ros2_control/evaluation/go2_terrain_eval/assets/rough_ground_softedge_eval.png"
+    terrain_height_scale: 0.04
+
+  rough_ground_softedge_mid2:
+    type: rough_ground
+    description: "Softedge rough ground with robot starting slightly closer than mid"
+    scene_file: "/home/ho/unitree_mujoco/unitree_robots/go2/eval_rough_ground_softedge_mid2.xml"
+    perceptive_supported: true
+    perceptive_image: "/home/ho/ros2_ws/src/quadruped_ros2_control/evaluation/go2_terrain_eval/assets/rough_ground_softedge_eval.png"
+    terrain_height_scale: 0.04
+
+  rough_ground_softedge_tail:
+    type: rough_ground
+    description: "Softedge rough ground with robot starting near the rear failure patch"
+    scene_file: "/home/ho/unitree_mujoco/unitree_robots/go2/eval_rough_ground_softedge_tail.xml"
+    perceptive_supported: true
+    perceptive_image: "/home/ho/ros2_ws/src/quadruped_ros2_control/evaluation/go2_terrain_eval/assets/rough_ground_softedge_eval.png"
+    terrain_height_scale: 0.04
+
+  rough_ground_softedge_probe:
+    type: rough_ground
+    description: "Softedge rough ground with robot starting forward from location00 for stall-region probing"
+    scene_file: "/home/ho/unitree_mujoco/unitree_robots/go2/eval_rough_ground_softedge_probe.xml"
+    perceptive_supported: true
+    perceptive_image: "/home/ho/ros2_ws/src/quadruped_ros2_control/evaluation/go2_terrain_eval/assets/rough_ground_softedge_eval.png"
+    terrain_height_scale: 0.04
+
+  rough_ground_inside:
+    type: rough_ground
+    description: "Rough box field with robot starting inside the terrain"
+    scene_file: "/home/ho/unitree_mujoco/unitree_robots/go2/eval_rough_ground_inside.xml"
+    perceptive_supported: true
+    perceptive_image: "/home/ho/ros2_ws/src/quadruped_ros2_control/evaluation/go2_terrain_eval/assets/rough_ground_eval.png"
+    terrain_height_scale: 0.04
+
+  perlin_easy:
+    type: perlin_hfield
+    description: "Perlin hfield ahead"
+    scene_file: "/home/ho/unitree_mujoco/unitree_robots/go2/eval_perlin_easy.xml"
+    perceptive_supported: true
+    perceptive_image: "/home/ho/unitree_mujoco/unitree_robots/go2/eval_perlin_easy.png"
+    terrain_height_scale: 0.08
+    parameters:
+      position: [1.55, 0.0, 0.0]
+      size: [2.0, 1.4]
+      height_scale: 0.08
+      negative_height: 0.08
+      image_width: 128
+      img_height: 128
+      smooth: 120.0
+      perlin_octaves: 5
+      perlin_persistence: 0.45
+      perlin_lacunarity: 2.0
+      output_hfield_image: "eval_perlin_easy.png"
+
+  image_hfield:
+    type: image_hfield
+    description: "Image height field ahead"
+    scene_file: "/home/ho/unitree_mujoco/unitree_robots/go2/eval_image_hfield.xml"
+    perceptive_supported: true
+    perceptive_image: "/home/ho/unitree_mujoco/unitree_robots/go2/eval_image_hfield.png"
+    terrain_height_scale: 0.08
+    parameters:
+      position: [1.0, 0.0, 0.0]
+      euler: [0.0, 0.0, 0.0]
+      size: [2.0, 1.6]
+      height_scale: 0.08
+      negative_height: 0.08
+      input_img: "/home/ho/unitree_mujoco/unitree_robots/go2/unitree_hfield.png"
+      output_hfield_image: "eval_image_hfield.png"
+      image_scale: [1.0, 1.0]
+      invert_gray: false
+
+  complex_course:
+    type: complex_course
+    description: "Combined course mirroring terrain_generator main()"
+    scene_file: "/home/ho/unitree_mujoco/unitree_robots/go2/eval_complex_course.xml"
+    perceptive_supported: false

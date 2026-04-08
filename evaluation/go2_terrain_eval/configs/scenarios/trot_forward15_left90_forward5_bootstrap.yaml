@@ -1,0 +1,70 @@
+name: trot_forward6_left90_forward6_bootstrap
+publish_rate_hz: 50.0
+timeout_sec: 30.0
+monitoring_start_sec: 5.0
+quality:
+  target_yaw_change_deg: 90.0
+  min_abs_yaw_change_deg: 60.0
+  max_abs_yaw_error_deg: 35.0
+fall_detection:
+  min_base_z: 0.03
+  max_base_z_drop: 0.05
+  max_abs_roll_deg: 55.0
+  max_abs_pitch_deg: 55.0
+steps:
+  - name: enter_ocs2
+    duration: 2.0
+    command: 2
+    lx: 0.0
+    ly: 0.0
+    rx: 0.0
+    ry: 0.0
+  - name: settle
+    duration: 1.5
+    command: 0
+    lx: 0.0
+    ly: 0.0
+    rx: 0.0
+    ry: 0.0
+  - name: enter_gait
+    duration: 0.5
+    command: 3
+    lx: 0.0
+    ly: 0.0
+    rx: 0.0
+    ry: 0.0
+  - name: stabilize_gait
+    duration: 1.5
+    command: 0
+    lx: 0.0
+    ly: 0.0
+    rx: 0.0
+    ry: 0.0
+  - name: forward_12s
+    duration: 12.0
+    command: 0
+    lx: 0.0
+    ly: 0.75
+    rx: 0.0
+    ry: 0.0
+  - name: left_turn_90deg
+    duration: 4.4
+    command: 0
+    lx: 0.0
+    ly: 0.0
+    rx: -1.0
+    ry: 0.0
+  - name: forward_4s_after_turn
+    duration: 4.0
+    command: 0
+    lx: 0.0
+    ly: 0.75
+    rx: 0.0
+    ry: 0.0
+  - name: stop
+    duration: 1.0
+    command: 0
+    lx: 0.0
+    ly: 0.0
+    rx: 0.0
+    ry: 0.0

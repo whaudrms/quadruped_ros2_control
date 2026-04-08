@@ -188,20 +188,20 @@ namespace ocs2::legged_robot
         scalar_t height = 0.4;
 
         vector_t desiredState = targetTrajectories.getDesiredState(time);
+        const auto measuredFootPositions = endEffectorKinematicsPtr_->getPosition(initState);
         vector3_t desiredVel = centroidal_model::getNormalizedMomentum(desiredState, info_).head(3);
         vector3_t measuredVel = centroidal_model::getNormalizedMomentum(initState, info_).head(3);
 
         auto feedback = (vector3_t() << (std::sqrt(height / 9.81) * (measuredVel - desiredVel)).head(2), 0).finished();
+        (void)feedback;
         vector_t zyx = centroidal_model::getBasePose(desiredState, info_).tail(3);
         scalar_t offset = tan(-zyx(1)) * height;
         vector3_t offsetVector(offset * cos(-zyx(1)), 0, offset * sin(-zyx(1)));
         matrix3_t R;
         scalar_t z = zyx(0);
-        R << cos(z), -sin(z), 0, // clang-format off
+        R << cos(z), -sin(z), 0,
              sin(z), cos(z), 0,
-             0, 0, 1;  // clang-format on
-        //  return endEffectorKinematicsPtr_->getPosition(targetTrajectories.getDesiredState(time))[leg] + feedback;
-        return endEffectorKinematicsPtr_->getPosition(targetTrajectories.getDesiredState(time))[leg] - R.transpose() *
-            offsetVector;
+             0, 0, 1;
+        return measuredFootPositions[leg] - R.transpose() * offsetVector;
     }
 } // namespace legged

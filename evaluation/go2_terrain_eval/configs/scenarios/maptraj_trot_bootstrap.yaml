@@ -1,0 +1,20 @@
+name: maptraj_trot_bootstrap
+publish_rate_hz: 50
+timeout_sec: 36.0
+monitoring_start_sec: 6.0
+
+steps:
+  - duration: 2.0
+    command: 2
+  - duration: 2.0
+    command: 0
+  - duration: 1.5
+    command: 3
+  - duration: 30.5
+    command: 0
+
+fall_detection:
+  min_base_z: 0.03
+  max_base_z_drop: 0.05
+  max_abs_roll_deg: 55
+  max_abs_pitch_deg: 55

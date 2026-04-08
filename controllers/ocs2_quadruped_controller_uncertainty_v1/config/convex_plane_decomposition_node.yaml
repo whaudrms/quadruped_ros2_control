@@ -1,0 +1,45 @@
+/**:
+  ros__parameters:
+    elevation_topic: '/elevation_mapping/elevation_map_raw'
+    height_layer: 'elevation'
+    target_frame_id: 'odom'
+    submap:
+      width: 3.0
+      length: 3.0
+    publish_to_controller: true
+    frequency: 20.0
+
+    preprocessing:
+      resolution: 0.03
+      kernelSize: 3
+      numberOfRepeats: 1
+
+    sliding_window_plane_extractor:
+      kernel_size: 3
+      planarity_opening_filter: 0
+      plane_inclination_threshold_degrees: 30.0
+      local_plane_inclination_threshold_degrees: 35.0
+      plane_patch_error_threshold: 0.02
+      min_number_points_per_label: 4
+      connectivity: 4
+      include_ransac_refinement: true
+      global_plane_fit_distance_error_threshold: 0.025
+      global_plane_fit_angle_error_threshold_degrees: 25.0
+
+    ransac_plane_refinement:
+      probability: 0.001
+      min_points: 4.0
+      epsilon: 0.025
+      cluster_epsilon: 0.041
+      normal_threshold: 25.0
+
+    contour_extraction:
+      marginSize: 1
+
+    postprocessing:
+      extracted_planes_height_offset: 0.02
+      nonplanar_height_offset: 0.03
+      nonplanar_horizontal_offset: 3
+      smoothing_dilation_size: 0.2
+      smoothing_box_kernel_size: 0.1
+      smoothing_gauss_kernel_size: 0.05

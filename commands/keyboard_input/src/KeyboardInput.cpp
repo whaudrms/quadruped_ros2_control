@@ -23,8 +23,11 @@ void KeyboardInput::timer_callback() {
     if (kbhit()) {
         char key = getchar();
         check_command(key);
-        if (inputs_.command == 0) check_value(key);
-        else {
+        if (inputs_.command == 0) {
+            check_value(key);
+            // Keep manual velocity commands alive long enough to bridge terminal key repeat.
+            reset_count_ = 500;
+        } else {
             inputs_.lx = 0;
             inputs_.ly = 0;
             inputs_.rx = 0;
@@ -40,8 +43,13 @@ void KeyboardInput::timer_callback() {
                 just_published_ = false;
                 if (inputs_.command != 0) {
                     inputs_.command = 0;
-                    publisher_->publish(inputs_);
+                } else {
+                    inputs_.lx = 0;
+                    inputs_.ly = 0;
+                    inputs_.rx = 0;
+                    inputs_.ry = 0;
                 }
+                publisher_->publish(inputs_);
             }
         }
     }

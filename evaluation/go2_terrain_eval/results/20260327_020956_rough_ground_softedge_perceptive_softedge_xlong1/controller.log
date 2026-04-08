@@ -1,0 +1,863 @@
+[INFO] [launch]: All log files can be found below /home/ho/.ros/log/2026-03-27-02-09-59-312075-ho-51390
+[INFO] [launch]: Default logging verbosity is set to INFO
+[INFO] [rviz2-1]: process started with pid [51412]
+[INFO] [robot_state_publisher-2]: process started with pid [51413]
+[INFO] [ros2_control_node-3]: process started with pid [51414]
+[INFO] [fake_elevation_map_node-4]: process started with pid [51415]
+[INFO] [convex_plane_decomposition_ros_node-5]: process started with pid [51416]
+[INFO] [spawner-6]: process started with pid [51417]
+[robot_state_publisher-2] [INFO] [1774544999.474623250] [robot_state_publisher]: Robot initialized
+[ros2_control_node-3] [INFO] [1774544999.480061037] [controller_manager]: Using Steady (Monotonic) clock for triggering controller manager cycles.
+[ros2_control_node-3] [INFO] [1774544999.485933526] [controller_manager]: Subscribing to '/robot_description' topic for robot description.
+[ros2_control_node-3] [INFO] [1774544999.489394235] [controller_manager]: update rate is 1000 Hz
+[ros2_control_node-3] [INFO] [1774544999.489434794] [controller_manager]: Overruns handling is : enabled
+[ros2_control_node-3] [INFO] [1774544999.489444380] [controller_manager]: Spawning controller_manager RT thread with scheduler priority: 50
+[ros2_control_node-3] [WARN] [1774544999.489518144] [controller_manager]: Could not enable FIFO RT scheduling policy: with error number <1>(Operation not permitted). See [https://control.ros.org/master/doc/ros2_control/controller_manager/doc/userdoc.html] for details on how to enable realtime scheduling.
+[fake_elevation_map_node-4] [INFO] [1774544999.546492575] [fake_elevation_map_node]: Loaded terrain image: /home/ho/ros2_ws/src/quadruped_ros2_control/evaluation/go2_terrain_eval/assets/rough_ground_softedge_eval.png
+[fake_elevation_map_node-4] [INFO] [1774544999.546575442] [fake_elevation_map_node]: Publishing static elevation map on: /elevation_mapping/elevation_map_raw
+[ros2_control_node-3] [INFO] [1774544999.652155172] [controller_manager]: Received robot description from topic.
+[ros2_control_node-3] [INFO] [1774544999.657064758] [controller_manager]: Loading hardware 'UnitreeSystem' 
+[ros2_control_node-3] [INFO] [1774544999.662772829] [controller_manager]: Loaded hardware 'UnitreeSystem' from plugin 'hardware_unitree_sdk2/HardwareUnitree'
+[ros2_control_node-3] [INFO] [1774544999.662894376] [controller_manager]: Initialize hardware 'UnitreeSystem' 
+[rviz2-1] [INFO] [1774544999.665202092] [rviz2]: Stereo is NOT SUPPORTED
+[rviz2-1] [INFO] [1774544999.665274575] [rviz2]: OpenGl version: 4.6 (GLSL 4.6)
+[ros2_control_node-3] [INFO] [1774544999.670200502] [controller_manager.hardware_component.system.UnitreeSystem]:  network_interface: lo, domain: 1
+[ros2_control_node-3] 1774544999.672940 [1] ros2_contr: selected interface "lo" is not multicast-capable: disabling multicast
+[rviz2-1] [INFO] [1774544999.681069507] [rviz2]: Stereo is NOT SUPPORTED
+[ros2_control_node-3] [INFO] [1774544999.779780216] [controller_manager]: Successful initialization of hardware 'UnitreeSystem'
+[ros2_control_node-3] [INFO] [1774544999.780774293] [resource_manager]: 'configure' hardware 'UnitreeSystem' 
+[ros2_control_node-3] [INFO] [1774544999.780788249] [resource_manager]: Successful 'configure' of hardware 'UnitreeSystem'
+[ros2_control_node-3] [INFO] [1774544999.780808416] [resource_manager]: 'activate' hardware 'UnitreeSystem' 
+[ros2_control_node-3] [INFO] [1774544999.780818416] [resource_manager]: Successful 'activate' of hardware 'UnitreeSystem'
+[ros2_control_node-3] [INFO] [1774544999.780892154] [controller_manager]: Registering statistics for : UnitreeSystem
+[ros2_control_node-3] [INFO] [1774544999.780954915] [controller_manager]: Resource Manager has been successfully initialized. Starting Controller Manager services...
+[spawner-6] [INFO] [1774544999.783495635] [spawner_joint_state_broadcaster]: waiting for service /controller_manager/list_controllers to become available...
+[ros2_control_node-3] [INFO] [1774545000.035663704] [controller_manager]: Loading controller : 'joint_state_broadcaster' of type 'joint_state_broadcaster/JointStateBroadcaster'
+[ros2_control_node-3] [INFO] [1774545000.035715912] [controller_manager]: Loading controller 'joint_state_broadcaster'
+[ros2_control_node-3] [INFO] [1774545000.039966865] [controller_manager]: Controller 'joint_state_broadcaster' node arguments: --ros-args --params-file /home/ho/ros2_ws/install/go2_description_test1/share/go2_description_test1/config/robot_control_perceptive_test1.yaml 
+[spawner-6] [INFO] [1774545000.046976259] [spawner_joint_state_broadcaster]: Loaded joint_state_broadcaster
+[ros2_control_node-3] [INFO] [1774545000.048019448] [controller_manager]: Configuring controller: 'joint_state_broadcaster'
+[ros2_control_node-3] [INFO] [1774545000.048211409] [joint_state_broadcaster]: 'joints' or 'interfaces' parameter is empty. All available state interfaces will be published
+[ros2_control_node-3] [INFO] [1774545000.060476698] [controller_manager]: Activating controllers: [ joint_state_broadcaster ]
+[ros2_control_node-3] [INFO] [1774545000.061009511] [controller_manager]: Successfully switched controllers!
+[spawner-6] [INFO] [1774545000.062955240] [spawner_joint_state_broadcaster]: Configured and activated joint_state_broadcaster
+[INFO] [spawner-6]: process has finished cleanly [pid 51417]
+[INFO] [spawner-7]: process started with pid [51547]
+[spawner-7] [INFO] [1774545000.558310810] [spawner_imu_sensor_broadcaster]: waiting for service /controller_manager/list_controllers to become available...
+[ros2_control_node-3] [INFO] [1774545001.127603118] [controller_manager]: Loading controller : 'imu_sensor_broadcaster' of type 'imu_sensor_broadcaster/IMUSensorBroadcaster'
+[ros2_control_node-3] [INFO] [1774545001.127646294] [controller_manager]: Loading controller 'imu_sensor_broadcaster'
+[ros2_control_node-3] [INFO] [1774545001.128723270] [controller_manager]: Controller 'imu_sensor_broadcaster' node arguments: --ros-args --params-file /home/ho/ros2_ws/install/go2_description_test1/share/go2_description_test1/config/robot_control_perceptive_test1.yaml 
+[spawner-7] [INFO] [1774545001.137040776] [spawner_imu_sensor_broadcaster]: Loaded imu_sensor_broadcaster
+[ros2_control_node-3] [INFO] [1774545001.138462432] [controller_manager]: Configuring controller: 'imu_sensor_broadcaster'
+[ros2_control_node-3] [INFO] [1774545001.142344921] [controller_manager]: Activating controllers: [ imu_sensor_broadcaster ]
+[ros2_control_node-3] [INFO] [1774545001.142881802] [controller_manager]: Successfully switched controllers!
+[spawner-7] [INFO] [1774545001.144607672] [spawner_imu_sensor_broadcaster]: Configured and activated imu_sensor_broadcaster
+[INFO] [spawner-7]: process has finished cleanly [pid 51547]
+[INFO] [spawner-8]: process started with pid [51574]
+[spawner-8] [INFO] [1774545001.620288725] [spawner_ocs2_quadruped_controller_test1]: waiting for service /controller_manager/list_controllers to become available...
+[ros2_control_node-3] [INFO] [1774545002.372769448] [controller_manager]: Loading controller : 'ocs2_quadruped_controller_test1' of type 'ocs2_quadruped_controller_test1/Ocs2QuadrupedController'
+[ros2_control_node-3] [INFO] [1774545002.372814447] [controller_manager]: Loading controller 'ocs2_quadruped_controller_test1'
+[ros2_control_node-3] [INFO] [1774545002.440884390] [controller_manager]: Controller 'ocs2_quadruped_controller_test1' node arguments: --ros-args --params-file /home/ho/ros2_ws/install/go2_description_test1/share/go2_description_test1/config/robot_control_perceptive_test1.yaml 
+[ros2_control_node-3] [INFO] [1774545002.447138311] [ocs2_quadruped_controller_test1]: Controller Manager Update Rate: 500 Hz
+[ros2_control_node-3] [LeggedInterface] Loading task file: "/home/ho/ros2_ws/install/go2_description_test1/share/go2_description_test1/config/ocs2/task.info"
+[ros2_control_node-3] [LeggedInterface] Loading Pinocchio model from: "/home/ho/ros2_ws/install/go2_description_test1/share/go2_description_test1/urdf/robot.urdf"
+[ros2_control_node-3] [LeggedInterface] Loading target command settings from: "/home/ho/ros2_ws/install/go2_description_test1/share/go2_description_test1/config/ocs2/reference.info"
+[ros2_control_node-3] [CppAdInterface] Loading Shared Library: /home/ho/ocs2_cpp_ad/go2/ALL_FOOT_position/cppad_generated/ALL_FOOT_position_lib.so
+[ros2_control_node-3] [CppAdInterface] Loading Shared Library: /home/ho/ocs2_cpp_ad/go2/ALL_FOOT_velocity/cppad_generated/ALL_FOOT_velocity_lib.so
+[ros2_control_node-3] [CppAdInterface] Loading Shared Library: /home/ho/ocs2_cpp_ad/go2/ALL_FOOT_orientation/cppad_generated/ALL_FOOT_orientation_lib.so
+[ros2_control_node-3] [CppAdInterface] Loading Shared Library: /home/ho/ocs2_cpp_ad/go2/dynamics_systemFlowMap/cppad_generated/dynamics_systemFlowMap_lib.so
+[ros2_control_node-3] WARNING: Loaded at least one default value in matrix: "Q"
+[ros2_control_node-3] WARNING: Loaded at least one default value in matrix: "R"
+[ros2_control_node-3] [CppAdInterface] Loading Shared Library: /home/ho/ocs2_cpp_ad/go2/FL_foot_position/cppad_generated/FL_foot_position_lib.so
+[ros2_control_node-3] [CppAdInterface] Loading Shared Library: /home/ho/ocs2_cpp_ad/go2/FL_foot_velocity/cppad_generated/FL_foot_velocity_lib.so
+[ros2_control_node-3] [CppAdInterface] Loading Shared Library: /home/ho/ocs2_cpp_ad/go2/FL_foot_orientation/cppad_generated/FL_foot_orientation_lib.so
+[ros2_control_node-3] [CppAdInterface] Loading Shared Library: /home/ho/ocs2_cpp_ad/go2/FR_foot_position/cppad_generated/FR_foot_position_lib.so
+[ros2_control_node-3] [CppAdInterface] Loading Shared Library: /home/ho/ocs2_cpp_ad/go2/FR_foot_velocity/cppad_generated/FR_foot_velocity_lib.so
+[ros2_control_node-3] [CppAdInterface] Loading Shared Library: /home/ho/ocs2_cpp_ad/go2/FR_foot_orientation/cppad_generated/FR_foot_orientation_lib.so
+[ros2_control_node-3] [CppAdInterface] Loading Shared Library: /home/ho/ocs2_cpp_ad/go2/RL_foot_position/cppad_generated/RL_foot_position_lib.so
+[ros2_control_node-3] [CppAdInterface] Loading Shared Library: /home/ho/ocs2_cpp_ad/go2/RL_foot_velocity/cppad_generated/RL_foot_velocity_lib.so
+[ros2_control_node-3] [CppAdInterface] Loading Shared Library: /home/ho/ocs2_cpp_ad/go2/RL_foot_orientation/cppad_generated/RL_foot_orientation_lib.so
+[ros2_control_node-3] [CppAdInterface] Loading Shared Library: /home/ho/ocs2_cpp_ad/go2/RR_foot_position/cppad_generated/RR_foot_position_lib.so
+[ros2_control_node-3] [CppAdInterface] Loading Shared Library: /home/ho/ocs2_cpp_ad/go2/RR_foot_velocity/cppad_generated/RR_foot_velocity_lib.so
+[ros2_control_node-3] [CppAdInterface] Loading Shared Library: /home/ho/ocs2_cpp_ad/go2/RR_foot_orientation/cppad_generated/RR_foot_orientation_lib.so
+[ros2_control_node-3] [CppAdInterface] Loading Shared Library: /home/ho/ocs2_cpp_ad/go2/FL_foot_position/cppad_generated/FL_foot_position_lib.so
+[ros2_control_node-3] [CppAdInterface] Loading Shared Library: /home/ho/ocs2_cpp_ad/go2/FL_foot_velocity/cppad_generated/FL_foot_velocity_lib.so
+[ros2_control_node-3] [CppAdInterface] Loading Shared Library: /home/ho/ocs2_cpp_ad/go2/FL_foot_orientation/cppad_generated/FL_foot_orientation_lib.so
+[ros2_control_node-3] [CppAdInterface] Loading Shared Library: /home/ho/ocs2_cpp_ad/go2/FR_foot_position/cppad_generated/FR_foot_position_lib.so
+[ros2_control_node-3] [CppAdInterface] Loading Shared Library: /home/ho/ocs2_cpp_ad/go2/FR_foot_velocity/cppad_generated/FR_foot_velocity_lib.so
+[ros2_control_node-3] [CppAdInterface] Loading Shared Library: /home/ho/ocs2_cpp_ad/go2/FR_foot_orientation/cppad_generated/FR_foot_orientation_lib.so
+[ros2_control_node-3] [CppAdInterface] Loading Shared Library: /home/ho/ocs2_cpp_ad/go2/RL_foot_position/cppad_generated/RL_foot_position_lib.so
+[ros2_control_node-3] [CppAdInterface] Loading Shared Library: /home/ho/ocs2_cpp_ad/go2/RL_foot_velocity/cppad_generated/RL_foot_velocity_lib.so
+[ros2_control_node-3] [CppAdInterface] Loading Shared Library: /home/ho/ocs2_cpp_ad/go2/RL_foot_orientation/cppad_generated/RL_foot_orientation_lib.so
+[ros2_control_node-3] [CppAdInterface] Loading Shared Library: /home/ho/ocs2_cpp_ad/go2/RR_foot_position/cppad_generated/RR_foot_position_lib.so
+[ros2_control_node-3] [CppAdInterface] Loading Shared Library: /home/ho/ocs2_cpp_ad/go2/RR_foot_velocity/cppad_generated/RR_foot_velocity_lib.so
+[ros2_control_node-3] [CppAdInterface] Loading Shared Library: /home/ho/ocs2_cpp_ad/go2/RR_foot_orientation/cppad_generated/RR_foot_orientation_lib.so
+[ros2_control_node-3] WARNING: Failed to set threads priority (one possible reason could be that the user and the group permissions are not set properly.)
+[ros2_control_node-3] WARNING: Failed to set threads priority (one possible reason could be that the user and the group permissions are not set properly.)
+[ros2_control_node-3] [INFO] [1774545002.494370502] [gait_manager]: GaitManager is ready.
+[ros2_control_node-3] WARNING: Failed to set threads priority (one possible reason could be that the user and the group permissions are not set properly.)
+[ros2_control_node-3] [INFO] [1774545002.496908171] [ocs2_quadruped_controller_test1]: MRT initialized. MPC thread started.
+[ros2_control_node-3] [INFO] [1774545002.501952308] [ocs2_quadruped_controller_test1]: Using Ground Truth Estimator
+[spawner-8] [INFO] [1774545002.504122584] [spawner_ocs2_quadruped_controller_test1]: Loaded ocs2_quadruped_controller_test1
+[ros2_control_node-3] [INFO] [1774545002.505514963] [controller_manager]: Configuring controller: 'ocs2_quadruped_controller_test1'
+[ros2_control_node-3] [INFO] [1774545002.509375948] [controller_manager]: Activating controllers: [ ocs2_quadruped_controller_test1 ]
+[ros2_control_node-3] [INFO] [1774545002.510143547] [controller_manager]: Successfully switched controllers!
+[spawner-8] [INFO] [1774545002.511976634] [spawner_ocs2_quadruped_controller_test1]: Configured and activated ocs2_quadruped_controller_test1
+[INFO] [spawner-8]: process has finished cleanly [pid 51574]
+[ros2_control_node-3] [INFO] [1774545008.460970468] [ocs2_quadruped_controller_test1]: Switched from passive to OCS2 State
+[ros2_control_node-3] [INFO] [1774545008.463089396] [ocs2_quadruped_controller_test1]: Waiting for the initial policy ...
+[ros2_control_node-3] [INFO] [1774545008.491304526] [GaitManager]: Switch to gait: stance
+[ros2_control_node-3] [INFO] [1774545008.502279412] [ocs2_quadruped_controller_test1]: Initial policy has been received.
+[ros2_control_node-3] [WARN] [1774545008.502482497] [controller_manager]: Overrun might occur, Total time : 39652.155 us (Expected < 1000.000 us) --> Read time : 6.171 us, Update time : 39540.426 us, Write time : 105.558 us
+[ros2_control_node-3] [WARN] [1774545008.502506925] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 1000 Hz. The loop took 39.750178 ms (missed cycles : 40).
+[ros2_control_node-3] [WARN] [1774545009.503834453] [controller_manager]: Overrun might occur, Total time : 1011.480 us (Expected < 1000.000 us) --> Read time : 9.405 us, Update time : 828.031 us, Write time : 174.044 us
+[ros2_control_node-3] [WARN] [1774545009.503903254] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 1000 Hz. The loop took 1.146012 ms (missed cycles : 2).
+[ros2_control_node-3] [INFO] [1774545010.147538631] [GaitManager]: Switch to gait: trot
+[ros2_control_node-3] [WARN] [1774545010.505911676] [controller_manager]: Overrun might occur, Total time : 1080.214 us (Expected < 1000.000 us) --> Read time : 9.030 us, Update time : 943.345 us, Write time : 127.839 us
+[ros2_control_node-3] [WARN] [1774545010.505967927] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 1000 Hz. The loop took 1.210606 ms (missed cycles : 2).
+[ros2_control_node-3] [WARN] [1774545011.521914903] [controller_manager]: Overrun might occur, Total time : 1081.529 us (Expected < 1000.000 us) --> Read time : 12.323 us, Update time : 910.613 us, Write time : 158.593 us
+[ros2_control_node-3] [WARN] [1774545011.522006954] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 1000 Hz. The loop took 1.248254 ms (missed cycles : 2).
+[ros2_control_node-3] [WARN] [1774545012.533777986] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 1000 Hz. The loop took 1.020533 ms (missed cycles : 2).
+[ros2_control_node-3] [WARN] [1774545012.555891362] [controller_manager]: Overrun might occur, Total time : 1062.493 us (Expected < 1000.000 us) --> Read time : 53.784 us, Update time : 864.387 us, Write time : 144.322 us
+[ros2_control_node-3] [WARN] [1774545013.556102514] [controller_manager]: Overrun might occur, Total time : 1285.070 us (Expected < 1000.000 us) --> Read time : 3.801 us, Update time : 1120.653 us, Write time : 160.616 us
+[ros2_control_node-3] [WARN] [1774545013.556169283] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 1000 Hz. The loop took 1.411814 ms (missed cycles : 2).
+[ros2_control_node-3] [WARN] [1774545014.571619136] [controller_manager]: Overrun might occur, Total time : 1799.362 us (Expected < 1000.000 us) --> Read time : 5.790 us, Update time : 1642.930 us, Write time : 150.642 us
+[ros2_control_node-3] [WARN] [1774545014.571704788] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 1000 Hz. The loop took 1.946882 ms (missed cycles : 2).
+[ros2_control_node-3] [WARN] [1774545015.571863080] [controller_manager]: Overrun might occur, Total time : 1035.864 us (Expected < 1000.000 us) --> Read time : 9.385 us, Update time : 851.897 us, Write time : 174.582 us
+[ros2_control_node-3] [WARN] [1774545015.571936479] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 1000 Hz. The loop took 1.178084 ms (missed cycles : 2).
+[ros2_control_node-3] [WARN] [1774545016.571935626] [controller_manager]: Overrun might occur, Total time : 1103.671 us (Expected < 1000.000 us) --> Read time : 15.142 us, Update time : 956.845 us, Write time : 131.684 us
+[ros2_control_node-3] [WARN] [1774545016.572001659] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 1000 Hz. The loop took 1.244417 ms (missed cycles : 2).
+[ros2_control_node-3] [WARN] [1774545017.584494406] [controller_manager]: Overrun might occur, Total time : 1673.941 us (Expected < 1000.000 us) --> Read time : 8.937 us, Update time : 1555.480 us, Write time : 109.524 us
+[ros2_control_node-3] [WARN] [1774545017.584545832] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 1000 Hz. The loop took 1.788445 ms (missed cycles : 2).
+[ros2_control_node-3] [WARN] [1774545018.586778359] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 1000 Hz. The loop took 1.020816 ms (missed cycles : 2).
+[ros2_control_node-3] [WARN] [1774545018.588842691] [controller_manager]: Overrun might occur, Total time : 1011.508 us (Expected < 1000.000 us) --> Read time : 16.066 us, Update time : 838.738 us, Write time : 156.704 us
+[ros2_control_node-3] [WARN] [1774545019.587824028] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 1000 Hz. The loop took 1.066516 ms (missed cycles : 2).
+[ros2_control_node-3] [WARN] [1774545019.621884283] [controller_manager]: Overrun might occur, Total time : 1066.087 us (Expected < 1000.000 us) --> Read time : 7.900 us, Update time : 899.908 us, Write time : 158.279 us
+[ros2_control_node-3] [WARN] [1774545020.587914397] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 1000 Hz. The loop took 1.157184 ms (missed cycles : 2).
+[ros2_control_node-3] [WARN] [1774545020.622088906] [controller_manager]: Overrun might occur, Total time : 1250.947 us (Expected < 1000.000 us) --> Read time : 15.830 us, Update time : 1044.599 us, Write time : 190.518 us
+[ros2_control_node-3] [WARN] [1774545021.589796963] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 1000 Hz. The loop took 1.039657 ms (missed cycles : 2).
+[ros2_control_node-3] [WARN] [1774545021.666306162] [controller_manager]: Overrun might occur, Total time : 1490.561 us (Expected < 1000.000 us) --> Read time : 3.592 us, Update time : 1385.223 us, Write time : 101.746 us
+[ros2_control_node-3] [WARN] [1774545022.591579534] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 1000 Hz. The loop took 1.822426 ms (missed cycles : 2).
+[ros2_control_node-3] [WARN] [1774545022.694860283] [controller_manager]: Overrun might occur, Total time : 1043.094 us (Expected < 1000.000 us) --> Read time : 5.233 us, Update time : 944.899 us, Write time : 92.962 us
+[ros2_control_node-3] [WARN] [1774545023.618522807] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 1000 Hz. The loop took 1.765382 ms (missed cycles : 2).
+[ros2_control_node-3] [WARN] [1774545023.705830138] [controller_manager]: Overrun might occur, Total time : 1007.958 us (Expected < 1000.000 us) --> Read time : 9.578 us, Update time : 820.986 us, Write time : 177.394 us
+[ros2_control_node-3] [WARN] [1774545024.625803775] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 1000 Hz. The loop took 1.046463 ms (missed cycles : 2).
+[ros2_control_node-3] [WARN] [1774545024.734884458] [controller_manager]: Overrun might occur, Total time : 1060.428 us (Expected < 1000.000 us) --> Read time : 11.135 us, Update time : 892.410 us, Write time : 156.883 us
+[ros2_control_node-3] [WARN] [1774545025.637788902] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 1000 Hz. The loop took 1.031026 ms (missed cycles : 2).
+[ros2_control_node-3] [WARN] [1774545025.739892972] [controller_manager]: Overrun might occur, Total time : 1069.821 us (Expected < 1000.000 us) --> Read time : 8.677 us, Update time : 911.499 us, Write time : 149.645 us
+[ros2_control_node-3] [WARN] [1774545026.639002986] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 1000 Hz. The loop took 1.245869 ms (missed cycles : 2).
+[ros2_control_node-3] [WARN] [1774545026.768879459] [controller_manager]: Overrun might occur, Total time : 1052.021 us (Expected < 1000.000 us) --> Read time : 13.010 us, Update time : 913.315 us, Write time : 125.696 us
+[ros2_control_node-3] [WARN] [1774545027.639777536] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 1000 Hz. The loop took 1.020301 ms (missed cycles : 2).
+[ros2_control_node-3] [WARN] [1774545027.752754457] [ocs2_quadruped_controller_test1]: [Ocs2 MPC thread] Error : GridMap::atPosition(...) : Position is out of range.
+[ros2_control_node-3] [WARN] [1774545027.773863958] [controller_manager]: Overrun might occur, Total time : 1044.300 us (Expected < 1000.000 us) --> Read time : 7.353 us, Update time : 900.548 us, Write time : 136.399 us
+[ros2_control_node-3] [WARN] [1774545028.639948543] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 1000 Hz. The loop took 1.191768 ms (missed cycles : 2).
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.186012>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.187992>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.189993>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.191999>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.194005>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.196015>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.198010>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.199993>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.201992>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.204042>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.205992>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.208008>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.210003>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.212017>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.214005>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.216014>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.218006>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.219992>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.221993>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.224000>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.226004>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.228000>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.230008>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.232009>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.234000>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.235996>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.237998>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.240010>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.242003>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.244004>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.246015>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.248002>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.249998>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.251998>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.253996>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.255994>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.258003>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.259997>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.262016>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.264008>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.265999>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.267997>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.269995>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.271997>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.274017>26.184008
+[ros2_control_node-3] [WARN] [1774545028.783947754] [controller_manager]: Overrun might occur, Total time : 1121.591 us (Expected < 1000.000 us) --> Read time : 14.113 us, Update time : 971.487 us, Write time : 135.991 us
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.276014>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.278010>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.280006>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.282006>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.284003>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.285992>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.287992>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.289992>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.292009>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.293971>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.296012>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.298013>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.300003>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.301997>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.303994>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.306010>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.308006>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.310011>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.312016>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.313991>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.316014>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.317965>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.319992>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.321992>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.323999>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.326000>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.328003>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.330005>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.332002>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.333994>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.335995>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.337998>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.339994>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.342006>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.344006>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.346004>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.348008>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.349995>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.351995>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.353992>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.355994>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.357996>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.360001>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.362011>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.363994>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.365999>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.367992>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.369990>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.371993>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.374006>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.375989>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.377993>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.379994>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.381994>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.383986>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.385986>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.387987>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.389992>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.391990>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.393994>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.395995>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.397991>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.399989>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.401988>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.404024>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.405986>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.407993>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.409992>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.412010>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.413995>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.415989>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.417993>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.419988>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.421986>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.423992>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.425991>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.428000>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.430000>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.431997>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.433987>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.435992>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.437986>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.439988>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.442009>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.444011>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.446013>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.448012>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.449988>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.451990>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.453986>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.455987>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.457991>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.459997>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.462007>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.464014>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.465993>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.467999>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.469987>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.471986>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.473994>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.475995>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.477997>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.479989>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.481996>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.483988>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.485985>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.487985>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.489987>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.491992>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.494000>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.496005>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.497991>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.500002>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.501993>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.503988>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.505987>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.507996>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.510000>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.511999>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.513991>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.516037>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.517986>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.519986>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.521986>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.524000>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.526002>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.527995>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.529993>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.531998>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.533995>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.535992>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.537995>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.539996>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.541991>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.543997>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.545992>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.547995>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.549986>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.551986>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.553986>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.555989>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.557988>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.559994>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.561992>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.564002>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.565994>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.567991>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.570026>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.571986>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.573989>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.575992>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.577995>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.580008>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.581997>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.583997>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.585994>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.587987>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.589993>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.591994>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.593996>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.595991>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.597992>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.599992>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.601986>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.603986>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.605986>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.607990>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.609996>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.611994>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.613993>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.615985>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.617985>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.619986>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.621986>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.624001>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.626007>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.628016>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.629991>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.631993>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.633987>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.635986>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.637986>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.639987>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.641995>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.643992>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.646003>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.648005>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.649992>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.651994>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.653994>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.655995>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.658007>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.660009>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.661997>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.664005>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.665994>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.667986>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.669986>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.671986>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.673988>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.675997>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.677998>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.679991>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.681987>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.683986>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.686023>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.687991>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.689989>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.691995>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.693999>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.695993>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.698026>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.699985>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.701985>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.703989>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.705986>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.707992>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.709995>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.711994>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.713990>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.715986>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.717986>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.719986>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.721994>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.723989>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.725989>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.727992>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.729991>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.731987>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.733986>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.735986>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.738013>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.739988>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.742010>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.744007>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.745995>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.747990>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.749986>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.751986>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.753991>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.755987>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.758005>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.759993>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.761996>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.763992>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.765986>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.767986>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.769986>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.771986>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.773997>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.775993>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.777994>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.779990>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.781993>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.783994>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.785990>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.787986>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.789989>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.791989>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.794027>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.795991>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.797987>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.799986>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.801986>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.803986>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.805988>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.807986>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.809986>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.811998>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.813997>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.815998>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.817993>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.819993>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.821992>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.823991>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.825989>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.828029>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.829998>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.832001>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.833986>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.835986>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.837985>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.839986>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.841986>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.844012>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.846000>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.847988>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.849999>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.851994>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.854048>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.855992>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.857996>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.859993>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.861989>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.863995>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.865988>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.867987>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.869995>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.872000>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.873996>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.876001>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.877999>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.879995>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.881993>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.883986>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.885993>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.887993>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.889991>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.891994>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.894039>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.896001>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.897999>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.899991>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.901994>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.904000>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.905998>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.907995>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.910018>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.912025>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.914015>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.915996>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.917997>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.919995>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.922001>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.924017>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.926017>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.928011>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.929995>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.931990>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.933986>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.935986>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.937999>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.939992>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.941991>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.943998>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.945998>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.948000>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.949992>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.951986>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.953988>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.955988>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.957992>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.959991>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.961986>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.963985>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.965994>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.967997>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.970003>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.972004>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.974004>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.976010>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.978003>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.980004>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.981997>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.983995>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.985993>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.987990>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.989991>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.991993>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.993990>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.995986>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.997986>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 26.999993>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.001989>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.003999>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.006001>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.008001>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.009992>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.011991>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.013990>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.015986>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.017993>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.019994>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.021994>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.023989>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.025992>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.027993>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.029985>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.031987>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.033986>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.036009>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.038007>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.039993>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.042013>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.044004>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.046006>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.048001>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.049986>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.051986>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.053997>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.055993>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.058024>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.059990>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.061986>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.063985>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.065986>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.067988>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.070003>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.072006>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.074009>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.076004>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.078010>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.080004>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.081996>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.083993>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.085993>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.088005>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.090002>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.092004>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.093997>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.095986>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.097986>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.099986>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.101992>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.104002>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.105995>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.107988>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.109993>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.111993>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.113987>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.115986>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.117986>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.119989>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.121992>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.123993>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.125991>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.127988>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.129980>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.131995>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.133996>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.136009>26.184008
+[ros2_control_node-3] [WARN] [1774545029.645900401] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 1000 Hz. The loop took 1.142834 ms (missed cycles : 2).
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.138005>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.140005>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.142010>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.144006>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.145996>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.147994>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.149995>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.151994>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.153999>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.155989>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.157992>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.159990>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.161988>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.163985>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.165992>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.167994>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.169957>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.172009>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.174022>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.176002>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.178000>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.179992>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.181992>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.183992>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.185999>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.188008>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.190004>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.192011>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.193995>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.195986>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.197985>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.199986>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.201990>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.203987>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.205990>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.207994>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.209991>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.211987>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.213985>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.216016>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.217985>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.219987>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.221988>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.223993>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.225991>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.227991>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.229987>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.231987>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.233994>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.235986>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.237992>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.239992>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.241995>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.243992>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.245986>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.247986>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.249986>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.251986>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.253991>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.255988>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.257991>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.259992>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.261988>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.263986>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.265991>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.267989>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.269988>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.271989>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.273992>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.275989>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.277988>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.280024>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.282018>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.283985>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.285986>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.287989>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.289997>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.291995>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.293989>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.295994>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.297992>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.299986>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.301986>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.303991>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.305988>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.307993>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.309991>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.311989>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.313985>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.315986>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.317986>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.319988>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.321990>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.323994>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.326001>26.184008
+[ros2_control_node-3] [WARN] [1774545029.836134689] [controller_manager]: Overrun might occur, Total time : 1313.285 us (Expected < 1000.000 us) --> Read time : 6.351 us, Update time : 1167.148 us, Write time : 139.786 us
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.328004>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.329989>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.331987>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.333985>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.335986>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.337999>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.339990>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.341993>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.343992>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.345986>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.347985>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.349986>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.351988>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.354000>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.356012>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.358012>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.360002>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.362009>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.363987>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.365992>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.367990>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.369991>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.371991>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.373995>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.376000>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.377992>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.379986>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.382018>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.383988>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.385990>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.387997>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.390017>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.392003>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.393992>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.395993>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.397990>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.399986>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.401995>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.404052>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.406011>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.408003>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.409991>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.411994>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.413990>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.415992>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.417992>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.420005>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.422000>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.423992>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.425994>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.427989>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.429990>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.431987>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.433986>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.435986>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.437991>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.439992>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.441992>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.443992>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.445985>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.447987>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.449986>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.451993>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.454001>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.456005>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.457990>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.459993>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.461992>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.463991>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.465986>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.467986>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.469988>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.472006>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.474008>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.476004>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.477992>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.479986>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.481986>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.483985>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.485991>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.487998>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.489993>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.491988>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.493994>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.495998>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.497986>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.499992>26.184008
+[ros2_control_node-3] The requested currentTime is greater than the received plan: 27.501989>26.184008
+[WARNING] [launch]: user interrupted with ctrl-c (SIGINT)
+[INFO] [robot_state_publisher-2]: process has finished cleanly [pid 51413]
+[fake_elevation_map_node-4] [INFO] [1774545030.011078094] [rclcpp]: signal_handler(SIGINT/SIGTERM)
+[ros2_control_node-3] [INFO] [1774545030.011077706] [rclcpp]: signal_handler(SIGINT/SIGTERM)
+[ros2_control_node-3] [INFO] [1774545030.011130028] [controller_manager]: Shutdown request received....
+[ros2_control_node-3] [INFO] [1774545030.011162845] [controller_manager]: Shutting down all controllers in the controller manager.
+[ros2_control_node-3] [INFO] [1774545030.011249314] [controller_manager]: Deactivating controller 'ocs2_quadruped_controller_test1'
+[rviz2-1] [INFO] [1774545030.011105481] [rclcpp]: signal_handler(SIGINT/SIGTERM)
+[convex_plane_decomposition_ros_node-5] [INFO] [1774545030.011124133] [rclcpp]: signal_handler(SIGINT/SIGTERM)
+[ros2_control_node-3] [INFO] [1774545030.011348990] [controller_manager]: Shutting down controller 'ocs2_quadruped_controller_test1'
+[convex_plane_decomposition_ros_node-5] 
+[convex_plane_decomposition_ros_node-5] ########################################################################
+[convex_plane_decomposition_ros_node-5] The benchmarking is computed over 60 iterations. 
+[convex_plane_decomposition_ros_node-5] PlaneExtraction Benchmarking    : Average time [ms], Max time [ms]
+[convex_plane_decomposition_ros_node-5] 	Pre-process        	:              0.43,          0.60
+[convex_plane_decomposition_ros_node-5] 	Sliding window     	:            266.55,        294.62
+[convex_plane_decomposition_ros_node-5] 	Contour extraction 	:              0.41,          0.57
+[convex_plane_decomposition_ros_node-5] 	Post-process       	:             55.60,         59.64
+[convex_plane_decomposition_ros_node-5] 	Total callback     	:            323.44,        351.89
+[convex_plane_decomposition_ros_node-5] 
+[ros2_control_node-3] [INFO] [1774545030.011533139] [controller_manager]: Deactivating controller 'imu_sensor_broadcaster'
+[ros2_control_node-3] [INFO] [1774545030.011568437] [controller_manager]: Shutting down controller 'imu_sensor_broadcaster'
+[ros2_control_node-3] [INFO] [1774545030.011625802] [controller_manager]: Deactivating controller 'joint_state_broadcaster'
+[ros2_control_node-3] [INFO] [1774545030.011663789] [controller_manager]: Shutting down controller 'joint_state_broadcaster'
+[ros2_control_node-3] [INFO] [1774545030.011726507] [resource_manager]: 'deactivate' hardware 'UnitreeSystem' 
+[ros2_control_node-3] [INFO] [1774545030.011750463] [resource_manager]: Successful 'deactivate' of hardware 'UnitreeSystem'
+[ros2_control_node-3] [INFO] [1774545030.011755590] [resource_manager]: 'shutdown' hardware 'UnitreeSystem' 
+[ros2_control_node-3] [INFO] [1774545030.011759659] [resource_manager]: Successful 'shutdown' of hardware 'UnitreeSystem'
+[ros2_control_node-3] [INFO] [1774545030.011838204] [controller_manager]: Shutting down the controller manager.
+[ros2_control_node-3] [ERROR] [1774545030.011927053] [controller_manager.pal_statistics]: Exception in publisher thread: context cannot be slept with because it's invalid!. Aborting!
+[ros2_control_node-3] [ERROR] [1774545030.011927388] [controller_manager.pal_statistics]: Exception in publisher thread: context cannot be slept with because it's invalid!. Aborting!
+[robot_state_publisher-2] [INFO] [1774545030.012022645] [rclcpp]: signal_handler(SIGINT/SIGTERM)
+[ros2_control_node-3] [INFO] [1774545030.015131132] [controller_manager.pal_statistics]: Async messages lost 0
+[ros2_control_node-3] [INFO] [1774545030.015151910] [controller_manager.pal_statistics]: publish_async_failures_ 0
+[ros2_control_node-3] [INFO] [1774545030.017385005] [controller_manager.pal_statistics]: Async messages lost 0
+[ros2_control_node-3] [INFO] [1774545030.017412309] [controller_manager.pal_statistics]: publish_async_failures_ 6
+[ros2_control_node-3] terminate called without an active exception
+[ros2_control_node-3] Stack trace (most recent call last):
+[ros2_control_node-3] #20   Object "/usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2", at 0xffffffffffffffff, in 
+[INFO] [convex_plane_decomposition_ros_node-5]: sending signal 'SIGINT' to process[convex_plane_decomposition_ros_node-5]
+[INFO] [fake_elevation_map_node-4]: sending signal 'SIGINT' to process[fake_elevation_map_node-4]
+[INFO] [ros2_control_node-3]: sending signal 'SIGINT' to process[ros2_control_node-3]
+[INFO] [rviz2-1]: sending signal 'SIGINT' to process[rviz2-1]
+[convex_plane_decomposition_ros_node-5] [INFO] [1774545030.125775933] [rclcpp]: signal_handler(SIGINT/SIGTERM)
+[ERROR] [fake_elevation_map_node-4]: process has died [pid 51415, exit code -2, cmd '/home/ho/ros2_ws/install/fake_elevation_map_publisher/lib/fake_elevation_map_publisher/fake_elevation_map_node --ros-args -r __node:=fake_elevation_map_node --params-file /tmp/launch_params_xuerxe6k'].
+[ERROR] [ros2_control_node-3]: process has died [pid 51414, exit code -2, cmd '/opt/ros/jazzy/lib/controller_manager/ros2_control_node --ros-args --params-file /home/ho/ros2_ws/install/go2_description_test1/share/go2_description_test1/config/robot_control_perceptive_test1.yaml -r ~/robot_description:=/robot_description'].
+[ERROR] [rviz2-1]: process has died [pid 51412, exit code -2, cmd '/opt/ros/jazzy/lib/rviz2/rviz2 -d /home/ho/ros2_ws/install/ocs2_quadruped_controller_test1/share/ocs2_quadruped_controller_test1/config/visualize_ocs2.rviz --ros-args -r __node:=rviz_ocs2_test1'].
+[INFO] [convex_plane_decomposition_ros_node-5]: process has finished cleanly [pid 51416]
