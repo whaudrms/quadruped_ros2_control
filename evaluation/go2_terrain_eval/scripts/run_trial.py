@@ -125,7 +125,11 @@ def merge_uncertainty_metrics(result_json: Path):
 def main():
     parser = argparse.ArgumentParser(description="Run one automatic GO2 terrain trial.")
     parser.add_argument("--terrain", required=True)
-    parser.add_argument("--mode", choices=["baseline", "perceptive", "perceptive_maptraj", "uncertainty_v1", "rgdemo"], default="baseline")
+    parser.add_argument(
+        "--mode",
+        choices=["baseline", "perceptive", "perceptive_maptraj", "uncertainty_v1", "height_only_v1", "rgdemo"],
+        default="baseline",
+    )
     parser.add_argument("--scenario", default=str(ROOT / "configs" / "scenarios" / "standing_trot_forward.yaml"))
     parser.add_argument(
         "--trajectory-file",
@@ -138,7 +142,7 @@ def main():
     if args.terrain not in terrains:
         raise KeyError(f"Unknown terrain: {args.terrain}")
     terrain = terrains[args.terrain]
-    if args.mode in ("perceptive", "perceptive_maptraj", "uncertainty_v1", "rgdemo") and not terrain.get("perceptive_supported", False):
+    if args.mode in ("perceptive", "perceptive_maptraj", "uncertainty_v1", "height_only_v1", "rgdemo") and not terrain.get("perceptive_supported", False):
         raise ValueError(f"Terrain '{args.terrain}' does not currently define a perceptive input image.")
 
     scene_file = require_scene(args.terrain, terrain)
@@ -193,6 +197,18 @@ def main():
             "launch_plane_decomposition:=true "
             f"terrain_image:={terrain['perceptive_image']} "
             f"terrain_height_scale:={terrain['terrain_height_scale']}"
+        )
+    elif args.mode == "height_only_v1":
+        controller_cmd = (
+            "source /opt/ros/jazzy/setup.bash && "
+            "source /home/ho/ros2_ws/install/setup.bash && "
+            "ros2 launch ocs2_quadruped_controller_height_only_v1 mujoco_perceptive_height_only_v1.launch.py "
+            "pkg_description:=go2_description_height_only_v1 "
+            "launch_fake_elevation_map:=true "
+            "launch_plane_decomposition:=true "
+            f"terrain_image:={terrain['perceptive_image']} "
+            f"terrain_height_scale:={terrain['terrain_height_scale']} "
+            f"terrain_resolution:={terrain.get('terrain_resolution', 0.03)}"
         )
     else:
         controller_cmd = (

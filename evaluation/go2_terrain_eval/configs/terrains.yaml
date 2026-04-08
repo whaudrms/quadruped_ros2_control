@@ -16,6 +16,18 @@ terrains:
       position: [1.0, 0.0, 0.1]
       size: [0.8, 1.2, 0.2]
 
+  height_only_box:
+    type: box
+    description: "Single simple box for height-only stepping experiments"
+    scene_file: "/home/ho/unitree_mujoco/unitree_robots/go2/eval_height_only_box.xml"
+    perceptive_supported: true
+    perceptive_image: "/home/ho/ros2_ws/src/quadruped_ros2_control/evaluation/go2_terrain_eval/assets/height_only_box_eval.pgm"
+    terrain_height_scale: 0.08
+    terrain_resolution: 0.18
+    parameters:
+      position: [0.55, 0.0, 0.04]
+      size: [0.36, 1.10, 0.08]
+
   slope:
     type: slope
     description: "Single slope ahead"
