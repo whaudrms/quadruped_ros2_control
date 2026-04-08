@@ -23,6 +23,7 @@ namespace ocs2::legged_robot
         PlanarTerrainReceiver(const rclcpp_lifecycle::LifecycleNode::SharedPtr& node,
                               const std::shared_ptr<convex_plane_decomposition::PlanarTerrain>& planarTerrainPtr,
                               const std::shared_ptr<grid_map::SignedDistanceField>& signedDistanceFieldPtr,
+                              const std::shared_ptr<std::mutex>& terrainDataMutexPtr,
                               const std::string& mapTopic,
                               const std::string& sdfElevationLayer);
 
@@ -46,6 +47,7 @@ namespace ocs2::legged_robot
 
         std::shared_ptr<convex_plane_decomposition::PlanarTerrain> planarTerrainPtr_;
         std::shared_ptr<grid_map::SignedDistanceField> sdfPtr_;
+        std::shared_ptr<std::mutex> terrainDataMutexPtr_;
     };
 }
 

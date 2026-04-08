@@ -3,6 +3,7 @@
 //
 
 #include <utility>
+#include <limits>
 #include <ocs2_core/misc/Lookup.h>
 #include <ocs2_centroidal_model/AccessHelperFunctions.h>
 #include "ocs2_quadruped_controller/perceptive/interface/PerceptiveLeggedReferenceManager.h"
@@ -61,7 +62,7 @@ namespace ocs2::legged_robot
             {
                 scalar_t time = initTime + static_cast<double>(i) * timeHorizon / (nodeNum - 1);
                 vector_t state = targetTrajectories.getDesiredState(time);
-                vector_t input = targetTrajectories.getDesiredState(time);
+                vector_t input = targetTrajectories.getDesiredInput(time);
 
                 const auto& map = convexRegionSelectorPtr_->getPlanarTerrainPtr()->gridMap;
                 vector_t pos = centroidal_model::getBasePose(state, info_).head(3);
@@ -96,18 +97,30 @@ namespace ocs2::legged_robot
             targetTrajectories = newTargetTrajectories;
         }
 
-        {
-            std::lock_guard lock(latestReferenceTrajectoriesMutex_);
-            latestRawBasePath_ = extractBasePath(rawTargetTrajectories, info_);
-            latestTerrainAwareBasePath_ = extractBasePath(targetTrajectories, info_);
-            hasLatestReferenceTrajectories_ = true;
-        }
-
         // Footstep
         convexRegionSelectorPtr_->update(modeSchedule, initTime, initState, targetTrajectories);
 
         // Swing trajectory
         updateSwingTrajectoryPlanner(initTime, initState, modeSchedule);
+
+        {
+            std::lock_guard lock(latestReferenceTrajectoriesMutex_);
+            latestRawBasePath_ = extractBasePath(rawTargetTrajectories, info_);
+            latestTerrainAwareBasePath_ = extractBasePath(targetTrajectories, info_);
+            latestFootPlacementDebugInfo_.time = initTime;
+            latestFootPlacementDebugInfo_.contactFlags = getContactFlags(initTime);
+            latestFootPlacementDebugInfo_.footPlacementFlags = getFootPlacementFlags(initTime);
+            latestFootPlacementDebugInfo_.initStandFinalTimes = convexRegionSelectorPtr_->getInitStandFinalTimes();
+            for (size_t leg = 0; leg < info_.numThreeDofContacts; ++leg)
+            {
+                const auto projection = convexRegionSelectorPtr_->getProjection(leg, initTime);
+                latestFootPlacementDebugInfo_.polygonVertexCounts[leg] =
+                    convexRegionSelectorPtr_->getConvexPolygon(leg, initTime).size();
+                latestFootPlacementDebugInfo_.projectionHeights[leg] =
+                    projection.regionPtr == nullptr ? std::numeric_limits<scalar_t>::quiet_NaN() : projection.positionInWorld.z();
+            }
+            hasLatestReferenceTrajectories_ = true;
+        }
     }
 
     void PerceptiveLeggedReferenceManager::updateSwingTrajectoryPlanner(scalar_t initTime, const vector_t& initState,
@@ -245,6 +258,18 @@ namespace ocs2::legged_robot
 
         rawBasePath = latestRawBasePath_;
         terrainAwareBasePath = latestTerrainAwareBasePath_;
+        return true;
+    }
+
+    bool PerceptiveLeggedReferenceManager::getLatestFootPlacementDebugInfo(FootPlacementDebugInfo& debugInfo) const
+    {
+        std::lock_guard lock(latestReferenceTrajectoriesMutex_);
+        if (!hasLatestReferenceTrajectories_)
+        {
+            return false;
+        }
+
+        debugInfo = latestFootPlacementDebugInfo_;
         return true;
     }
 } // namespace legged

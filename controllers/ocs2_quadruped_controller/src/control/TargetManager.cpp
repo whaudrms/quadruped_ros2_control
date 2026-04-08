@@ -5,8 +5,10 @@
 #include "ocs2_quadruped_controller/control/TargetManager.h"
 
 #include <ocs2_core/misc/LoadData.h>
+#include <ocs2_quadruped_controller/perceptive/interface/PerceptiveLeggedReferenceManager.h>
 #include <ocs2_robotic_tools/common/RotationTransforms.h>
 
+#include <optional>
 #include <utility>
 
 namespace ocs2::legged_robot
@@ -34,6 +36,30 @@ namespace ocs2::legged_robot
                 twist_count = ctrl_component_.frequency_ / 5;
                 RCLCPP_INFO(node_->get_logger(), "Twist count: %i", twist_count);
             });
+    }
+
+    scalar_t TargetManager::resolveTargetBaseHeight(const vector_t& currentPose, const vector_t& targetPose)
+    {
+        auto* perceptiveReferenceManager = dynamic_cast<PerceptiveLeggedReferenceManager*>(referenceManagerPtr_.get());
+        if (perceptiveReferenceManager == nullptr)
+        {
+            return command_height_;
+        }
+
+        const auto& convexRegionSelectorPtr = perceptiveReferenceManager->getConvexRegionSelectorPtr();
+        if (!convexRegionSelectorPtr)
+        {
+            return currentPose(2);
+        }
+
+        if (const auto terrainHeight = convexRegionSelectorPtr->sampleTerrainHeight(targetPose(0), targetPose(1));
+            terrainHeight.has_value())
+        {
+            return *terrainHeight + command_height_;
+        }
+
+        // Keep the current measured height until terrain data is available.
+        return currentPose(2);
     }
 
     void TargetManager::update(SystemObservation& observation)
@@ -69,7 +95,7 @@ namespace ocs2::legged_robot
             vector_t target(6);
             target(0) = currentPose(0) + cmd_vel_rot(0) * time_to_target_;
             target(1) = currentPose(1) + cmd_vel_rot(1) * time_to_target_;
-            target(2) = command_height_;
+            target(2) = resolveTargetBaseHeight(currentPose, target);
             target(3) = currentPose(3) + cmdGoal(3) * time_to_target_;
             target(4) = 0;
             target(5) = 0;

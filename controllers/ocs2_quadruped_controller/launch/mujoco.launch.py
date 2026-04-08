@@ -11,6 +11,18 @@ from launch_ros.substitutions import FindPackageShare
 from launch.substitutions import PathJoinSubstitution
 
 package_controller = "ocs2_quadruped_controller"
+scene_root_dir = "/home/tony/unitree_mujoco/unitree_robots/go2"
+
+
+def resolve_scene_file(scene_name: str) -> str:
+    expanded = os.path.expanduser(scene_name)
+    if os.path.isabs(expanded):
+        return expanded
+
+    if not os.path.splitext(scene_name)[1]:
+        scene_name = f"{scene_name}.xml"
+
+    return os.path.join(scene_root_dir, scene_name)
 
 
 def launch_setup(context, *args, **kwargs):
@@ -19,8 +31,9 @@ def launch_setup(context, *args, **kwargs):
     enable_perceptive_reference_modification = context.launch_configurations['enable_perceptive_reference_modification'].lower() in ("true", "1", "yes", "on")
     enable_perceptive_foot_placement_constraint = context.launch_configurations['enable_perceptive_foot_placement_constraint'].lower() in ("true", "1", "yes", "on")
     enable_perceptive_foot_collision_constraint = context.launch_configurations['enable_perceptive_foot_collision_constraint'].lower() in ("true", "1", "yes", "on")
+    enable_perceptive_body_collision_constraint = context.launch_configurations['enable_perceptive_body_collision_constraint'].lower() in ("true", "1", "yes", "on")
     publish_static_terrain = context.launch_configurations['publish_static_terrain'].lower() in ("true", "1", "yes", "on")
-    terrain_scene_file = context.launch_configurations['terrain_scene_file']
+    terrain_scene_file = resolve_scene_file(context.launch_configurations['terrain_scene_file'])
     pkg_path = os.path.join(get_package_share_directory(package_description))
 
     with tempfile.NamedTemporaryFile(
@@ -32,6 +45,7 @@ def launch_setup(context, *args, **kwargs):
             f"    enable_perceptive_reference_modification: {'true' if enable_perceptive_reference_modification else 'false'}\n"
             f"    enable_perceptive_foot_placement_constraint: {'true' if enable_perceptive_foot_placement_constraint else 'false'}\n"
             f"    enable_perceptive_foot_collision_constraint: {'true' if enable_perceptive_foot_collision_constraint else 'false'}\n"
+            f"    enable_perceptive_body_collision_constraint: {'true' if enable_perceptive_body_collision_constraint else 'false'}\n"
         )
         controller_override_file = controller_param_file.name
 
@@ -198,10 +212,16 @@ def generate_launch_description():
         description='Enable perceptive foot collision soft constraints'
     )
 
+    enable_perceptive_body_collision_constraint = DeclareLaunchArgument(
+        'enable_perceptive_body_collision_constraint',
+        default_value='false',
+        description='Enable perceptive body collision soft constraints'
+    )
+
     terrain_scene_file = DeclareLaunchArgument(
         'terrain_scene_file',
-        default_value='/home/tony/unitree_mujoco/unitree_robots/go2/basic_step.xml',
-        description='MuJoCo scene XML used to generate static planar terrain'
+        default_value='basic_step',
+        description=f"MuJoCo scene name under {scene_root_dir} (for example: basic_step or basic_step.xml)"
     )
 
     return LaunchDescription([
@@ -210,6 +230,7 @@ def generate_launch_description():
         enable_perceptive_reference_modification,
         enable_perceptive_foot_placement_constraint,
         enable_perceptive_foot_collision_constraint,
+        enable_perceptive_body_collision_constraint,
         publish_static_terrain,
         terrain_scene_file,
         OpaqueFunction(function=launch_setup),

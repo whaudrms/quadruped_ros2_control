@@ -293,7 +293,7 @@ class StaticPlanarTerrainPublisher final : public rclcpp::Node {
         "terrain_topic", "/convex_plane_decomposition_ros/planar_terrain");
     const auto frameId = this->declare_parameter<std::string>("frame_id", "map");
     const auto resolution = this->declare_parameter<double>("resolution", 0.03);
-    const auto publishRate = this->declare_parameter<double>("publish_rate", 2.0);
+    const auto publishRate = this->declare_parameter<double>("publish_rate", 0.0);
 
     const SceneDescription scene = loadSceneDescription(sceneFile);
     terrain_ = buildPlanarTerrain(scene, resolution, frameId);
@@ -305,15 +305,17 @@ class StaticPlanarTerrainPublisher final : public rclcpp::Node {
     publisher_ =
         this->create_publisher<convex_plane_decomposition_msgs::msg::PlanarTerrain>(topic, qos);
 
-    const auto period = std::chrono::duration<double>(1.0 / std::max(0.1, publishRate));
-    timer_ = this->create_wall_timer(
-        std::chrono::duration_cast<std::chrono::nanoseconds>(period),
-        [this]() { publisher_->publish(terrainMsg_); });
-
     publisher_->publish(terrainMsg_);
+    if (publishRate > 0.0) {
+      const auto period = std::chrono::duration<double>(1.0 / std::max(0.1, publishRate));
+      timer_ = this->create_wall_timer(
+          std::chrono::duration_cast<std::chrono::nanoseconds>(period),
+          [this]() { publisher_->publish(terrainMsg_); });
+    }
+
     RCLCPP_INFO(this->get_logger(),
-                "Publishing static planar terrain from '%s' to '%s' with %zu planar regions.",
-                sceneFile.c_str(), topic.c_str(), terrain_.planarRegions.size());
+                "Publishing static planar terrain from '%s' to '%s' with %zu planar regions (publish_rate=%.2f Hz).",
+                sceneFile.c_str(), topic.c_str(), terrain_.planarRegions.size(), publishRate);
   }
 
  private:

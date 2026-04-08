@@ -20,7 +20,7 @@ namespace ocs2::legged_robot
         SphereVisualization(PinocchioInterface pinocchioInterface, CentroidalModelInfo centroidalModelInfo,
                             const PinocchioSphereInterface& sphereInterface,
                             const rclcpp_lifecycle::LifecycleNode::SharedPtr& node,
-                            scalar_t maxUpdateFrequency = 100.0);
+                            scalar_t maxUpdateFrequency = 20.0);
         void update(const SystemObservation& observation);
 
     private:

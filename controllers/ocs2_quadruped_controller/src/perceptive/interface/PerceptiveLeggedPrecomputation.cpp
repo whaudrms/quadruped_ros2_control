@@ -12,15 +12,22 @@ namespace ocs2::legged_robot
                                                                    ModelSettings settings,
                                                                    const ConvexRegionSelector& convexRegionSelector)
         : LeggedRobotPreComputation(std::move(pinocchioInterface), info, swingTrajectoryPlanner, std::move(settings)),
-          convexRegionSelectorPtr_(&convexRegionSelector)
+          convexRegionSelectorPtr_(&convexRegionSelector),
+          numVertices_(convexRegionSelector.getNumVertices())
     {
         footPlacementConParameters_.resize(info.numThreeDofContacts);
+        for (auto& parameter : footPlacementConParameters_)
+        {
+            parameter = makeSafeFootPlacementConstraintParameter();
+        }
     }
 
     PerceptiveLeggedPrecomputation::PerceptiveLeggedPrecomputation(const PerceptiveLeggedPrecomputation& rhs)
-        : LeggedRobotPreComputation(rhs), convexRegionSelectorPtr_(rhs.convexRegionSelectorPtr_)
+        : LeggedRobotPreComputation(rhs),
+          convexRegionSelectorPtr_(rhs.convexRegionSelectorPtr_),
+          numVertices_(rhs.numVertices_),
+          footPlacementConParameters_(rhs.footPlacementConParameters_)
     {
-        footPlacementConParameters_.resize(rhs.footPlacementConParameters_.size());
     }
 
     void PerceptiveLeggedPrecomputation::request(RequestSet request, scalar_t t, const vector_t& x, const vector_t& u)
@@ -31,22 +38,35 @@ namespace ocs2::legged_robot
         }
         LeggedRobotPreComputation::request(request, t, x, u);
 
-        if (request.contains(Request::Constraint))
+        if (request.containsAny(Request::Constraint + Request::SoftConstraint))
         {
             for (size_t i = 0; i < footPlacementConParameters_.size(); i++)
             {
-                FootPlacementConstraint::Parameter params;
+                auto params = makeSafeFootPlacementConstraintParameter();
 
                 auto projection = convexRegionSelectorPtr_->getProjection(i, t);
                 if (projection.regionPtr == nullptr)
                 {
                     // Swing leg
+                    footPlacementConParameters_[i] = params;
+                    continue;
+                }
+
+                const auto convexPolygon = convexRegionSelectorPtr_->getConvexPolygon(i, t);
+                if (convexPolygon.size() < 3)
+                {
+                    footPlacementConParameters_[i] = params;
                     continue;
                 }
 
                 matrix_t polytopeA;
                 vector_t polytopeB;
-                std::tie(polytopeA, polytopeB) = getPolygonConstraint(convexRegionSelectorPtr_->getConvexPolygon(i, t));
+                std::tie(polytopeA, polytopeB) = getPolygonConstraint(convexPolygon);
+                if (polytopeA.rows() != static_cast<Eigen::Index>(numVertices_))
+                {
+                    footPlacementConParameters_[i] = params;
+                    continue;
+                }
                 matrix_t p = (matrix_t(2, 3) << // clang-format off
                         1, 0, 0,
                         0, 1, 0).finished();  // clang-format on
@@ -57,6 +77,14 @@ namespace ocs2::legged_robot
                 footPlacementConParameters_[i] = params;
             }
         }
+    }
+
+    FootPlacementConstraint::Parameter PerceptiveLeggedPrecomputation::makeSafeFootPlacementConstraintParameter() const
+    {
+        FootPlacementConstraint::Parameter parameter;
+        parameter.a = matrix_t::Zero(numVertices_, 3);
+        parameter.b = vector_t::Ones(numVertices_);
+        return parameter;
     }
 
     std::pair<matrix_t, vector_t> PerceptiveLeggedPrecomputation::getPolygonConstraint(

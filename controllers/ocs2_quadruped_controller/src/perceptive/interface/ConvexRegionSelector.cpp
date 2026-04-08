@@ -14,13 +14,17 @@ namespace ocs2::legged_robot
     ConvexRegionSelector::ConvexRegionSelector(CentroidalModelInfo info,
                                                std::shared_ptr<convex_plane_decomposition::PlanarTerrain>
                                                planarTerrainPtr,
+                                               std::shared_ptr<std::mutex> terrainDataMutexPtr,
                                                const EndEffectorKinematics<scalar_t>& endEffectorKinematics,
                                                size_t numVertices)
         : info_(std::move(info)),
           numVertices_(numVertices),
           planarTerrainPtr_(std::move(planarTerrainPtr)),
+          terrainDataMutexPtr_(std::move(terrainDataMutexPtr)),
           endEffectorKinematicsPtr_(endEffectorKinematics.clone())
     {
+        initStandFinalTime_.fill(0.0);
+        initStandFinalTimeLatched_.fill(false);
     }
 
     convex_plane_decomposition::PlanarTerrainProjection ConvexRegionSelector::getProjection(
@@ -45,7 +49,15 @@ namespace ocs2::legged_robot
     void ConvexRegionSelector::update(const ModeSchedule& modeSchedule, scalar_t initTime, const vector_t& initState,
                                       TargetTrajectories& targetTrajectories)
     {
-        planarTerrain_ = *planarTerrainPtr_;
+        if (terrainDataMutexPtr_)
+        {
+            std::lock_guard lock(*terrainDataMutexPtr_);
+            planarTerrain_ = *planarTerrainPtr_;
+        }
+        else
+        {
+            planarTerrain_ = *planarTerrainPtr_;
+        }
         // Need copy storage it since PlanarTerrainProjection.regionPtr is a pointer
         const auto& modeSequence = modeSchedule.modeSequence;
         const auto& eventTimes = modeSchedule.eventTimes;
@@ -79,7 +91,6 @@ namespace ocs2::legged_robot
             convexPolygons_[leg].resize(numPhases);
             nominalFootholds_[leg].resize(numPhases);
             middleTimes_[leg].clear();
-            initStandFinalTime_[leg] = 0;
 
             scalar_t lastStandMiddleTime = NAN;
             // Stand leg foot
@@ -108,6 +119,7 @@ namespace ocs2::legged_robot
                         convexPolygons_[leg][i] = convexRegion;
                         nominalFootholds_[leg][i] = footPos;
                         middleTimes_[leg].push_back(standMiddleTime);
+                        lastStandMiddleTime = standMiddleTime;
                     }
                     else
                     {
@@ -116,9 +128,11 @@ namespace ocs2::legged_robot
                         nominalFootholds_[leg][i] = nominalFootholds_[leg][i - 1];
                     }
 
-                    if (standStartTime < initTime && initTime < standFinalTime)
+                    if (!initStandFinalTimeLatched_[leg] &&
+                        standStartTime < initTime && initTime < standFinalTime)
                     {
                         initStandFinalTime_[leg] = standFinalTime;
+                        initStandFinalTimeLatched_[leg] = true;
                     }
                 }
             }
@@ -202,5 +216,42 @@ namespace ocs2::legged_robot
         //  return endEffectorKinematicsPtr_->getPosition(targetTrajectories.getDesiredState(time))[leg] + feedback;
         return endEffectorKinematicsPtr_->getPosition(targetTrajectories.getDesiredState(time))[leg] - R.transpose() *
             offsetVector;
+    }
+
+    std::optional<scalar_t> ConvexRegionSelector::sampleTerrainHeight(const scalar_t x, const scalar_t y) const
+    {
+        if (!planarTerrainPtr_)
+        {
+            return std::nullopt;
+        }
+
+        auto readHeight = [&](const convex_plane_decomposition::PlanarTerrain& terrain) -> std::optional<scalar_t>
+        {
+            const auto& map = terrain.gridMap;
+            const std::string layer = map.exists("smooth_planar")
+                                          ? "smooth_planar"
+                                          : (map.exists("elevation") ? "elevation" : "");
+            if (layer.empty())
+            {
+                return std::nullopt;
+            }
+
+            try
+            {
+                return static_cast<scalar_t>(map.atPosition(layer, grid_map::Position(x, y)));
+            }
+            catch (const std::exception&)
+            {
+                return std::nullopt;
+            }
+        };
+
+        if (terrainDataMutexPtr_)
+        {
+            std::lock_guard lock(*terrainDataMutexPtr_);
+            return readHeight(*planarTerrainPtr_);
+        }
+
+        return readHeight(*planarTerrainPtr_);
     }
 } // namespace legged

@@ -23,6 +23,7 @@ namespace ocs2::legged_robot
                                                                const std::string& referenceFile, bool verbose)
     {
         planarTerrainPtr_ = std::make_shared<convex_plane_decomposition::PlanarTerrain>();
+        terrainDataMutex_ = std::make_shared<std::mutex>();
 
         double width{5.0}, height{5.0};
         convex_plane_decomposition::PlanarRegion plannerRegion;
@@ -46,7 +47,7 @@ namespace ocs2::legged_robot
         plannerRegion.boundaryWithInset.insets.push_back(insets);
         planarTerrainPtr_->planarRegions.push_back(plannerRegion);
 
-        std::string layer = "elevation_before_postprocess";
+        constexpr const char* layer = "elevation";
         planarTerrainPtr_->gridMap.setGeometry(grid_map::Length(5.0, 5.0), 0.03);
         planarTerrainPtr_->gridMap.add(layer, 0);
         planarTerrainPtr_->gridMap.add("smooth_planar", 0);
@@ -80,7 +81,7 @@ namespace ocs2::legged_robot
             {
                 std::unique_ptr<FootCollisionConstraint> footCollisionConstraint(
                     new FootCollisionConstraint(*reference_manager_ptr_, *eeKinematicsPtr, signedDistanceFieldPtr_, i,
-                                                0.03));
+                                                0.01));
                 problem_ptr_->stateSoftConstraintPtr->add(
                     footName + "_footCollision",
                     std::make_unique<StateSoftConstraint>(std::move(footCollisionConstraint), std::move(collisionPenalty)));
@@ -100,12 +101,16 @@ namespace ocs2::legged_robot
         auto sphereKinematicsPtr = std::make_unique<PinocchioSphereKinematics>(
             *pinocchioSphereInterfacePtr_, pinocchioMapping);
 
-        std::unique_ptr<SphereSdfConstraint> sphereSdfConstraint(
-            new SphereSdfConstraint(*sphereKinematicsPtr, signedDistanceFieldPtr_));
-
-        //  std::unique_ptr<PenaltyBase> penalty(new RelaxedBarrierPenalty(RelaxedBarrierPenalty::Config(1e-3, 1e-3)));
-        //  problem_ptr_->stateSoftConstraintPtr->add(
-        //      "sdfConstraint", std::unique_ptr<StateCost>(new StateSoftConstraint(std::move(sphereSdfConstraint), std::move(penalty))));
+        if (enableBodyCollisionConstraint_)
+        {
+            std::unique_ptr<SphereSdfConstraint> sphereSdfConstraint(
+                new SphereSdfConstraint(*sphereKinematicsPtr, signedDistanceFieldPtr_));
+            std::unique_ptr<PenaltyBase> bodyCollisionPenalty(
+                new RelaxedBarrierPenalty(RelaxedBarrierPenalty::Config(1e-3, 1e-3)));
+            problem_ptr_->stateSoftConstraintPtr->add(
+                "sdfConstraint",
+                std::make_unique<StateSoftConstraint>(std::move(sphereSdfConstraint), std::move(bodyCollisionPenalty)));
+        }
     }
 
     void PerceptiveLeggedInterface::setupReferenceManager(const std::string& taskFile, const std::string& /*urdfFile*/,
@@ -118,7 +123,8 @@ namespace ocs2::legged_robot
         std::unique_ptr<EndEffectorKinematics<scalar_t>> eeKinematicsPtr = getEeKinematicsPtr(
             {model_settings_.contactNames3DoF}, "ALL_FOOT");
         auto convexRegionSelector =
-            std::make_unique<ConvexRegionSelector>(centroidal_model_info_, planarTerrainPtr_, *eeKinematicsPtr,
+            std::make_unique<ConvexRegionSelector>(centroidal_model_info_, planarTerrainPtr_, terrainDataMutex_,
+                                                   *eeKinematicsPtr,
                                                    numVertices_);
 
         scalar_t comHeight = 0;

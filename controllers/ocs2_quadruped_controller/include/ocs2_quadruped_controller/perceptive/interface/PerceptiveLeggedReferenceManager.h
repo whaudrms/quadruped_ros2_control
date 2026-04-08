@@ -16,6 +16,16 @@ namespace ocs2::legged_robot
     class PerceptiveLeggedReferenceManager : public SwitchedModelReferenceManager
     {
     public:
+        struct FootPlacementDebugInfo
+        {
+            scalar_t time = 0.0;
+            contact_flag_t contactFlags{};
+            contact_flag_t footPlacementFlags{};
+            std::array<size_t, 4> polygonVertexCounts{};
+            feet_array_t<scalar_t> projectionHeights{};
+            feet_array_t<scalar_t> initStandFinalTimes{};
+        };
+
         PerceptiveLeggedReferenceManager(CentroidalModelInfo info, std::shared_ptr<GaitSchedule> gaitSchedulePtr,
                                          std::shared_ptr<SwingTrajectoryPlanner> swingTrajectoryPtr,
                                          std::shared_ptr<ConvexRegionSelector> convexRegionSelectorPtr,
@@ -31,6 +41,8 @@ namespace ocs2::legged_robot
         bool getLatestReferencePaths(
             std::vector<vector3_t, Eigen::aligned_allocator<vector3_t>>& rawBasePath,
             std::vector<vector3_t, Eigen::aligned_allocator<vector3_t>>& terrainAwareBasePath) const;
+
+        bool getLatestFootPlacementDebugInfo(FootPlacementDebugInfo& debugInfo) const;
 
     protected:
         void modifyReferences(scalar_t initTime, scalar_t finalTime, const vector_t& initState,
@@ -61,6 +73,7 @@ namespace ocs2::legged_robot
         mutable std::mutex latestReferenceTrajectoriesMutex_;
         std::vector<vector3_t, Eigen::aligned_allocator<vector3_t>> latestRawBasePath_;
         std::vector<vector3_t, Eigen::aligned_allocator<vector3_t>> latestTerrainAwareBasePath_;
+        FootPlacementDebugInfo latestFootPlacementDebugInfo_;
         bool hasLatestReferenceTrajectories_ = false;
     };
 } // namespace legged

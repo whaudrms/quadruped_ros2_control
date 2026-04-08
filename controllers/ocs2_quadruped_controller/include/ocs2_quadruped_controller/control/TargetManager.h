@@ -29,6 +29,8 @@ namespace ocs2::legged_robot
         void update(SystemObservation& observation);
 
     private:
+        scalar_t resolveTargetBaseHeight(const vector_t& currentPose, const vector_t& targetPose);
+
         TargetTrajectories targetPoseToTargetTrajectories(const vector_t& targetPose,
                                                           const SystemObservation& observation,
                                                           const scalar_t& targetReachingTime)
@@ -38,9 +40,6 @@ namespace ocs2::legged_robot
 
             // desired state trajectory
             vector_t currentPose = observation.state.segment<6>(6);
-            currentPose(2) = command_height_;
-            currentPose(4) = 0;
-            currentPose(5) = 0;
             vector_array_t stateTrajectory(2, vector_t::Zero(observation.state.size()));
             stateTrajectory[0] << vector_t::Zero(6), currentPose, default_joint_state_;
             stateTrajectory[1] << vector_t::Zero(6), targetPose, default_joint_state_;

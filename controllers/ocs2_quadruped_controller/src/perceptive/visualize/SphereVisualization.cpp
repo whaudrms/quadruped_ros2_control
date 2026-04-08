@@ -31,6 +31,12 @@ namespace ocs2::legged_robot
 
     void SphereVisualization::update(const SystemObservation& observation)
     {
+        if (marker_publisher_->get_subscription_count() == 0 &&
+            marker_publisher_->get_intra_process_subscription_count() == 0)
+        {
+            return;
+        }
+
         if (observation.time - last_time_ > min_publish_time_difference_)
         {
             last_time_ = observation.time;
