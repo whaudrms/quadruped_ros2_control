@@ -3,6 +3,7 @@
 //
 
 #include <utility>
+#include <cstdio>
 #include <ocs2_core/misc/Lookup.h>
 #include <ocs2_centroidal_model/AccessHelperFunctions.h>
 #include "ocs2_quadruped_controller/perceptive/interface/PerceptiveLeggedReferenceManager.h"
@@ -12,6 +13,8 @@ namespace ocs2::legged_robot
     namespace
     {
         constexpr const char* kUncertaintyLayer = "uncertainty";
+        constexpr const char* kDebugFilePath = "/tmp/height_only_reference_debug.log";
+        constexpr scalar_t kDebugLogPeriod = 0.2;
     }
 
     PerceptiveLeggedReferenceManager::PerceptiveLeggedReferenceManager(CentroidalModelInfo info,
@@ -84,6 +87,26 @@ namespace ocs2::legged_robot
             centroidal_model::getBasePose(state, info_)(2) =
                 std::max(centroidal_model::getBasePose(state, info_)(2), terrainHeight);
 
+            static scalar_t lastDebugLogTime = -1.0;
+            if ((i == nodeNum / 2) && (lastDebugLogTime < 0.0 || time - lastDebugLogTime >= kDebugLogPeriod))
+            {
+                if (FILE* debugFile = std::fopen(kDebugFilePath, "a"))
+                {
+                    const auto& basePose = centroidal_model::getBasePose(state, info_);
+                    std::fprintf(
+                        debugFile,
+                        "[HeightOnlyRef] init_t=%.3f query_t=%.3f pos=(%.4f,%.4f,%.4f) uncertainty=%.5f terrain_trust=%.5f terrain_pitch=%.5f blended_pitch=%.5f smooth_height=%.5f terrain_height=%.5f final_base_z=%.5f\n",
+                        static_cast<double>(initTime), static_cast<double>(time),
+                        static_cast<double>(basePose(0)), static_cast<double>(basePose(1)), static_cast<double>(basePose(2)),
+                        static_cast<double>(uncertainty), static_cast<double>(terrainTrust),
+                        static_cast<double>(terrainPitch), static_cast<double>(basePose(4)),
+                        static_cast<double>(map.atPosition("smooth_planar", pos)),
+                        static_cast<double>(terrainHeight), static_cast<double>(basePose(2)));
+                    std::fclose(debugFile);
+                }
+                lastDebugLogTime = time;
+            }
+
             newTargetTrajectories.timeTrajectory.push_back(time);
             newTargetTrajectories.stateTrajectory.push_back(state);
             newTargetTrajectories.inputTrajectory.push_back(input);
@@ -114,6 +137,23 @@ namespace ocs2::legged_robot
             std::tie(liftOffHeights, touchDownHeights) = getHeights(contactFlagStocks[leg], projections);
             liftOffHeightSequence[leg] = liftOffHeights;
             touchDownHeightSequence[leg] = touchDownHeights;
+
+            if (!projections.empty())
+            {
+                if (FILE* debugFile = std::fopen(kDebugFilePath, "a"))
+                {
+                    const auto sampleIndex = std::min(initIndex, projections.size() - 1);
+                    const auto projected = projections[sampleIndex].positionInWorld;
+                    std::fprintf(
+                        debugFile,
+                        "[HeightOnlySwing] init_t=%.3f leg=%zu init_index=%zu projected=(%.4f,%.4f,%.4f) liftoff_h=%.5f touchdown_h=%.5f\n",
+                        static_cast<double>(initTime), leg, sampleIndex,
+                        static_cast<double>(projected.x()), static_cast<double>(projected.y()), static_cast<double>(projected.z()),
+                        liftOffHeights.empty() ? 0.0 : static_cast<double>(liftOffHeights[sampleIndex]),
+                        touchDownHeights.empty() ? 0.0 : static_cast<double>(touchDownHeights[sampleIndex]));
+                    std::fclose(debugFile);
+                }
+            }
         }
         swingTrajectoryPtr_->update(modeSchedule, liftOffHeightSequence, touchDownHeightSequence);
     }

@@ -49,6 +49,9 @@ class AutoInputMetricsNode(Node):
         self.steps = self.config["steps"]
         self.timeout_sec = float(self.config["timeout_sec"])
         self.monitoring_start_sec = float(self.config.get("monitoring_start_sec", 0.0))
+        self.initial_window_sec = float(self.config.get("initial_window_sec", 2.0))
+        self.command_activity_threshold = float(self.config.get("command_activity_threshold", 1e-6))
+        self.gait_command_threshold = int(self.config.get("gait_command_threshold", 3))
         self.quality = self.config.get("quality", {})
         fall = self.config["fall_detection"]
         self.min_base_z = float(fall["min_base_z"])
@@ -61,6 +64,14 @@ class AutoInputMetricsNode(Node):
         self.start_pose = None
         self.last_pose = None
         self.path_length = 0.0
+        self.body_forward_path_length = 0.0
+        self.body_lateral_path_length = 0.0
+        self.initial_window_body_forward_path_length = 0.0
+        self.initial_window_body_lateral_path_length = 0.0
+        self.command_active_body_forward_path_length = 0.0
+        self.command_active_body_lateral_path_length = 0.0
+        self.startup_gait_body_forward_path_length = 0.0
+        self.startup_gait_body_lateral_path_length = 0.0
         self.roll_samples = []
         self.pitch_samples = []
         self.yaw_samples = []
@@ -69,8 +80,55 @@ class AutoInputMetricsNode(Node):
         self.fall_reason = None
         self.fall_time = None
         self.completed = False
+        self.command_active_window_start_sec = None
+        self.command_active_window_end_sec = None
+        self.command_active_window_start_pose = None
+        self.command_active_window_end_pose = None
+        self.startup_gait_window_start_sec = None
+        self.startup_gait_window_end_sec = None
+        self.startup_gait_window_start_pose = None
+        self.startup_gait_window_end_pose = None
+
+        self._compute_command_active_window()
 
         self.timer = self.create_timer(self.period, self.tick)
+
+    def _compute_command_active_window(self):
+        elapsed = 0.0
+        active_start = None
+        active_end = None
+        for step in self.steps:
+            duration = float(step["duration"])
+            is_active = any(
+                abs(float(step.get(field, 0.0))) > self.command_activity_threshold
+                for field in ("lx", "ly", "rx", "ry")
+            )
+            if is_active:
+                if active_start is None:
+                    active_start = elapsed
+                active_end = elapsed + duration
+            elapsed += duration
+
+        self.command_active_window_start_sec = active_start
+        self.command_active_window_end_sec = active_end
+
+        elapsed = 0.0
+        startup_start = None
+        for step in self.steps:
+            duration = float(step["duration"])
+            command = int(step.get("command", 0))
+            is_active = any(
+                abs(float(step.get(field, 0.0))) > self.command_activity_threshold
+                for field in ("lx", "ly", "rx", "ry")
+            )
+            if startup_start is None and command >= self.gait_command_threshold:
+                startup_start = elapsed
+            if startup_start is not None and is_active:
+                break
+            elapsed += duration
+
+        self.startup_gait_window_start_sec = startup_start
+        self.startup_gait_window_end_sec = active_start
 
     def odom_callback(self, msg: Odometry):
         self.latest_odom = msg
@@ -91,7 +149,48 @@ class AutoInputMetricsNode(Node):
             dx = current_pose[0] - self.last_pose[0]
             dy = current_pose[1] - self.last_pose[1]
             self.path_length += math.hypot(dx, dy)
+            yaw_ref = self.yaw_samples[-2] if len(self.yaw_samples) >= 2 else yaw
+            cos_yaw = math.cos(yaw_ref)
+            sin_yaw = math.sin(yaw_ref)
+            body_forward = cos_yaw * dx + sin_yaw * dy
+            body_lateral = -sin_yaw * dx + cos_yaw * dy
+            self.body_forward_path_length += body_forward
+            self.body_lateral_path_length += body_lateral
+            if elapsed <= self.initial_window_sec:
+                self.initial_window_body_forward_path_length += body_forward
+                self.initial_window_body_lateral_path_length += body_lateral
+            if (
+                self.command_active_window_start_sec is not None
+                and self.command_active_window_end_sec is not None
+                and self.command_active_window_start_sec <= elapsed <= self.command_active_window_end_sec
+            ):
+                self.command_active_body_forward_path_length += body_forward
+                self.command_active_body_lateral_path_length += body_lateral
+            if (
+                self.startup_gait_window_start_sec is not None
+                and self.startup_gait_window_end_sec is not None
+                and self.startup_gait_window_start_sec <= elapsed <= self.startup_gait_window_end_sec
+            ):
+                self.startup_gait_body_forward_path_length += body_forward
+                self.startup_gait_body_lateral_path_length += body_lateral
         self.last_pose = current_pose
+
+        if (
+            self.command_active_window_start_sec is not None
+            and self.command_active_window_end_sec is not None
+            and self.command_active_window_start_sec <= elapsed <= self.command_active_window_end_sec
+        ):
+            if self.command_active_window_start_pose is None:
+                self.command_active_window_start_pose = current_pose
+            self.command_active_window_end_pose = current_pose
+        if (
+            self.startup_gait_window_start_sec is not None
+            and self.startup_gait_window_end_sec is not None
+            and self.startup_gait_window_start_sec <= elapsed <= self.startup_gait_window_end_sec
+        ):
+            if self.startup_gait_window_start_pose is None:
+                self.startup_gait_window_start_pose = current_pose
+            self.startup_gait_window_end_pose = current_pose
 
         if elapsed < self.monitoring_start_sec:
             return
@@ -168,6 +267,37 @@ class AutoInputMetricsNode(Node):
             else 0.0
         )
         yaw_change_deg = math.degrees(yaw_change)
+        start_yaw = self.yaw_samples[0] if self.yaw_samples else 0.0
+        dx_total = end_pose[0] - start_pose[0]
+        dy_total = end_pose[1] - start_pose[1]
+        body_frame_forward_progress = math.cos(start_yaw) * dx_total + math.sin(start_yaw) * dy_total
+        body_frame_lateral_progress = -math.sin(start_yaw) * dx_total + math.cos(start_yaw) * dy_total
+        initial_window_forward_progress = self.initial_window_body_forward_path_length
+        initial_window_lateral_progress = self.initial_window_body_lateral_path_length
+        command_active_forward_progress = None
+        command_active_lateral_progress = None
+        if (
+            self.command_active_window_start_pose is not None
+            and self.command_active_window_end_pose is not None
+        ):
+            start_pose_cmd = self.command_active_window_start_pose
+            end_pose_cmd = self.command_active_window_end_pose
+            dx_cmd = end_pose_cmd[0] - start_pose_cmd[0]
+            dy_cmd = end_pose_cmd[1] - start_pose_cmd[1]
+            command_active_forward_progress = math.cos(start_yaw) * dx_cmd + math.sin(start_yaw) * dy_cmd
+            command_active_lateral_progress = -math.sin(start_yaw) * dx_cmd + math.cos(start_yaw) * dy_cmd
+        startup_gait_forward_progress = None
+        startup_gait_lateral_progress = None
+        if (
+            self.startup_gait_window_start_pose is not None
+            and self.startup_gait_window_end_pose is not None
+        ):
+            start_pose_gait = self.startup_gait_window_start_pose
+            end_pose_gait = self.startup_gait_window_end_pose
+            dx_gait = end_pose_gait[0] - start_pose_gait[0]
+            dy_gait = end_pose_gait[1] - start_pose_gait[1]
+            startup_gait_forward_progress = math.cos(start_yaw) * dx_gait + math.sin(start_yaw) * dy_gait
+            startup_gait_lateral_progress = -math.sin(start_yaw) * dx_gait + math.cos(start_yaw) * dy_gait
 
         target_yaw_change_deg = self.quality.get("target_yaw_change_deg")
         min_abs_yaw_change_deg = self.quality.get("min_abs_yaw_change_deg")
@@ -195,6 +325,27 @@ class AutoInputMetricsNode(Node):
             "distance_xy": distance_xy,
             "mean_forward_velocity": mean_forward_velocity,
             "path_length": self.path_length,
+            "body_forward_path_length": self.body_forward_path_length,
+            "body_lateral_path_length": self.body_lateral_path_length,
+            "body_frame_forward_progress": body_frame_forward_progress,
+            "body_frame_lateral_progress": body_frame_lateral_progress,
+            "initial_window_sec": self.initial_window_sec,
+            "initial_window_body_forward_path_length": self.initial_window_body_forward_path_length,
+            "initial_window_body_lateral_path_length": self.initial_window_body_lateral_path_length,
+            "initial_window_body_frame_forward_progress": initial_window_forward_progress,
+            "initial_window_body_frame_lateral_progress": initial_window_lateral_progress,
+            "command_active_window_start_sec": self.command_active_window_start_sec,
+            "command_active_window_end_sec": self.command_active_window_end_sec,
+            "command_active_body_forward_path_length": self.command_active_body_forward_path_length,
+            "command_active_body_lateral_path_length": self.command_active_body_lateral_path_length,
+            "command_active_body_frame_forward_progress": command_active_forward_progress,
+            "command_active_body_frame_lateral_progress": command_active_lateral_progress,
+            "startup_gait_window_start_sec": self.startup_gait_window_start_sec,
+            "startup_gait_window_end_sec": self.startup_gait_window_end_sec,
+            "startup_gait_body_forward_path_length": self.startup_gait_body_forward_path_length,
+            "startup_gait_body_lateral_path_length": self.startup_gait_body_lateral_path_length,
+            "startup_gait_body_frame_forward_progress": startup_gait_forward_progress,
+            "startup_gait_body_frame_lateral_progress": startup_gait_lateral_progress,
             "start_pose": start_pose,
             "end_pose": end_pose,
             "roll_rms_deg": math.degrees(roll_rms),

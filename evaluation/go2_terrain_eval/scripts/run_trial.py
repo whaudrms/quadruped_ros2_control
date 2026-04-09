@@ -17,6 +17,7 @@ ROOT = Path("/home/ho/ros2_ws/src/quadruped_ros2_control/evaluation/go2_terrain_
 RESULTS_DIR = ROOT / "results"
 TERRAIN_CATALOG = ROOT / "configs" / "terrains.yaml"
 UNCERTAINTY_CONTACT_METRICS_FILE = Path("/tmp/uncertainty_contact_metrics.log")
+HEIGHT_ONLY_REFERENCE_DEBUG_FILE = Path("/tmp/height_only_reference_debug.log")
 UNCERTAINTY_CONTACT_RE = re.compile(
     r"\[UncertaintyContactMetrics\]\s+t=(?P<t>[-+0-9.eE]+)\s+"
     r"total_contacts=(?P<total>\d+)\s+"
@@ -127,7 +128,7 @@ def main():
     parser.add_argument("--terrain", required=True)
     parser.add_argument(
         "--mode",
-        choices=["baseline", "perceptive", "perceptive_maptraj", "uncertainty_v1", "height_only_v1", "rgdemo"],
+        choices=["baseline", "perceptive", "perceptive_maptraj", "uncertainty_v1", "height_only_v1", "height_only_nominal_v1", "rgdemo"],
         default="baseline",
     )
     parser.add_argument("--scenario", default=str(ROOT / "configs" / "scenarios" / "standing_trot_forward.yaml"))
@@ -155,6 +156,8 @@ def main():
 
     if args.mode == "uncertainty_v1" and UNCERTAINTY_CONTACT_METRICS_FILE.exists():
         UNCERTAINTY_CONTACT_METRICS_FILE.unlink()
+    if args.mode == "height_only_v1" and HEIGHT_ONLY_REFERENCE_DEBUG_FILE.exists():
+        HEIGHT_ONLY_REFERENCE_DEBUG_FILE.unlink()
 
     mujoco_cmd = f"cd /home/ho/unitree_mujoco/simulate/build && ./unitree_mujoco -r go2 -s {scene_file.name}"
     if args.mode == "baseline":
@@ -199,17 +202,45 @@ def main():
             f"terrain_height_scale:={terrain['terrain_height_scale']}"
         )
     elif args.mode == "height_only_v1":
+        fake_map_mode = terrain.get("fake_map_mode", "image")
+        params = terrain.get("parameters", {})
+        size = params.get("size", [0.36, 1.10, 0.08])
+        position = params.get("position", [0.55, 0.0, 0.04])
+        task_file_override = terrain.get("task_file_override", "")
         controller_cmd = (
             "source /opt/ros/jazzy/setup.bash && "
             "source /home/ho/ros2_ws/install/setup.bash && "
             "ros2 launch ocs2_quadruped_controller_height_only_v1 mujoco_perceptive_height_only_v1.launch.py "
             "pkg_description:=go2_description_height_only_v1 "
             "launch_fake_elevation_map:=true "
-            "launch_plane_decomposition:=true "
+            "launch_plane_decomposition:=false "
+            f"fake_map_mode:={fake_map_mode} "
             f"terrain_image:={terrain['perceptive_image']} "
             f"terrain_height_scale:={terrain['terrain_height_scale']} "
-            f"terrain_resolution:={terrain.get('terrain_resolution', 0.03)}"
+            f"terrain_resolution:={terrain.get('terrain_resolution', 0.03)} "
+            f"terrain_map_length_x:={terrain.get('map_length_x', 2.5)} "
+            f"terrain_map_length_y:={terrain.get('map_length_y', 1.6)} "
+            f"terrain_box_center_x:={position[0]} "
+            f"terrain_box_center_y:={position[1]} "
+            f"terrain_box_size_x:={size[0]} "
+            f"terrain_box_size_y:={size[1]} "
+            f"terrain_box_height:={size[2]}"
         )
+        if task_file_override:
+            controller_cmd += f" task_file_override:={task_file_override}"
+    elif args.mode == "height_only_nominal_v1":
+        task_file_override = terrain.get("task_file_override", "")
+        controller_cmd = (
+            "source /opt/ros/jazzy/setup.bash && "
+            "source /home/ho/ros2_ws/install/setup.bash && "
+            "ros2 launch ocs2_quadruped_controller_height_only_v1 mujoco_perceptive_height_only_v1.launch.py "
+            "pkg_description:=go2_description_height_only_v1 "
+            "controller_config:=robot_control_height_only_v1.yaml "
+            "launch_fake_elevation_map:=false "
+            "launch_plane_decomposition:=false "
+        )
+        if task_file_override:
+            controller_cmd += f" task_file_override:={task_file_override}"
     else:
         controller_cmd = (
             "source /opt/ros/jazzy/setup.bash && "
@@ -268,6 +299,12 @@ def main():
                 encoding="utf-8",
             )
         merge_uncertainty_metrics(run_dir / "result.json")
+    if args.mode == "height_only_v1":
+        if HEIGHT_ONLY_REFERENCE_DEBUG_FILE.exists():
+            (run_dir / "height_only_reference_debug.log").write_text(
+                HEIGHT_ONLY_REFERENCE_DEBUG_FILE.read_text(encoding="utf-8", errors="ignore"),
+                encoding="utf-8",
+            )
 
     print(f"[done] {run_dir}")
 

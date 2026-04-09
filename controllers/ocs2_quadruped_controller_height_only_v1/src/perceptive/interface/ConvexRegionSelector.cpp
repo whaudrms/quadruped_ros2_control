@@ -9,6 +9,7 @@
 #include <ocs2_legged_robot/gait/MotionPhaseDefinition.h>
 
 #include <convex_plane_decomposition/ConvexRegionGrowing.h>
+#include <cstdio>
 
 namespace ocs2::legged_robot
 {
@@ -17,6 +18,7 @@ namespace ocs2::legged_robot
         constexpr const char* kUncertaintyLayer = "uncertainty";
         constexpr scalar_t kUncertaintyPenaltyWeight = 0.02;
         constexpr scalar_t kUncertaintyActivationDelay = 2.0;
+        constexpr const char* kDebugFilePath = "/tmp/height_only_reference_debug.log";
     }
 
     ConvexRegionSelector::ConvexRegionSelector(CentroidalModelInfo info,
@@ -141,6 +143,20 @@ namespace ocs2::legged_robot
                         convexPolygons_[leg][i] = convexRegion;
                         nominalFootholds_[leg][i] = footPos;
                         middleTimes_[leg].push_back(standMiddleTime);
+
+                        if (FILE* debugFile = std::fopen(kDebugFilePath, "a"))
+                        {
+                            const auto projected = projection.positionInWorld;
+                            const scalar_t uncertainty = getUncertaintyAtPosition(projected);
+                            std::fprintf(
+                                debugFile,
+                                "[HeightOnlySelector] init_t=%.3f stand_mid_t=%.3f leg=%zu nominal=(%.4f,%.4f,%.4f) projected=(%.4f,%.4f,%.4f) uncertainty=%.5f polygon_vertices=%zu\n",
+                                static_cast<double>(initTime), static_cast<double>(standMiddleTime), leg,
+                                static_cast<double>(footPos.x()), static_cast<double>(footPos.y()), static_cast<double>(footPos.z()),
+                                static_cast<double>(projected.x()), static_cast<double>(projected.y()), static_cast<double>(projected.z()),
+                                static_cast<double>(uncertainty), convexRegion.size());
+                            std::fclose(debugFile);
+                        }
                     }
                     else
                     {

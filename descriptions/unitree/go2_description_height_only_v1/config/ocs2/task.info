@@ -5,10 +5,25 @@ legged_robot_interface
   verbose                               false  // show the loaded parameters
 }
 
+manual_planar_terrain
+{
+  floor_size_x                         5.0
+  floor_size_y                         5.0
+  box_center_x                         0.45
+  box_center_y                         0.0
+  box_size_x                           0.36
+  box_size_y                           1.10
+  box_height                           0.06
+  perceptive_trigger_distance          0.18
+}
+
 model_settings
 {
   positionErrorGain             0.0
   phaseTransitionStanceTime     0.15
+  startupVelocityRampDuration   1.0
+  startupForwardBiasDuration    0.0
+  startupForwardBiasVelocity    0.0
 
   verboseCppAd                  true
   recompileLibrariesCppAd       false
@@ -22,6 +37,8 @@ swing_trajectory_config
   swingHeight                   0.10
   swingTimeScale                0.20
   contactTimingUncertainty      0.05
+  frontStepUpExtraClearanceGain 0.60
+  frontStepUpClearanceThreshold 0.02
 }
 
 ; Multiple_Shooting SQP settings

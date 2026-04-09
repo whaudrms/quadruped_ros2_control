@@ -158,7 +158,27 @@ namespace ocs2::legged_robot {
                     const CubicSpline::Node touchDown{
                         swingFinalTime, touchDownHeightSequence[j][p], scaling * config_.touchDownVelocity
                     };
-                    const scalar_t midHeight = maxHeightSequence[j][p] + scaling * config_.swingHeight;
+                    scalar_t midHeight = maxHeightSequence[j][p] + scaling * config_.swingHeight;
+                    scalar_t extraClearance = 0.0;
+                    if (j < 2) {
+                        const scalar_t stepUpHeight =
+                            touchDownHeightSequence[j][p] - liftOffHeightSequence[j][p];
+                        if (stepUpHeight > config_.frontStepUpClearanceThreshold) {
+                            extraClearance = scaling * config_.frontStepUpExtraClearanceGain * stepUpHeight;
+                            midHeight += extraClearance;
+                        }
+                        if (stepUpHeight > 0.0) {
+                            std::cout << "[HeightOnlySwingDebug] leg=" << j
+                                      << " phase=" << p
+                                      << " liftOff=" << liftOffHeightSequence[j][p]
+                                      << " touchDown=" << touchDownHeightSequence[j][p]
+                                      << " stepUp=" << stepUpHeight
+                                      << " baseMid=" << (maxHeightSequence[j][p] + scaling * config_.swingHeight)
+                                      << " extra=" << extraClearance
+                                      << " finalMid=" << midHeight
+                                      << std::endl;
+                        }
+                    }
                     feetHeightTrajectories_[j].emplace_back(liftOff, midHeight, touchDown);
                     feetLiftOffEventTimes_[j].push_back(swingStartTime);
                     feetTouchDownEventTimes_[j].push_back(swingFinalTime);
@@ -320,6 +340,8 @@ namespace ocs2::legged_robot {
         loadData::loadPtreeValue(pt, config.swingHeight, prefix + "swingHeight", verbose);
         loadData::loadPtreeValue(pt, config.swingTimeScale, prefix + "swingTimeScale", verbose);
         loadData::loadPtreeValue(pt, config.contactTimingUncertainty, prefix + "contactTimingUncertainty", verbose);
+        loadData::loadPtreeValue(pt, config.frontStepUpExtraClearanceGain, prefix + "frontStepUpExtraClearanceGain", verbose);
+        loadData::loadPtreeValue(pt, config.frontStepUpClearanceThreshold, prefix + "frontStepUpClearanceThreshold", verbose);
 
         if (verbose) {
             std::cerr << " #### =============================================================================" <<

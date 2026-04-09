@@ -21,12 +21,111 @@ terrains:
     description: "Single simple box for height-only stepping experiments"
     scene_file: "/home/ho/unitree_mujoco/unitree_robots/go2/eval_height_only_box.xml"
     perceptive_supported: true
+    fake_map_mode: box
+    perceptive_image: "/home/ho/ros2_ws/src/quadruped_ros2_control/evaluation/go2_terrain_eval/assets/height_only_box_eval.pgm"
+    terrain_height_scale: 0.06
+    terrain_resolution: 0.18
+    map_length_x: 2.8
+    map_length_y: 1.8
+    parameters:
+      position: [0.45, 0.0, 0.03]
+      size: [0.36, 1.10, 0.06]
+
+  height_only_box_h008:
+    type: box
+    description: "Single simple 8cm box for height-only stepping experiments"
+    scene_file: "/home/ho/unitree_mujoco/unitree_robots/go2/eval_height_only_box_h008.xml"
+    perceptive_supported: true
+    fake_map_mode: box
     perceptive_image: "/home/ho/ros2_ws/src/quadruped_ros2_control/evaluation/go2_terrain_eval/assets/height_only_box_eval.pgm"
     terrain_height_scale: 0.08
     terrain_resolution: 0.18
+    map_length_x: 2.8
+    map_length_y: 1.8
+    task_file_override: "/home/ho/ros2_ws/src/quadruped_ros2_control/descriptions/unitree/go2_description_height_only_v1/config/ocs2/task_h008.info"
     parameters:
-      position: [0.55, 0.0, 0.04]
+      position: [0.45, 0.0, 0.04]
       size: [0.36, 1.10, 0.08]
+
+  height_only_box_h009:
+    type: box
+    description: "Single simple 9cm box for height-only stepping experiments"
+    scene_file: "/home/ho/unitree_mujoco/unitree_robots/go2/eval_height_only_box_h009.xml"
+    perceptive_supported: true
+    fake_map_mode: box
+    perceptive_image: "/home/ho/ros2_ws/src/quadruped_ros2_control/evaluation/go2_terrain_eval/assets/height_only_box_eval.pgm"
+    terrain_height_scale: 0.09
+    terrain_resolution: 0.18
+    map_length_x: 2.8
+    map_length_y: 1.8
+    task_file_override: "/home/ho/ros2_ws/src/quadruped_ros2_control/descriptions/unitree/go2_description_height_only_v1/config/ocs2/task_h009.info"
+    parameters:
+      position: [0.45, 0.0, 0.045]
+      size: [0.36, 1.10, 0.09]
+
+  height_only_box_h095:
+    type: box
+    description: "Single simple 9.5cm box for height-only stepping experiments"
+    scene_file: "/home/ho/unitree_mujoco/unitree_robots/go2/eval_height_only_box_h095.xml"
+    perceptive_supported: true
+    fake_map_mode: box
+    perceptive_image: "/home/ho/ros2_ws/src/quadruped_ros2_control/evaluation/go2_terrain_eval/assets/height_only_box_eval.pgm"
+    terrain_height_scale: 0.095
+    terrain_resolution: 0.18
+    map_length_x: 2.8
+    map_length_y: 1.8
+    task_file_override: "/home/ho/ros2_ws/src/quadruped_ros2_control/descriptions/unitree/go2_description_height_only_v1/config/ocs2/task_h095.info"
+    parameters:
+      position: [0.45, 0.0, 0.0475]
+      size: [0.36, 1.10, 0.095]
+
+  height_only_box_h010:
+    type: box
+    description: "Single simple 10cm box for height-only stepping experiments"
+    scene_file: "/home/ho/unitree_mujoco/unitree_robots/go2/eval_height_only_box_h010.xml"
+    perceptive_supported: true
+    fake_map_mode: box
+    perceptive_image: "/home/ho/ros2_ws/src/quadruped_ros2_control/evaluation/go2_terrain_eval/assets/height_only_box_eval.pgm"
+    terrain_height_scale: 0.10
+    terrain_resolution: 0.18
+    map_length_x: 2.8
+    map_length_y: 1.8
+    task_file_override: "/home/ho/ros2_ws/src/quadruped_ros2_control/descriptions/unitree/go2_description_height_only_v1/config/ocs2/task_h010.info"
+    parameters:
+      position: [0.45, 0.0, 0.05]
+      size: [0.36, 1.10, 0.10]
+
+  height_only_box_h012:
+    type: box
+    description: "Single simple 12cm box for height-only stepping experiments"
+    scene_file: "/home/ho/unitree_mujoco/unitree_robots/go2/eval_height_only_box_h012.xml"
+    perceptive_supported: true
+    fake_map_mode: box
+    perceptive_image: "/home/ho/ros2_ws/src/quadruped_ros2_control/evaluation/go2_terrain_eval/assets/height_only_box_eval.pgm"
+    terrain_height_scale: 0.12
+    terrain_resolution: 0.18
+    map_length_x: 2.8
+    map_length_y: 1.8
+    task_file_override: "/home/ho/ros2_ws/src/quadruped_ros2_control/descriptions/unitree/go2_description_height_only_v1/config/ocs2/task_h012.info"
+    parameters:
+      position: [0.45, 0.0, 0.06]
+      size: [0.36, 1.10, 0.12]
+
+  height_only_flat:
+    type: flat
+    description: "Flat-only control check for height-only_v1 without the manual box top region"
+    scene_file: "/home/ho/unitree_mujoco/unitree_robots/go2/eval_flat.xml"
+    perceptive_supported: true
+    fake_map_mode: box
+    perceptive_image: "/home/ho/ros2_ws/src/quadruped_ros2_control/controllers/ocs2_quadruped_controller/config/flat_terrain.png"
+    terrain_height_scale: 0.0
+    terrain_resolution: 0.18
+    map_length_x: 2.8
+    map_length_y: 1.8
+    task_file_override: "/home/ho/ros2_ws/src/quadruped_ros2_control/descriptions/unitree/go2_description_height_only_v1/config/ocs2/task_flat_only.info"
+    parameters:
+      position: [0.62, 0.0, 0.04]
+      size: [0.36, 1.10, 0.0]
 
   slope:
     type: slope

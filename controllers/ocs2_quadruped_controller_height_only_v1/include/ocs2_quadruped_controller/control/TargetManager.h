@@ -58,12 +58,17 @@ namespace ocs2::legged_robot
         rclcpp::Subscription<geometry_msgs::msg::Twist>::SharedPtr twist_sub_;
         realtime_tools::RealtimeBuffer<geometry_msgs::msg::Twist> buffer_;
         int twist_count = 0;
+        int last_command_ = 0;
+        scalar_t gait_activation_time_ = -1.0;
 
         vector_t default_joint_state_{};
         scalar_t command_height_{};
         scalar_t time_to_target_{};
         scalar_t target_displacement_velocity_{};
         scalar_t target_rotation_velocity_{};
+        scalar_t startup_velocity_ramp_duration_{1.0};
+        scalar_t startup_forward_bias_duration_{0.0};
+        scalar_t startup_forward_bias_velocity_{0.0};
     };
 }
 

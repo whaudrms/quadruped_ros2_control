@@ -1,7 +1,7 @@
 name: height_only_box_forward_bootstrap
 publish_rate_hz: 50.0
-timeout_sec: 18.0
-monitoring_start_sec: 5.0
+timeout_sec: 30.0
+monitoring_start_sec: 6.5
 fall_detection:
   min_base_z: 0.03
   max_base_z_drop: 0.05
@@ -16,8 +16,8 @@ steps:
     rx: 0.0
     ry: 0.0
   - name: settle
-    duration: 1.5
-    command: 0
+    duration: 3.0
+    command: 2
     lx: 0.0
     ly: 0.0
     rx: 0.0
@@ -30,22 +30,30 @@ steps:
     rx: 0.0
     ry: 0.0
   - name: stabilize_gait
-    duration: 1.5
+    duration: 2.0
     command: 0
     lx: 0.0
-    ly: 0.0
+    ly: 0.05
     rx: 0.0
     ry: 0.0
-  - name: forward_over_box
+  - name: forward_approach
     duration: 6.0
     command: 0
     lx: 0.0
     ly: 0.70
     rx: 0.0
     ry: 0.0
-  - name: stop
-    duration: 1.0
+
+  - name: step_up_push
+    duration: 9.0
     command: 0
+    lx: 0.0
+    ly: 0.90
+    rx: 0.0
+    ry: 0.0
+  - name: stop
+    duration: 2.0
+    command: 2
     lx: 0.0
     ly: 0.0
     rx: 0.0

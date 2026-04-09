@@ -23,7 +23,7 @@ def launch_setup(context, *args, **kwargs):
     robot_controllers = os.path.join(
         get_package_share_directory(package_description),
         "config",
-        "robot_control_perceptive_height_only_v1.yaml",
+        context.launch_configurations["controller_config"],
     )
 
     rviz_config_file = os.path.join(get_package_share_directory(package_controller), "config", "visualize_ocs2.rviz")
@@ -96,9 +96,17 @@ def launch_setup(context, *args, **kwargs):
             )
         ),
         launch_arguments={
+            "map_mode": LaunchConfiguration("fake_map_mode"),
             "image_path": LaunchConfiguration("terrain_image"),
             "height_scale": LaunchConfiguration("terrain_height_scale"),
             "resolution": LaunchConfiguration("terrain_resolution"),
+            "map_length_x": LaunchConfiguration("terrain_map_length_x"),
+            "map_length_y": LaunchConfiguration("terrain_map_length_y"),
+            "box_center_x": LaunchConfiguration("terrain_box_center_x"),
+            "box_center_y": LaunchConfiguration("terrain_box_center_y"),
+            "box_size_x": LaunchConfiguration("terrain_box_size_x"),
+            "box_size_y": LaunchConfiguration("terrain_box_size_y"),
+            "box_height": LaunchConfiguration("terrain_box_height"),
             "uncertainty_base": LaunchConfiguration("terrain_uncertainty_base"),
             "uncertainty_gradient_weight": LaunchConfiguration("terrain_uncertainty_gradient_weight"),
             "uncertainty_blur_kernel": LaunchConfiguration("terrain_uncertainty_blur_kernel"),
@@ -141,6 +149,12 @@ def generate_launch_description():
         description="Launch convex plane decomposition node. Requires /elevation_mapping/elevation_map_raw input.",
     )
 
+    controller_config = DeclareLaunchArgument(
+        "controller_config",
+        default_value="robot_control_perceptive_height_only_v1.yaml",
+        description="Controller yaml file inside the description package config directory.",
+    )
+
     launch_fake_elevation_map = DeclareLaunchArgument(
         "launch_fake_elevation_map",
         default_value="false",
@@ -158,11 +172,51 @@ def generate_launch_description():
         default_value="0.12",
         description="Height scale for the fake elevation map terrain image.",
     )
+    fake_map_mode = DeclareLaunchArgument(
+        "fake_map_mode",
+        default_value="image",
+        description="Fake elevation map source mode: image or box.",
+    )
 
     terrain_resolution = DeclareLaunchArgument(
         "terrain_resolution",
         default_value="0.03",
         description="Grid-map resolution used by the fake elevation map publisher.",
+    )
+    terrain_map_length_x = DeclareLaunchArgument(
+        "terrain_map_length_x",
+        default_value="2.5",
+        description="Grid-map length in x used by the fake elevation map publisher.",
+    )
+    terrain_map_length_y = DeclareLaunchArgument(
+        "terrain_map_length_y",
+        default_value="1.6",
+        description="Grid-map length in y used by the fake elevation map publisher.",
+    )
+    terrain_box_center_x = DeclareLaunchArgument(
+        "terrain_box_center_x",
+        default_value="0.55",
+        description="Box center x used in direct box map mode.",
+    )
+    terrain_box_center_y = DeclareLaunchArgument(
+        "terrain_box_center_y",
+        default_value="0.0",
+        description="Box center y used in direct box map mode.",
+    )
+    terrain_box_size_x = DeclareLaunchArgument(
+        "terrain_box_size_x",
+        default_value="0.36",
+        description="Box size x used in direct box map mode.",
+    )
+    terrain_box_size_y = DeclareLaunchArgument(
+        "terrain_box_size_y",
+        default_value="1.10",
+        description="Box size y used in direct box map mode.",
+    )
+    terrain_box_height = DeclareLaunchArgument(
+        "terrain_box_height",
+        default_value="0.08",
+        description="Box height used in direct box map mode.",
     )
 
     terrain_uncertainty_base = DeclareLaunchArgument(
@@ -185,12 +239,21 @@ def generate_launch_description():
 
     return LaunchDescription(
         [
-            pkg_description,
-            launch_plane_decomposition,
-            launch_fake_elevation_map,
+        pkg_description,
+        controller_config,
+        launch_plane_decomposition,
+        launch_fake_elevation_map,
+            fake_map_mode,
             terrain_image,
             terrain_height_scale,
             terrain_resolution,
+            terrain_map_length_x,
+            terrain_map_length_y,
+            terrain_box_center_x,
+            terrain_box_center_y,
+            terrain_box_size_x,
+            terrain_box_size_y,
+            terrain_box_height,
             terrain_uncertainty_base,
             terrain_uncertainty_gradient_weight,
             terrain_uncertainty_blur_kernel,
