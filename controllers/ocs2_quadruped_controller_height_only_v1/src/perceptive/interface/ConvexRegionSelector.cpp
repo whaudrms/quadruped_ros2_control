@@ -243,6 +243,40 @@ namespace ocs2::legged_robot
         nominalFoothold.x() = 0.15 * measuredFootPositions[leg].x() + 0.85 * desiredFootPositions[leg].x();
         nominalFoothold.y() = 0.10 * measuredFootPositions[leg].y() + 0.90 * desiredFootPositions[leg].y();
         nominalFoothold.z() = measuredFootPositions[leg].z();
+
+        // Strong step-up assist for the front legs:
+        // if the front foothold is approaching an elevated box region, directly place the
+        // nominal foothold onto the box top so the front legs can actually target the terrain.
+        constexpr size_t kFrontLeftLeg = 0;
+        constexpr size_t kFrontRightLeg = 1;
+        if ((leg == kFrontLeftLeg || leg == kFrontRightLeg) && planarTerrainPtr_ && planarTerrainPtr_->planarRegions.size() > 1)
+        {
+            const auto& boxRegion = planarTerrainPtr_->planarRegions[1];
+            const scalar_t boxHeight = static_cast<scalar_t>(boxRegion.transformPlaneToWorld.translation().z());
+            if (boxHeight > 1e-6)
+            {
+                const scalar_t boxCenterX = static_cast<scalar_t>(boxRegion.transformPlaneToWorld.translation().x());
+                const scalar_t boxCenterY = static_cast<scalar_t>(boxRegion.transformPlaneToWorld.translation().y());
+                const scalar_t boxMinX = boxCenterX + static_cast<scalar_t>(boxRegion.bbox2d.xmin());
+                const scalar_t boxMaxX = boxCenterX + static_cast<scalar_t>(boxRegion.bbox2d.xmax());
+                const scalar_t boxMinY = boxCenterY + static_cast<scalar_t>(boxRegion.bbox2d.ymin());
+                const scalar_t boxMaxY = boxCenterY + static_cast<scalar_t>(boxRegion.bbox2d.ymax());
+
+                const scalar_t triggerDistance = 0.20;
+                const scalar_t insideMargin = 0.05;
+                const bool withinApproachWindow =
+                    nominalFoothold.x() > (boxMinX - triggerDistance) && nominalFoothold.x() < boxMaxX;
+                const bool withinBoxLateralBand =
+                    nominalFoothold.y() > (boxMinY + 0.03) && nominalFoothold.y() < (boxMaxY - 0.03);
+
+                if (withinApproachWindow && withinBoxLateralBand)
+                {
+                    nominalFoothold.x() = boxMinX + insideMargin;
+                    nominalFoothold.z() = boxHeight;
+                }
+            }
+        }
+
         return nominalFoothold;
     }
 } // namespace legged

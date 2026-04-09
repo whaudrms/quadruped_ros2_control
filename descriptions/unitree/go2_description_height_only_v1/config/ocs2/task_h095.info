@@ -24,6 +24,9 @@ model_settings
   startupVelocityRampDuration   1.0
   startupForwardBiasDuration    0.0
   startupForwardBiasVelocity    0.0
+  stepUpAssistForwardVelocityBoost 0.12
+  stepUpAssistTargetY          0.0
+  stepUpAssistTargetYaw        0.0
 
   verboseCppAd                  true
   recompileLibrariesCppAd       false
@@ -34,11 +37,12 @@ swing_trajectory_config
 {
   liftOffVelocity               0.03
   touchDownVelocity            -0.03
-  swingHeight                   0.16
+  swingHeight                   0.10
   swingTimeScale                0.20
   contactTimingUncertainty      0.05
-  frontStepUpExtraClearanceGain 4.00
-  frontStepUpClearanceThreshold 0.00
+  frontStepUpExtraClearanceGain 0.60
+  frontStepUpExtraClearanceOffset 0.05
+  frontStepUpClearanceThreshold 0.02
 }
 
 ; Multiple_Shooting SQP settings

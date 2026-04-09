@@ -59,6 +59,20 @@ def launch_process(command: str, log_path: Path):
     return process
 
 
+def create_controller_yaml(base_yaml: Path, output_yaml: Path, *, task_file_override: str = "", reference_file_override: str = "", gait_file_override: str = ""):
+    with open(base_yaml, "r", encoding="utf-8") as f:
+        config = yaml.safe_load(f)
+
+    controller_key = "ocs2_quadruped_controller_height_only_v1"
+    params = config[controller_key]["ros__parameters"]
+    params["task_file_override"] = task_file_override
+    params["reference_file_override"] = reference_file_override
+    params["gait_file_override"] = gait_file_override
+
+    with open(output_yaml, "w", encoding="utf-8") as f:
+        yaml.safe_dump(config, f, sort_keys=False)
+
+
 def stop_process(process: subprocess.Popen):
     if process.poll() is not None:
         return
@@ -139,6 +153,18 @@ def main():
     parser.add_argument("--tag", default="")
     args = parser.parse_args()
 
+    scenario_path = Path(args.scenario)
+    if not scenario_path.exists():
+        candidate = ROOT / "configs" / "scenarios" / args.scenario
+        if candidate.exists():
+            scenario_path = candidate
+        else:
+            candidate_yaml = ROOT / "configs" / "scenarios" / f"{args.scenario}.yaml"
+            if candidate_yaml.exists():
+                scenario_path = candidate_yaml
+            else:
+                raise FileNotFoundError(f"Scenario file not found: {args.scenario}")
+
     terrains = load_terrains()
     if args.terrain not in terrains:
         raise KeyError(f"Unknown terrain: {args.terrain}")
@@ -207,11 +233,18 @@ def main():
         size = params.get("size", [0.36, 1.10, 0.08])
         position = params.get("position", [0.55, 0.0, 0.04])
         task_file_override = terrain.get("task_file_override", "")
+        controller_yaml = run_dir / "robot_control_perceptive_height_only_v1.runtime.yaml"
+        create_controller_yaml(
+            Path("/home/ho/ros2_ws/src/quadruped_ros2_control/descriptions/unitree/go2_description_height_only_v1/config/robot_control_perceptive_height_only_v1.yaml"),
+            controller_yaml,
+            task_file_override=task_file_override,
+        )
         controller_cmd = (
             "source /opt/ros/jazzy/setup.bash && "
             "source /home/ho/ros2_ws/install/setup.bash && "
             "ros2 launch ocs2_quadruped_controller_height_only_v1 mujoco_perceptive_height_only_v1.launch.py "
             "pkg_description:=go2_description_height_only_v1 "
+            f"controller_config_path:={controller_yaml} "
             "launch_fake_elevation_map:=true "
             "launch_plane_decomposition:=false "
             f"fake_map_mode:={fake_map_mode} "
@@ -226,21 +259,23 @@ def main():
             f"terrain_box_size_y:={size[1]} "
             f"terrain_box_height:={size[2]}"
         )
-        if task_file_override:
-            controller_cmd += f" task_file_override:={task_file_override}"
     elif args.mode == "height_only_nominal_v1":
         task_file_override = terrain.get("task_file_override", "")
+        controller_yaml = run_dir / "robot_control_height_only_v1.runtime.yaml"
+        create_controller_yaml(
+            Path("/home/ho/ros2_ws/src/quadruped_ros2_control/descriptions/unitree/go2_description_height_only_v1/config/robot_control_height_only_v1.yaml"),
+            controller_yaml,
+            task_file_override=task_file_override,
+        )
         controller_cmd = (
             "source /opt/ros/jazzy/setup.bash && "
             "source /home/ho/ros2_ws/install/setup.bash && "
             "ros2 launch ocs2_quadruped_controller_height_only_v1 mujoco_perceptive_height_only_v1.launch.py "
             "pkg_description:=go2_description_height_only_v1 "
-            "controller_config:=robot_control_height_only_v1.yaml "
+            f"controller_config_path:={controller_yaml} "
             "launch_fake_elevation_map:=false "
             "launch_plane_decomposition:=false "
         )
-        if task_file_override:
-            controller_cmd += f" task_file_override:={task_file_override}"
     else:
         controller_cmd = (
             "source /opt/ros/jazzy/setup.bash && "
@@ -257,7 +292,7 @@ def main():
         "source /opt/ros/jazzy/setup.bash && "
         "source /home/ho/ros2_ws/install/setup.bash && "
         f"python3 {ROOT / 'scripts' / 'auto_input_metrics.py'} "
-        f"--scenario {args.scenario} "
+        f"--scenario {scenario_path} "
         f"--result-json {run_dir / 'result.json'} "
         f"--append-csv {RESULTS_DIR / 'summary.csv'} "
         f"--terrain {args.terrain} --mode {args.mode}"

@@ -69,6 +69,12 @@ namespace ocs2::legged_robot
         scalar_t startup_velocity_ramp_duration_{1.0};
         scalar_t startup_forward_bias_duration_{0.0};
         scalar_t startup_forward_bias_velocity_{0.0};
+        scalar_t box_center_x_{0.0};
+        scalar_t box_size_x_{0.0};
+        scalar_t step_up_assist_trigger_distance_{0.0};
+        scalar_t step_up_assist_forward_velocity_boost_{0.0};
+        scalar_t step_up_assist_target_y_{0.0};
+        scalar_t step_up_assist_target_yaw_{0.0};
     };
 }
 

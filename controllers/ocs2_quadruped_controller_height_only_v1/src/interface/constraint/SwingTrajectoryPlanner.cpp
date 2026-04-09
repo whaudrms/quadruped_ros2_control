@@ -164,7 +164,8 @@ namespace ocs2::legged_robot {
                         const scalar_t stepUpHeight =
                             touchDownHeightSequence[j][p] - liftOffHeightSequence[j][p];
                         if (stepUpHeight > config_.frontStepUpClearanceThreshold) {
-                            extraClearance = scaling * config_.frontStepUpExtraClearanceGain * stepUpHeight;
+                            extraClearance = scaling * (config_.frontStepUpExtraClearanceGain * stepUpHeight +
+                                                        config_.frontStepUpExtraClearanceOffset);
                             midHeight += extraClearance;
                         }
                         if (stepUpHeight > 0.0) {
@@ -341,6 +342,7 @@ namespace ocs2::legged_robot {
         loadData::loadPtreeValue(pt, config.swingTimeScale, prefix + "swingTimeScale", verbose);
         loadData::loadPtreeValue(pt, config.contactTimingUncertainty, prefix + "contactTimingUncertainty", verbose);
         loadData::loadPtreeValue(pt, config.frontStepUpExtraClearanceGain, prefix + "frontStepUpExtraClearanceGain", verbose);
+        loadData::loadPtreeValue(pt, config.frontStepUpExtraClearanceOffset, prefix + "frontStepUpExtraClearanceOffset", verbose);
         loadData::loadPtreeValue(pt, config.frontStepUpClearanceThreshold, prefix + "frontStepUpClearanceThreshold", verbose);
 
         if (verbose) {

@@ -46,6 +46,7 @@ namespace ocs2::legged_robot {
             scalar_t swingTimeScale = 0.15;
             scalar_t contactTimingUncertainty = 0.05;
             scalar_t frontStepUpExtraClearanceGain = 0.0;
+            scalar_t frontStepUpExtraClearanceOffset = 0.0;
             scalar_t frontStepUpClearanceThreshold = 0.0;
             // swing phases shorter than this time will be scaled down in height and velocity
         };

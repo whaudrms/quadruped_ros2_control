@@ -20,11 +20,15 @@ def launch_setup(context, *args, **kwargs):
     xacro_file = os.path.join(pkg_path, "xacro", "robot.xacro")
     robot_description = xacro.process_file(xacro_file).toxml()
 
-    robot_controllers = os.path.join(
-        get_package_share_directory(package_description),
-        "config",
-        context.launch_configurations["controller_config"],
-    )
+    controller_config_path = context.launch_configurations["controller_config_path"]
+    if controller_config_path:
+        robot_controllers_path = controller_config_path
+    else:
+        robot_controllers_path = os.path.join(
+            get_package_share_directory(package_description),
+            "config",
+            context.launch_configurations["controller_config"],
+        )
 
     rviz_config_file = os.path.join(get_package_share_directory(package_controller), "config", "visualize_ocs2.rviz")
 
@@ -53,7 +57,7 @@ def launch_setup(context, *args, **kwargs):
     controller_manager = Node(
         package="controller_manager",
         executable="ros2_control_node",
-        parameters=[robot_controllers],
+        parameters=[robot_controllers_path],
         remappings=[("~/robot_description", "/robot_description")],
         output="both",
     )
@@ -154,6 +158,11 @@ def generate_launch_description():
         default_value="robot_control_perceptive_height_only_v1.yaml",
         description="Controller yaml file inside the description package config directory.",
     )
+    controller_config_path = DeclareLaunchArgument(
+        "controller_config_path",
+        default_value="",
+        description="Optional absolute path to a controller yaml file. Overrides controller_config when provided.",
+    )
 
     launch_fake_elevation_map = DeclareLaunchArgument(
         "launch_fake_elevation_map",
@@ -241,6 +250,7 @@ def generate_launch_description():
         [
         pkg_description,
         controller_config,
+        controller_config_path,
         launch_plane_decomposition,
         launch_fake_elevation_map,
             fake_map_mode,

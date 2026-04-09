@@ -1,0 +1,76 @@
+[INFO] [launch]: All log files can be found below /home/ho/.ros/log/2026-04-09-23-17-30-530740-ho-35330
+[INFO] [launch]: Default logging verbosity is set to INFO
+[INFO] [rviz2-1]: process started with pid [35352]
+[INFO] [robot_state_publisher-2]: process started with pid [35353]
+[INFO] [ros2_control_node-3]: process started with pid [35354]
+[INFO] [fake_elevation_map_node-4]: process started with pid [35355]
+[INFO] [spawner-5]: process started with pid [35356]
+[robot_state_publisher-2] [INFO] [1775744250.694415377] [robot_state_publisher]: Robot initialized
+[ros2_control_node-3] [INFO] [1775744250.708936288] [controller_manager]: Using Steady (Monotonic) clock for triggering controller manager cycles.
+[ros2_control_node-3] [INFO] [1775744250.714150166] [controller_manager]: Subscribing to '/robot_description' topic for robot description.
+[ros2_control_node-3] [INFO] [1775744250.716762542] [controller_manager]: update rate is 100 Hz
+[ros2_control_node-3] [INFO] [1775744250.716797525] [controller_manager]: Overruns handling is : enabled
+[ros2_control_node-3] [INFO] [1775744250.716806240] [controller_manager]: Spawning controller_manager RT thread with scheduler priority: 50
+[ros2_control_node-3] [WARN] [1775744250.716871956] [controller_manager]: Could not enable FIFO RT scheduling policy: with error number <1>(Operation not permitted). See [https://control.ros.org/master/doc/ros2_control/controller_manager/doc/userdoc.html] for details on how to enable realtime scheduling.
+[fake_elevation_map_node-4] [INFO] [1775744250.778908269] [fake_elevation_map_node]: Generated box terrain map: center=(0.450, 0.000) size=(0.360, 1.100) height=0.095 map=(2.800 x 1.800)
+[fake_elevation_map_node-4] [INFO] [1775744250.783267403] [fake_elevation_map_node]: Publishing static elevation map on: /elevation_mapping/elevation_map_raw
+[fake_elevation_map_node-4] [INFO] [1775744250.783307817] [fake_elevation_map_node]: Publishing uncertainty layer 'uncertainty' with base=0.050 gradient_weight=0.350 blur_kernel=5
+[ros2_control_node-3] [INFO] [1775744250.879330514] [controller_manager]: Received robot description from topic.
+[ros2_control_node-3] [INFO] [1775744250.884533129] [controller_manager]: Loading hardware 'UnitreeSystem' 
+[ros2_control_node-3] [INFO] [1775744250.890944320] [controller_manager]: Loaded hardware 'UnitreeSystem' from plugin 'hardware_unitree_sdk2/HardwareUnitree'
+[ros2_control_node-3] [INFO] [1775744250.891076026] [controller_manager]: Initialize hardware 'UnitreeSystem' 
+[rviz2-1] [INFO] [1775744250.897245579] [rviz2]: Stereo is NOT SUPPORTED
+[rviz2-1] [INFO] [1775744250.897326242] [rviz2]: OpenGl version: 4.6 (GLSL 4.6)
+[ros2_control_node-3] [INFO] [1775744250.897306668] [controller_manager.hardware_component.system.UnitreeSystem]:  network_interface: lo, domain: 1
+[ros2_control_node-3] 1775744250.899951 [1] ros2_contr: selected interface "lo" is not multicast-capable: disabling multicast
+[rviz2-1] [INFO] [1775744250.913251678] [rviz2]: Stereo is NOT SUPPORTED
+[spawner-5] [INFO] [1775744250.978636027] [spawner_joint_state_broadcaster]: waiting for service /controller_manager/list_controllers to become available...
+[ros2_control_node-3] [INFO] [1775744251.007892816] [controller_manager]: Successful initialization of hardware 'UnitreeSystem'
+[ros2_control_node-3] [INFO] [1775744251.008960523] [resource_manager]: 'configure' hardware 'UnitreeSystem' 
+[ros2_control_node-3] [INFO] [1775744251.008975583] [resource_manager]: Successful 'configure' of hardware 'UnitreeSystem'
+[ros2_control_node-3] [INFO] [1775744251.008996203] [resource_manager]: 'activate' hardware 'UnitreeSystem' 
+[ros2_control_node-3] [INFO] [1775744251.009006668] [resource_manager]: Successful 'activate' of hardware 'UnitreeSystem'
+[ros2_control_node-3] [INFO] [1775744251.009090493] [controller_manager]: Registering statistics for : UnitreeSystem
+[ros2_control_node-3] [INFO] [1775744251.009147723] [controller_manager]: Resource Manager has been successfully initialized. Starting Controller Manager services...
+[ros2_control_node-3] [ERROR] [1775744251.231071366] [controller_manager]: The 'type' param was not defined for 'joint_state_broadcaster'.
+[spawner-5] [FATAL] [1775744251.232073523] [spawner_joint_state_broadcaster]: Failed loading controller joint_state_broadcaster
+[ERROR] [spawner-5]: process has died [pid 35356, exit code 1, cmd '/opt/ros/jazzy/lib/controller_manager/spawner joint_state_broadcaster --controller-manager /controller_manager --ros-args'].
+[INFO] [spawner-6]: process started with pid [35469]
+[spawner-6] [INFO] [1775744251.717186642] [spawner_imu_sensor_broadcaster]: waiting for service /controller_manager/list_controllers to become available...
+[ros2_control_node-3] [ERROR] [1775744252.469597764] [controller_manager]: The 'type' param was not defined for 'imu_sensor_broadcaster'.
+[spawner-6] [FATAL] [1775744252.470533615] [spawner_imu_sensor_broadcaster]: Failed loading controller imu_sensor_broadcaster
+[ERROR] [spawner-6]: process has died [pid 35469, exit code 1, cmd '/opt/ros/jazzy/lib/controller_manager/spawner imu_sensor_broadcaster --controller-manager /controller_manager --ros-args'].
+[INFO] [spawner-7]: process started with pid [35484]
+[spawner-7] [INFO] [1775744252.947282739] [spawner_ocs2_quadruped_controller_height_only_v1]: waiting for service /controller_manager/list_controllers to become available...
+[ros2_control_node-3] [ERROR] [1775744253.199428580] [controller_manager]: The 'type' param was not defined for 'ocs2_quadruped_controller_height_only_v1'.
+[spawner-7] [FATAL] [1775744253.200433641] [spawner_ocs2_quadruped_controller_height_only_v1]: Failed loading controller ocs2_quadruped_controller_height_only_v1
+[ERROR] [spawner-7]: process has died [pid 35484, exit code 1, cmd '/opt/ros/jazzy/lib/controller_manager/spawner ocs2_quadruped_controller_height_only_v1 --controller-manager /controller_manager --ros-args'].
+[WARNING] [launch]: user interrupted with ctrl-c (SIGINT)
+[rviz2-1] [INFO] [1775744288.812525657] [rclcpp]: signal_handler(SIGINT/SIGTERM)
+[INFO] [fake_elevation_map_node-4]: sending signal 'SIGINT' to process[fake_elevation_map_node-4]
+[INFO] [ros2_control_node-3]: sending signal 'SIGINT' to process[ros2_control_node-3]
+[INFO] [robot_state_publisher-2]: sending signal 'SIGINT' to process[robot_state_publisher-2]
+[INFO] [rviz2-1]: sending signal 'SIGINT' to process[rviz2-1]
+[ros2_control_node-3] [INFO] [1775744288.812600609] [rclcpp]: signal_handler(SIGINT/SIGTERM)
+[ros2_control_node-3] [INFO] [1775744288.812672445] [controller_manager]: Shutdown request received....
+[ros2_control_node-3] [INFO] [1775744288.812764227] [controller_manager]: Shutting down all controllers in the controller manager.
+[ros2_control_node-3] [INFO] [1775744288.812816484] [resource_manager]: 'deactivate' hardware 'UnitreeSystem' 
+[ros2_control_node-3] [INFO] [1775744288.812841791] [resource_manager]: Successful 'deactivate' of hardware 'UnitreeSystem'
+[ros2_control_node-3] [INFO] [1775744288.812851687] [resource_manager]: 'shutdown' hardware 'UnitreeSystem' 
+[ros2_control_node-3] [INFO] [1775744288.812859069] [resource_manager]: Successful 'shutdown' of hardware 'UnitreeSystem'
+[ros2_control_node-3] [INFO] [1775744288.812958960] [controller_manager]: Shutting down the controller manager.
+[ros2_control_node-3] [ERROR] [1775744288.813156270] [controller_manager.pal_statistics]: Exception in publisher thread: context cannot be slept with because it's invalid!. Aborting!
+[ros2_control_node-3] [ERROR] [1775744288.813156423] [controller_manager.pal_statistics]: Exception in publisher thread: context cannot be slept with because it's invalid!. Aborting!
+[robot_state_publisher-2] [INFO] [1775744288.812607524] [rclcpp]: signal_handler(SIGINT/SIGTERM)
+[fake_elevation_map_node-4] [INFO] [1775744288.812619662] [rclcpp]: signal_handler(SIGINT/SIGTERM)
+[fake_elevation_map_node-4] [INFO] [1775744288.816336781] [rclcpp]: signal_handler(SIGINT/SIGTERM)
+[ros2_control_node-3] [INFO] [1775744288.817060667] [rclcpp]: signal_handler(SIGINT/SIGTERM)
+[ros2_control_node-3] [INFO] [1775744288.817488404] [controller_manager.pal_statistics]: Async messages lost 0
+[ros2_control_node-3] [INFO] [1775744288.817504634] [controller_manager.pal_statistics]: publish_async_failures_ 0
+[ERROR] [robot_state_publisher-2]: process has died [pid 35353, exit code -2, cmd '/opt/ros/jazzy/lib/robot_state_publisher/robot_state_publisher --ros-args -r __node:=robot_state_publisher --params-file /tmp/launch_params_rxov95kj'].
+[rviz2-1] [INFO] [1775744288.818360160] [rclcpp]: signal_handler(SIGINT/SIGTERM)
+[ros2_control_node-3] [INFO] [1775744288.818535913] [controller_manager.pal_statistics]: Async messages lost 0
+[ros2_control_node-3] [INFO] [1775744288.818544044] [controller_manager.pal_statistics]: publish_async_failures_ 0
+[INFO] [fake_elevation_map_node-4]: process has finished cleanly [pid 35355]
+[INFO] [ros2_control_node-3]: process has finished cleanly [pid 35354]
+[INFO] [rviz2-1]: process has finished cleanly [pid 35352]

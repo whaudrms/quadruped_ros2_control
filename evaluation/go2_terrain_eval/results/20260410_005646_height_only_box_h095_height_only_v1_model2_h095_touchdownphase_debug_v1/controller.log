@@ -1,0 +1,1109 @@
+[INFO] [launch]: All log files can be found below /home/ho/.ros/log/2026-04-10-00-56-49-236991-ho-41833
+[INFO] [launch]: Default logging verbosity is set to INFO
+[INFO] [rviz2-1]: process started with pid [41855]
+[INFO] [robot_state_publisher-2]: process started with pid [41856]
+[INFO] [ros2_control_node-3]: process started with pid [41857]
+[INFO] [fake_elevation_map_node-4]: process started with pid [41858]
+[INFO] [spawner-5]: process started with pid [41859]
+[ros2_control_node-3] [INFO] [1775750209.375438363] [controller_manager]: Using Steady (Monotonic) clock for triggering controller manager cycles.
+[ros2_control_node-3] [INFO] [1775750209.378917666] [controller_manager]: Subscribing to '/robot_description' topic for robot description.
+[ros2_control_node-3] [INFO] [1775750209.380100928] [controller_manager]: update rate is 1000 Hz
+[ros2_control_node-3] [INFO] [1775750209.380113544] [controller_manager]: Overruns handling is : enabled
+[ros2_control_node-3] [INFO] [1775750209.380116743] [controller_manager]: Spawning controller_manager RT thread with scheduler priority: 50
+[ros2_control_node-3] [WARN] [1775750209.380165038] [controller_manager]: Could not enable FIFO RT scheduling policy: with error number <1>(Operation not permitted). See [https://control.ros.org/master/doc/ros2_control/controller_manager/doc/userdoc.html] for details on how to enable realtime scheduling.
+[robot_state_publisher-2] [INFO] [1775750209.384481338] [robot_state_publisher]: Robot initialized
+[fake_elevation_map_node-4] [INFO] [1775750209.450714575] [fake_elevation_map_node]: Generated box terrain map: center=(0.450, 0.000) size=(0.360, 1.100) height=0.095 map=(2.800 x 1.800)
+[fake_elevation_map_node-4] [INFO] [1775750209.452864233] [fake_elevation_map_node]: Publishing static elevation map on: /elevation_mapping/elevation_map_raw
+[fake_elevation_map_node-4] [INFO] [1775750209.452881003] [fake_elevation_map_node]: Publishing uncertainty layer 'uncertainty' with base=0.050 gradient_weight=0.350 blur_kernel=5
+[ros2_control_node-3] [INFO] [1775750209.489323152] [controller_manager]: Received robot description from topic.
+[ros2_control_node-3] [INFO] [1775750209.493770723] [controller_manager]: Loading hardware 'UnitreeSystem' 
+[ros2_control_node-3] [INFO] [1775750209.498443159] [controller_manager]: Loaded hardware 'UnitreeSystem' from plugin 'hardware_unitree_sdk2/HardwareUnitree'
+[ros2_control_node-3] [INFO] [1775750209.498530378] [controller_manager]: Initialize hardware 'UnitreeSystem' 
+[ros2_control_node-3] [INFO] [1775750209.501958959] [controller_manager.hardware_component.system.UnitreeSystem]:  network_interface: lo, domain: 1
+[ros2_control_node-3] 1775750209.503378 [1] ros2_contr: selected interface "lo" is not multicast-capable: disabling multicast
+[rviz2-1] [INFO] [1775750209.569965125] [rviz2]: Stereo is NOT SUPPORTED
+[rviz2-1] [INFO] [1775750209.570051852] [rviz2]: OpenGl version: 4.6 (GLSL 4.6)
+[rviz2-1] [INFO] [1775750209.589187480] [rviz2]: Stereo is NOT SUPPORTED
+[ros2_control_node-3] [INFO] [1775750209.608175241] [controller_manager]: Successful initialization of hardware 'UnitreeSystem'
+[ros2_control_node-3] [INFO] [1775750209.609153575] [resource_manager]: 'configure' hardware 'UnitreeSystem' 
+[ros2_control_node-3] [INFO] [1775750209.609165014] [resource_manager]: Successful 'configure' of hardware 'UnitreeSystem'
+[ros2_control_node-3] [INFO] [1775750209.609181505] [resource_manager]: 'activate' hardware 'UnitreeSystem' 
+[ros2_control_node-3] [INFO] [1775750209.609189649] [resource_manager]: Successful 'activate' of hardware 'UnitreeSystem'
+[ros2_control_node-3] [INFO] [1775750209.609261407] [controller_manager]: Registering statistics for : UnitreeSystem
+[ros2_control_node-3] [INFO] [1775750209.609316316] [controller_manager]: Resource Manager has been successfully initialized. Starting Controller Manager services...
+[spawner-5] [INFO] [1775750209.629204158] [spawner_joint_state_broadcaster]: waiting for service /controller_manager/list_controllers to become available...
+[ros2_control_node-3] [INFO] [1775750209.881341896] [controller_manager]: Loading controller : 'joint_state_broadcaster' of type 'joint_state_broadcaster/JointStateBroadcaster'
+[ros2_control_node-3] [INFO] [1775750209.881388260] [controller_manager]: Loading controller 'joint_state_broadcaster'
+[ros2_control_node-3] [INFO] [1775750209.885537710] [controller_manager]: Controller 'joint_state_broadcaster' node arguments: --ros-args --params-file /home/ho/ros2_ws/src/quadruped_ros2_control/evaluation/go2_terrain_eval/results/20260410_005646_height_only_box_h095_height_only_v1_model2_h095_touchdownphase_debug_v1/robot_control_perceptive_height_only_v1.runtime.yaml 
+[spawner-5] [INFO] [1775750209.892863571] [spawner_joint_state_broadcaster]: Loaded joint_state_broadcaster
+[ros2_control_node-3] [INFO] [1775750209.893763479] [controller_manager]: Configuring controller: 'joint_state_broadcaster'
+[ros2_control_node-3] [INFO] [1775750209.893925589] [joint_state_broadcaster]: 'joints' or 'interfaces' parameter is empty. All available state interfaces will be published
+[ros2_control_node-3] [INFO] [1775750209.901882779] [controller_manager]: Activating controllers: [ joint_state_broadcaster ]
+[ros2_control_node-3] [INFO] [1775750209.902640148] [controller_manager]: Successfully switched controllers!
+[spawner-5] [INFO] [1775750209.904488837] [spawner_joint_state_broadcaster]: Configured and activated joint_state_broadcaster
+[INFO] [spawner-5]: process has finished cleanly [pid 41859]
+[INFO] [spawner-6]: process started with pid [41974]
+[spawner-6] [INFO] [1775750210.329764793] [spawner_imu_sensor_broadcaster]: waiting for service /controller_manager/list_controllers to become available...
+[ros2_control_node-3] [INFO] [1775750211.082029330] [controller_manager]: Loading controller : 'imu_sensor_broadcaster' of type 'imu_sensor_broadcaster/IMUSensorBroadcaster'
+[ros2_control_node-3] [INFO] [1775750211.082071919] [controller_manager]: Loading controller 'imu_sensor_broadcaster'
+[ros2_control_node-3] [INFO] [1775750211.083071047] [controller_manager]: Controller 'imu_sensor_broadcaster' node arguments: --ros-args --params-file /home/ho/ros2_ws/src/quadruped_ros2_control/evaluation/go2_terrain_eval/results/20260410_005646_height_only_box_h095_height_only_v1_model2_h095_touchdownphase_debug_v1/robot_control_perceptive_height_only_v1.runtime.yaml 
+[spawner-6] [INFO] [1775750211.088325889] [spawner_imu_sensor_broadcaster]: Loaded imu_sensor_broadcaster
+[ros2_control_node-3] [INFO] [1775750211.088918229] [controller_manager]: Configuring controller: 'imu_sensor_broadcaster'
+[ros2_control_node-3] [INFO] [1775750211.091694992] [controller_manager]: Activating controllers: [ imu_sensor_broadcaster ]
+[ros2_control_node-3] [INFO] [1775750211.092489307] [controller_manager]: Successfully switched controllers!
+[spawner-6] [INFO] [1775750211.094152465] [spawner_imu_sensor_broadcaster]: Configured and activated imu_sensor_broadcaster
+[INFO] [spawner-6]: process has finished cleanly [pid 41974]
+[INFO] [spawner-7]: process started with pid [41990]
+[spawner-7] [INFO] [1775750211.508792268] [spawner_ocs2_quadruped_controller_height_only_v1]: waiting for service /controller_manager/list_controllers to become available...
+[ros2_control_node-3] [INFO] [1775750212.260879692] [controller_manager]: Loading controller : 'ocs2_quadruped_controller_height_only_v1' of type 'ocs2_quadruped_controller_height_only_v1/Ocs2QuadrupedController'
+[ros2_control_node-3] [INFO] [1775750212.260962332] [controller_manager]: Loading controller 'ocs2_quadruped_controller_height_only_v1'
+[ros2_control_node-3] [INFO] [1775750212.327029247] [controller_manager]: Controller 'ocs2_quadruped_controller_height_only_v1' node arguments: --ros-args --params-file /home/ho/ros2_ws/src/quadruped_ros2_control/evaluation/go2_terrain_eval/results/20260410_005646_height_only_box_h095_height_only_v1_model2_h095_touchdownphase_debug_v1/robot_control_perceptive_height_only_v1.runtime.yaml 
+[ros2_control_node-3] [INFO] [1775750212.333179260] [ocs2_quadruped_controller_height_only_v1]: Controller Manager Update Rate: 500 Hz
+[ros2_control_node-3] [LeggedInterface] Loading task file: "/home/ho/ros2_ws/src/quadruped_ros2_control/descriptions/unitree/go2_description_height_only_v1/config/ocs2/task_h095.info"
+[ros2_control_node-3] [LeggedInterface] Loading Pinocchio model from: "/home/ho/ros2_ws/install/go2_description_height_only_v1/share/go2_description_height_only_v1/urdf/robot.urdf"
+[ros2_control_node-3] [LeggedInterface] Loading target command settings from: "/home/ho/ros2_ws/install/go2_description_height_only_v1/share/go2_description_height_only_v1/config/ocs2/reference.info"
+[ros2_control_node-3] [CppAdInterface] Loading Shared Library: /home/ho/ocs2_cpp_ad/go2/ALL_FOOT_position/cppad_generated/ALL_FOOT_position_lib.so
+[ros2_control_node-3] [CppAdInterface] Loading Shared Library: /home/ho/ocs2_cpp_ad/go2/ALL_FOOT_velocity/cppad_generated/ALL_FOOT_velocity_lib.so
+[ros2_control_node-3] [CppAdInterface] Loading Shared Library: /home/ho/ocs2_cpp_ad/go2/ALL_FOOT_orientation/cppad_generated/ALL_FOOT_orientation_lib.so
+[ros2_control_node-3] [CppAdInterface] Loading Shared Library: /home/ho/ocs2_cpp_ad/go2/dynamics_systemFlowMap/cppad_generated/dynamics_systemFlowMap_lib.so
+[ros2_control_node-3] WARNING: Loaded at least one default value in matrix: "Q"
+[ros2_control_node-3] WARNING: Loaded at least one default value in matrix: "R"
+[ros2_control_node-3] [CppAdInterface] Loading Shared Library: /home/ho/ocs2_cpp_ad/go2/FL_foot_position/cppad_generated/FL_foot_position_lib.so
+[ros2_control_node-3] [CppAdInterface] Loading Shared Library: /home/ho/ocs2_cpp_ad/go2/FL_foot_velocity/cppad_generated/FL_foot_velocity_lib.so
+[ros2_control_node-3] [CppAdInterface] Loading Shared Library: /home/ho/ocs2_cpp_ad/go2/FL_foot_orientation/cppad_generated/FL_foot_orientation_lib.so
+[ros2_control_node-3] [CppAdInterface] Loading Shared Library: /home/ho/ocs2_cpp_ad/go2/FR_foot_position/cppad_generated/FR_foot_position_lib.so
+[ros2_control_node-3] [CppAdInterface] Loading Shared Library: /home/ho/ocs2_cpp_ad/go2/FR_foot_velocity/cppad_generated/FR_foot_velocity_lib.so
+[ros2_control_node-3] [CppAdInterface] Loading Shared Library: /home/ho/ocs2_cpp_ad/go2/FR_foot_orientation/cppad_generated/FR_foot_orientation_lib.so
+[ros2_control_node-3] [CppAdInterface] Loading Shared Library: /home/ho/ocs2_cpp_ad/go2/RL_foot_position/cppad_generated/RL_foot_position_lib.so
+[ros2_control_node-3] [CppAdInterface] Loading Shared Library: /home/ho/ocs2_cpp_ad/go2/RL_foot_velocity/cppad_generated/RL_foot_velocity_lib.so
+[ros2_control_node-3] [CppAdInterface] Loading Shared Library: /home/ho/ocs2_cpp_ad/go2/RL_foot_orientation/cppad_generated/RL_foot_orientation_lib.so
+[ros2_control_node-3] [CppAdInterface] Loading Shared Library: /home/ho/ocs2_cpp_ad/go2/RR_foot_position/cppad_generated/RR_foot_position_lib.so
+[ros2_control_node-3] [CppAdInterface] Loading Shared Library: /home/ho/ocs2_cpp_ad/go2/RR_foot_velocity/cppad_generated/RR_foot_velocity_lib.so
+[ros2_control_node-3] [CppAdInterface] Loading Shared Library: /home/ho/ocs2_cpp_ad/go2/RR_foot_orientation/cppad_generated/RR_foot_orientation_lib.so
+[ros2_control_node-3] [CppAdInterface] Loading Shared Library: /home/ho/ocs2_cpp_ad/go2/FL_foot_position/cppad_generated/FL_foot_position_lib.so
+[ros2_control_node-3] [CppAdInterface] Loading Shared Library: /home/ho/ocs2_cpp_ad/go2/FL_foot_velocity/cppad_generated/FL_foot_velocity_lib.so
+[ros2_control_node-3] [CppAdInterface] Loading Shared Library: /home/ho/ocs2_cpp_ad/go2/FL_foot_orientation/cppad_generated/FL_foot_orientation_lib.so
+[ros2_control_node-3] [CppAdInterface] Loading Shared Library: /home/ho/ocs2_cpp_ad/go2/FR_foot_position/cppad_generated/FR_foot_position_lib.so
+[ros2_control_node-3] [CppAdInterface] Loading Shared Library: /home/ho/ocs2_cpp_ad/go2/FR_foot_velocity/cppad_generated/FR_foot_velocity_lib.so
+[ros2_control_node-3] [CppAdInterface] Loading Shared Library: /home/ho/ocs2_cpp_ad/go2/FR_foot_orientation/cppad_generated/FR_foot_orientation_lib.so
+[ros2_control_node-3] [CppAdInterface] Loading Shared Library: /home/ho/ocs2_cpp_ad/go2/RL_foot_position/cppad_generated/RL_foot_position_lib.so
+[ros2_control_node-3] [CppAdInterface] Loading Shared Library: /home/ho/ocs2_cpp_ad/go2/RL_foot_velocity/cppad_generated/RL_foot_velocity_lib.so
+[ros2_control_node-3] [CppAdInterface] Loading Shared Library: /home/ho/ocs2_cpp_ad/go2/RL_foot_orientation/cppad_generated/RL_foot_orientation_lib.so
+[ros2_control_node-3] [CppAdInterface] Loading Shared Library: /home/ho/ocs2_cpp_ad/go2/RR_foot_position/cppad_generated/RR_foot_position_lib.so
+[ros2_control_node-3] [CppAdInterface] Loading Shared Library: /home/ho/ocs2_cpp_ad/go2/RR_foot_velocity/cppad_generated/RR_foot_velocity_lib.so
+[ros2_control_node-3] [CppAdInterface] Loading Shared Library: /home/ho/ocs2_cpp_ad/go2/RR_foot_orientation/cppad_generated/RR_foot_orientation_lib.so
+[ros2_control_node-3] WARNING: Failed to set threads priority (one possible reason could be that the user and the group permissions are not set properly.)
+[ros2_control_node-3] WARNING: Failed to set threads priority (one possible reason could be that the user and the group permissions are not set properly.)
+[ros2_control_node-3] [INFO] [1775750212.374081633] [gait_manager]: GaitManager is ready.
+[ros2_control_node-3] WARNING: Failed to set threads priority (one possible reason could be that the user and the group permissions are not set properly.)
+[ros2_control_node-3] [INFO] [1775750212.377561897] [ocs2_quadruped_controller_height_only_v1]: MRT initialized. MPC thread started.
+[ros2_control_node-3] [INFO] [1775750212.381651955] [ocs2_quadruped_controller_height_only_v1]: Using Ground Truth Estimator
+[spawner-7] [INFO] [1775750212.383921022] [spawner_ocs2_quadruped_controller_height_only_v1]: Loaded ocs2_quadruped_controller_height_only_v1
+[ros2_control_node-3] [INFO] [1775750212.384922418] [controller_manager]: Configuring controller: 'ocs2_quadruped_controller_height_only_v1'
+[ros2_control_node-3] [INFO] [1775750212.387642707] [controller_manager]: Activating controllers: [ ocs2_quadruped_controller_height_only_v1 ]
+[ros2_control_node-3] [INFO] [1775750212.388659054] [controller_manager]: Successfully switched controllers!
+[spawner-7] [INFO] [1775750212.390540577] [spawner_ocs2_quadruped_controller_height_only_v1]: Configured and activated ocs2_quadruped_controller_height_only_v1
+[INFO] [spawner-7]: process has finished cleanly [pid 41990]
+[ros2_control_node-3] [INFO] [1775750217.573612992] [ocs2_quadruped_controller_height_only_v1]: Switched from passive to OCS2 State
+[ros2_control_node-3] [INFO] [1775750217.575597132] [ocs2_quadruped_controller_height_only_v1]: Waiting for the initial policy ...
+[ros2_control_node-3] [INFO] [1775750217.621260442] [GaitManager]: Switch to gait: stance
+[ros2_control_node-3] [INFO] [1775750217.629066810] [ocs2_quadruped_controller_height_only_v1]: Initial policy has been received.
+[ros2_control_node-3] [WARN] [1775750217.629264043] [controller_manager]: Overrun might occur, Total time : 53725.894 us (Expected < 1000.000 us) --> Read time : 4.162 us, Update time : 53615.057 us, Write time : 106.675 us
+[ros2_control_node-3] [WARN] [1775750217.629279716] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 1000 Hz. The loop took 53.909945 ms (missed cycles : 54).
+[ros2_control_node-3] [WARN] [1775750218.655493144] [controller_manager]: Overrun might occur, Total time : 1889.267 us (Expected < 1000.000 us) --> Read time : 7.089 us, Update time : 1731.283 us, Write time : 150.895 us
+[ros2_control_node-3] [WARN] [1775750218.655544583] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 1000 Hz. The loop took 2.174510 ms (missed cycles : 3).
+[ros2_control_node-3] ERROR:  Projected Hessian matrix not positive definite
+[ros2_control_node-3] ->ERROR:  Removing from active set failed
+[ros2_control_node-3]   ->ERROR:  Unable to perform homotopy step
+[ros2_control_node-3]     ->ERROR:  Removing from active set failed
+[ros2_control_node-3]       ->ERROR:  Initialisation failed! QP could not be solved!
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Projected Hessian matrix not positive definite
+[ros2_control_node-3] ->ERROR:  Removing from active set failed
+[ros2_control_node-3]   ->ERROR:  Unable to perform homotopy step
+[ros2_control_node-3]     ->ERROR:  Removing from active set failed
+[ros2_control_node-3]       ->ERROR:  Initialisation failed! QP could not be solved!
+[ros2_control_node-3] ERROR:  Projected Hessian matrix not positive definite
+[ros2_control_node-3] ->ERROR:  Removing from active set failed
+[ros2_control_node-3]   ->ERROR:  Unable to perform homotopy step
+[ros2_control_node-3]     ->ERROR:  Removing from active set failed
+[ros2_control_node-3]       ->ERROR:  Initialisation failed! QP could not be solved!
+[ros2_control_node-3] ERROR:  Projected Hessian matrix not positive definite
+[ros2_control_node-3] ->ERROR:  Removing from active set failed
+[ros2_control_node-3]   ->ERROR:  Unable to perform homotopy step
+[ros2_control_node-3]     ->ERROR:  Removing from active set failed
+[ros2_control_node-3]       ->ERROR:  Initialisation failed! QP could not be solved!
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Projected Hessian matrix not positive definite
+[ros2_control_node-3] ->ERROR:  Removing from active set failed
+[ros2_control_node-3]   ->ERROR:  Unable to perform homotopy step
+[ros2_control_node-3]     ->ERROR:  Removing from active set failed
+[ros2_control_node-3]       ->ERROR:  Initialisation failed! QP could not be solved!
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Projected Hessian matrix not positive definite
+[ros2_control_node-3] ->ERROR:  Removing from active set failed
+[ros2_control_node-3]   ->ERROR:  Unable to perform homotopy step
+[ros2_control_node-3]     ->ERROR:  Removing from active set failed
+[ros2_control_node-3]       ->ERROR:  Initialisation failed! QP could not be solved!
+[ros2_control_node-3] ERROR:  Projected Hessian matrix not positive definite
+[ros2_control_node-3] ->ERROR:  Removing from active set failed
+[ros2_control_node-3]   ->ERROR:  Unable to perform homotopy step
+[ros2_control_node-3]     ->ERROR:  Removing from active set failed
+[ros2_control_node-3]       ->ERROR:  Initialisation failed! QP could not be solved!
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Projected Hessian matrix not positive definite
+[ros2_control_node-3] ->ERROR:  Removing from active set failed
+[ros2_control_node-3]   ->ERROR:  Unable to perform homotopy step
+[ros2_control_node-3]     ->ERROR:  Removing from active set failed
+[ros2_control_node-3]       ->ERROR:  Initialisation failed! QP could not be solved!
+[ros2_control_node-3] ERROR:  Projected Hessian matrix not positive definite
+[ros2_control_node-3] ->ERROR:  Removing from active set failed
+[ros2_control_node-3]   ->ERROR:  Unable to perform homotopy step
+[ros2_control_node-3]     ->ERROR:  Removing from active set failed
+[ros2_control_node-3]       ->ERROR:  Initialisation failed! QP could not be solved!
+[ros2_control_node-3] ERROR:  Projected Hessian matrix not positive definite
+[ros2_control_node-3] ->ERROR:  Removing from active set failed
+[ros2_control_node-3]   ->ERROR:  Unable to perform homotopy step
+[ros2_control_node-3]     ->ERROR:  Removing from active set failed
+[ros2_control_node-3]       ->ERROR:  Initialisation failed! QP could not be solved!
+[ros2_control_node-3] ERROR:  Projected Hessian matrix not positive definite
+[ros2_control_node-3] ->ERROR:  Removing from active set failed
+[ros2_control_node-3]   ->ERROR:  Unable to perform homotopy step
+[ros2_control_node-3]     ->ERROR:  Removing from active set failed
+[ros2_control_node-3]       ->ERROR:  Initialisation failed! QP could not be solved!
+[ros2_control_node-3] ERROR:  Projected Hessian matrix not positive definite
+[ros2_control_node-3] ->ERROR:  Removing from active set failed
+[ros2_control_node-3]   ->ERROR:  Unable to perform homotopy step
+[ros2_control_node-3]     ->ERROR:  Removing from active set failed
+[ros2_control_node-3]       ->ERROR:  Initialisation failed! QP could not be solved!
+[ros2_control_node-3] ERROR:  Projected Hessian matrix not positive definite
+[ros2_control_node-3] ->ERROR:  Removing from active set failed
+[ros2_control_node-3]   ->ERROR:  Unable to perform homotopy step
+[ros2_control_node-3]     ->ERROR:  Removing from active set failed
+[ros2_control_node-3]       ->ERROR:  Initialisation failed! QP could not be solved!
+[ros2_control_node-3] ERROR:  Projected Hessian matrix not positive definite
+[ros2_control_node-3] ->ERROR:  Removing from active set failed
+[ros2_control_node-3]   ->ERROR:  Unable to perform homotopy step
+[ros2_control_node-3]     ->ERROR:  Removing from active set failed
+[ros2_control_node-3]       ->ERROR:  Initialisation failed! QP could not be solved!
+[ros2_control_node-3] ERROR:  Projected Hessian matrix not positive definite
+[ros2_control_node-3] ->ERROR:  Removing from active set failed
+[ros2_control_node-3]   ->ERROR:  Unable to perform homotopy step
+[ros2_control_node-3]     ->ERROR:  Removing from active set failed
+[ros2_control_node-3]       ->ERROR:  Initialisation failed! QP could not be solved!
+[ros2_control_node-3] ERROR:  Projected Hessian matrix not positive definite
+[ros2_control_node-3] ->ERROR:  Removing from active set failed
+[ros2_control_node-3]   ->ERROR:  Unable to perform homotopy step
+[ros2_control_node-3]     ->ERROR:  Removing from active set failed
+[ros2_control_node-3]       ->ERROR:  Initialisation failed! QP could not be solved!
+[ros2_control_node-3] ERROR:  Projected Hessian matrix not positive definite
+[ros2_control_node-3] ->ERROR:  Removing from active set failed
+[ros2_control_node-3]   ->ERROR:  Unable to perform homotopy step
+[ros2_control_node-3]     ->ERROR:  Removing from active set failed
+[ros2_control_node-3]       ->ERROR:  Initialisation failed! QP could not be solved!
+[ros2_control_node-3] ERROR:  Projected Hessian matrix not positive definite
+[ros2_control_node-3] ->ERROR:  Removing from active set failed
+[ros2_control_node-3]   ->ERROR:  Unable to perform homotopy step
+[ros2_control_node-3]     ->ERROR:  Removing from active set failed
+[ros2_control_node-3]       ->ERROR:  Initialisation failed! QP could not be solved!
+[ros2_control_node-3] ERROR:  Projected Hessian matrix not positive definite
+[ros2_control_node-3] ->ERROR:  Removing from active set failed
+[ros2_control_node-3]   ->ERROR:  Unable to perform homotopy step
+[ros2_control_node-3]     ->ERROR:  Removing from active set failed
+[ros2_control_node-3]       ->ERROR:  Initialisation failed! QP could not be solved!
+[ros2_control_node-3] [WARN] [1775750219.677759664] [controller_manager]: Overrun might occur, Total time : 2169.948 us (Expected < 1000.000 us) --> Read time : 9.188 us, Update time : 2040.282 us, Write time : 120.478 us
+[ros2_control_node-3] [WARN] [1775750219.677805853] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 1000 Hz. The loop took 2.435657 ms (missed cycles : 3).
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Projected Hessian matrix not positive definite
+[ros2_control_node-3] ->ERROR:  Removing from active set failed
+[ros2_control_node-3]   ->ERROR:  Unable to perform homotopy step
+[ros2_control_node-3]     ->ERROR:  Removing from active set failed
+[ros2_control_node-3]       ->ERROR:  Initialisation failed! QP could not be solved!
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Projected Hessian matrix not positive definite
+[ros2_control_node-3] ->ERROR:  Removing from active set failed
+[ros2_control_node-3]   ->ERROR:  Unable to perform homotopy step
+[ros2_control_node-3]     ->ERROR:  Removing from active set failed
+[ros2_control_node-3]       ->ERROR:  Initialisation failed! QP could not be solved!
+[ros2_control_node-3] ERROR:  Projected Hessian matrix not positive definite
+[ros2_control_node-3] ->ERROR:  Removing from active set failed
+[ros2_control_node-3]   ->ERROR:  Unable to perform homotopy step
+[ros2_control_node-3]     ->ERROR:  Removing from active set failed
+[ros2_control_node-3]       ->ERROR:  Initialisation failed! QP could not be solved!
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Projected Hessian matrix not positive definite
+[ros2_control_node-3] ->ERROR:  Removing from active set failed
+[ros2_control_node-3]   ->ERROR:  Unable to perform homotopy step
+[ros2_control_node-3]     ->ERROR:  Removing from active set failed
+[ros2_control_node-3]       ->ERROR:  Initialisation failed! QP could not be solved!
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Projected Hessian matrix not positive definite
+[ros2_control_node-3] ->ERROR:  Removing from active set failed
+[ros2_control_node-3]   ->ERROR:  Unable to perform homotopy step
+[ros2_control_node-3]     ->ERROR:  Removing from active set failed
+[ros2_control_node-3]       ->ERROR:  Initialisation failed! QP could not be solved!
+[ros2_control_node-3] ERROR:  Projected Hessian matrix not positive definite
+[ros2_control_node-3] ->ERROR:  Removing from active set failed
+[ros2_control_node-3]   ->ERROR:  Unable to perform homotopy step
+[ros2_control_node-3]     ->ERROR:  Removing from active set failed
+[ros2_control_node-3]       ->ERROR:  Initialisation failed! QP could not be solved!
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Projected Hessian matrix not positive definite
+[ros2_control_node-3] ->ERROR:  Removing from active set failed
+[ros2_control_node-3]   ->ERROR:  Unable to perform homotopy step
+[ros2_control_node-3]     ->ERROR:  Removing from active set failed
+[ros2_control_node-3]       ->ERROR:  Initialisation failed! QP could not be solved!
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Projected Hessian matrix not positive definite
+[ros2_control_node-3] ->ERROR:  Removing from active set failed
+[ros2_control_node-3]   ->ERROR:  Unable to perform homotopy step
+[ros2_control_node-3]     ->ERROR:  Removing from active set failed
+[ros2_control_node-3]       ->ERROR:  Initialisation failed! QP could not be solved!
+[ros2_control_node-3] ERROR:  Projected Hessian matrix not positive definite
+[ros2_control_node-3] ->ERROR:  Removing from active set failed
+[ros2_control_node-3]   ->ERROR:  Unable to perform homotopy step
+[ros2_control_node-3]     ->ERROR:  Removing from active set failed
+[ros2_control_node-3]       ->ERROR:  Initialisation failed! QP could not be solved!
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Projected Hessian matrix not positive definite
+[ros2_control_node-3] ->ERROR:  Removing from active set failed
+[ros2_control_node-3]   ->ERROR:  Unable to perform homotopy step
+[ros2_control_node-3]     ->ERROR:  Removing from active set failed
+[ros2_control_node-3]       ->ERROR:  Initialisation failed! QP could not be solved!
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Projected Hessian matrix not positive definite
+[ros2_control_node-3] ->ERROR:  Removing from active set failed
+[ros2_control_node-3]   ->ERROR:  Unable to perform homotopy step
+[ros2_control_node-3]     ->ERROR:  Removing from active set failed
+[ros2_control_node-3]       ->ERROR:  Initialisation failed! QP could not be solved!
+[ros2_control_node-3] ERROR:  Projected Hessian matrix not positive definite
+[ros2_control_node-3] ->ERROR:  Removing from active set failed
+[ros2_control_node-3]   ->ERROR:  Unable to perform homotopy step
+[ros2_control_node-3]     ->ERROR:  Removing from active set failed
+[ros2_control_node-3]       ->ERROR:  Initialisation failed! QP could not be solved!
+[ros2_control_node-3] ERROR:  Projected Hessian matrix not positive definite
+[ros2_control_node-3] ->ERROR:  Removing from active set failed
+[ros2_control_node-3]   ->ERROR:  Unable to perform homotopy step
+[ros2_control_node-3]     ->ERROR:  Removing from active set failed
+[ros2_control_node-3]       ->ERROR:  Initialisation failed! QP could not be solved!
+[ros2_control_node-3] ERROR:  Projected Hessian matrix not positive definite
+[ros2_control_node-3] ->ERROR:  Removing from active set failed
+[ros2_control_node-3]   ->ERROR:  Unable to perform homotopy step
+[ros2_control_node-3]     ->ERROR:  Removing from active set failed
+[ros2_control_node-3]       ->ERROR:  Initialisation failed! QP could not be solved!
+[ros2_control_node-3] ERROR:  Projected Hessian matrix not positive definite
+[ros2_control_node-3] ->ERROR:  Removing from active set failed
+[ros2_control_node-3]   ->ERROR:  Unable to perform homotopy step
+[ros2_control_node-3]     ->ERROR:  Removing from active set failed
+[ros2_control_node-3]       ->ERROR:  Initialisation failed! QP could not be solved!
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Projected Hessian matrix not positive definite
+[ros2_control_node-3] ->ERROR:  Removing from active set failed
+[ros2_control_node-3]   ->ERROR:  Unable to perform homotopy step
+[ros2_control_node-3]     ->ERROR:  Removing from active set failed
+[ros2_control_node-3]       ->ERROR:  Initialisation failed! QP could not be solved!
+[ros2_control_node-3] ERROR:  Projected Hessian matrix not positive definite
+[ros2_control_node-3] ->ERROR:  Removing from active set failed
+[ros2_control_node-3]   ->ERROR:  Unable to perform homotopy step
+[ros2_control_node-3]     ->ERROR:  Removing from active set failed
+[ros2_control_node-3]       ->ERROR:  Initialisation failed! QP could not be solved!
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Projected Hessian matrix not positive definite
+[ros2_control_node-3] ->ERROR:  Removing from active set failed
+[ros2_control_node-3]   ->ERROR:  Unable to perform homotopy step
+[ros2_control_node-3]     ->ERROR:  Removing from active set failed
+[ros2_control_node-3]       ->ERROR:  Initialisation failed! QP could not be solved!
+[ros2_control_node-3] ERROR:  Projected Hessian matrix not positive definite
+[ros2_control_node-3] ->ERROR:  Removing from active set failed
+[ros2_control_node-3]   ->ERROR:  Unable to perform homotopy step
+[ros2_control_node-3]     ->ERROR:  Removing from active set failed
+[ros2_control_node-3]       ->ERROR:  Initialisation failed! QP could not be solved!
+[ros2_control_node-3] ERROR:  Projected Hessian matrix not positive definite
+[ros2_control_node-3] ->ERROR:  Removing from active set failed
+[ros2_control_node-3]   ->ERROR:  Unable to perform homotopy step
+[ros2_control_node-3]     ->ERROR:  Removing from active set failed
+[ros2_control_node-3]       ->ERROR:  Initialisation failed! QP could not be solved!
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] [WARN] [1775750220.699361451] [controller_manager]: Overrun might occur, Total time : 1746.841 us (Expected < 1000.000 us) --> Read time : 4.199 us, Update time : 1645.795 us, Write time : 96.847 us
+[ros2_control_node-3] [WARN] [1775750220.699395281] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 1000 Hz. The loop took 2.025539 ms (missed cycles : 3).
+[ros2_control_node-3] ERROR:  Projected Hessian matrix not positive definite
+[ros2_control_node-3] ->ERROR:  Removing from active set failed
+[ros2_control_node-3]   ->ERROR:  Unable to perform homotopy step
+[ros2_control_node-3]     ->ERROR:  Removing from active set failed
+[ros2_control_node-3]       ->ERROR:  Initialisation failed! QP could not be solved!
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Projected Hessian matrix not positive definite
+[ros2_control_node-3] ->ERROR:  Removing from active set failed
+[ros2_control_node-3]   ->ERROR:  Unable to perform homotopy step
+[ros2_control_node-3]     ->ERROR:  Removing from active set failed
+[ros2_control_node-3]       ->ERROR:  Initialisation failed! QP could not be solved!
+[ros2_control_node-3] ERROR:  Projected Hessian matrix not positive definite
+[ros2_control_node-3] ->ERROR:  Removing from active set failed
+[ros2_control_node-3]   ->ERROR:  Unable to perform homotopy step
+[ros2_control_node-3]     ->ERROR:  Removing from active set failed
+[ros2_control_node-3]       ->ERROR:  Initialisation failed! QP could not be solved!
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Projected Hessian matrix not positive definite
+[ros2_control_node-3] ->ERROR:  Removing from active set failed
+[ros2_control_node-3]   ->ERROR:  Unable to perform homotopy step
+[ros2_control_node-3]     ->ERROR:  Removing from active set failed
+[ros2_control_node-3]       ->ERROR:  Initialisation failed! QP could not be solved!
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Projected Hessian matrix not positive definite
+[ros2_control_node-3] ->ERROR:  Removing from active set failed
+[ros2_control_node-3]   ->ERROR:  Unable to perform homotopy step
+[ros2_control_node-3]     ->ERROR:  Removing from active set failed
+[ros2_control_node-3]       ->ERROR:  Initialisation failed! QP could not be solved!
+[ros2_control_node-3] ERROR:  Projected Hessian matrix not positive definite
+[ros2_control_node-3] ->ERROR:  Removing from active set failed
+[ros2_control_node-3]   ->ERROR:  Unable to perform homotopy step
+[ros2_control_node-3]     ->ERROR:  Removing from active set failed
+[ros2_control_node-3]       ->ERROR:  Initialisation failed! QP could not be solved!
+[ros2_control_node-3] ERROR:  Projected Hessian matrix not positive definite
+[ros2_control_node-3] ->ERROR:  Removing from active set failed
+[ros2_control_node-3]   ->ERROR:  Unable to perform homotopy step
+[ros2_control_node-3]     ->ERROR:  Removing from active set failed
+[ros2_control_node-3]       ->ERROR:  Initialisation failed! QP could not be solved!
+[ros2_control_node-3] ERROR:  Projected Hessian matrix not positive definite
+[ros2_control_node-3] ->ERROR:  Removing from active set failed
+[ros2_control_node-3]   ->ERROR:  Unable to perform homotopy step
+[ros2_control_node-3]     ->ERROR:  Removing from active set failed
+[ros2_control_node-3]       ->ERROR:  Initialisation failed! QP could not be solved!
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Projected Hessian matrix not positive definite
+[ros2_control_node-3] ->ERROR:  Removing from active set failed
+[ros2_control_node-3]   ->ERROR:  Unable to perform homotopy step
+[ros2_control_node-3]     ->ERROR:  Removing from active set failed
+[ros2_control_node-3]       ->ERROR:  Initialisation failed! QP could not be solved!
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Projected Hessian matrix not positive definite
+[ros2_control_node-3] ->ERROR:  Removing from active set failed
+[ros2_control_node-3]   ->ERROR:  Unable to perform homotopy step
+[ros2_control_node-3]     ->ERROR:  Removing from active set failed
+[ros2_control_node-3]       ->ERROR:  Initialisation failed! QP could not be solved!
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Projected Hessian matrix not positive definite
+[ros2_control_node-3] ->ERROR:  Removing from active set failed
+[ros2_control_node-3]   ->ERROR:  Unable to perform homotopy step
+[ros2_control_node-3]     ->ERROR:  Removing from active set failed
+[ros2_control_node-3]       ->ERROR:  Initialisation failed! QP could not be solved!
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Projected Hessian matrix not positive definite
+[ros2_control_node-3] ->ERROR:  Removing from active set failed
+[ros2_control_node-3]   ->ERROR:  Unable to perform homotopy step
+[ros2_control_node-3]     ->ERROR:  Removing from active set failed
+[ros2_control_node-3]       ->ERROR:  Initialisation failed! QP could not be solved!
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Projected Hessian matrix not positive definite
+[ros2_control_node-3] ->ERROR:  Removing from active set failed
+[ros2_control_node-3]   ->ERROR:  Unable to perform homotopy step
+[ros2_control_node-3]     ->ERROR:  Removing from active set failed
+[ros2_control_node-3]       ->ERROR:  Initialisation failed! QP could not be solved!
+[ros2_control_node-3] ERROR:  Projected Hessian matrix not positive definite
+[ros2_control_node-3] ->ERROR:  Removing from active set failed
+[ros2_control_node-3]   ->ERROR:  Unable to perform homotopy step
+[ros2_control_node-3]     ->ERROR:  Removing from active set failed
+[ros2_control_node-3]       ->ERROR:  Initialisation failed! QP could not be solved!
+[ros2_control_node-3] ERROR:  Projected Hessian matrix not positive definite
+[ros2_control_node-3] ->ERROR:  Removing from active set failed
+[ros2_control_node-3]   ->ERROR:  Unable to perform homotopy step
+[ros2_control_node-3]     ->ERROR:  Removing from active set failed
+[ros2_control_node-3]       ->ERROR:  Initialisation failed! QP could not be solved!
+[ros2_control_node-3] ERROR:  Projected Hessian matrix not positive definite
+[ros2_control_node-3] ->ERROR:  Removing from active set failed
+[ros2_control_node-3]   ->ERROR:  Unable to perform homotopy step
+[ros2_control_node-3]     ->ERROR:  Removing from active set failed
+[ros2_control_node-3]       ->ERROR:  Initialisation failed! QP could not be solved!
+[ros2_control_node-3] ERROR:  Projected Hessian matrix not positive definite
+[ros2_control_node-3] ->ERROR:  Removing from active set failed
+[ros2_control_node-3]   ->ERROR:  Unable to perform homotopy step
+[ros2_control_node-3]     ->ERROR:  Removing from active set failed
+[ros2_control_node-3]       ->ERROR:  Initialisation failed! QP could not be solved!
+[ros2_control_node-3] ERROR:  Projected Hessian matrix not positive definite
+[ros2_control_node-3] ->ERROR:  Removing from active set failed
+[ros2_control_node-3]   ->ERROR:  Unable to perform homotopy step
+[ros2_control_node-3]     ->ERROR:  Removing from active set failed
+[ros2_control_node-3]       ->ERROR:  Initialisation failed! QP could not be solved!
+[ros2_control_node-3] ERROR:  Projected Hessian matrix not positive definite
+[ros2_control_node-3] ->ERROR:  Removing from active set failed
+[ros2_control_node-3]   ->ERROR:  Unable to perform homotopy step
+[ros2_control_node-3]     ->ERROR:  Removing from active set failed
+[ros2_control_node-3]       ->ERROR:  Initialisation failed! QP could not be solved!
+[ros2_control_node-3] ERROR:  Projected Hessian matrix not positive definite
+[ros2_control_node-3] ->ERROR:  Removing from active set failed
+[ros2_control_node-3]   ->ERROR:  Unable to perform homotopy step
+[ros2_control_node-3]     ->ERROR:  Removing from active set failed
+[ros2_control_node-3]       ->ERROR:  Initialisation failed! QP could not be solved!
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Projected Hessian matrix not positive definite
+[ros2_control_node-3] ->ERROR:  Removing from active set failed
+[ros2_control_node-3]   ->ERROR:  Unable to perform homotopy step
+[ros2_control_node-3]     ->ERROR:  Removing from active set failed
+[ros2_control_node-3]       ->ERROR:  Initialisation failed! QP could not be solved!
+[ros2_control_node-3] ERROR:  Projected Hessian matrix not positive definite
+[ros2_control_node-3] ->ERROR:  Removing from active set failed
+[ros2_control_node-3]   ->ERROR:  Unable to perform homotopy step
+[ros2_control_node-3]     ->ERROR:  Removing from active set failed
+[ros2_control_node-3]       ->ERROR:  Initialisation failed! QP could not be solved!
+[ros2_control_node-3] ERROR:  Projected Hessian matrix not positive definite
+[ros2_control_node-3] ->ERROR:  Removing from active set failed
+[ros2_control_node-3]   ->ERROR:  Unable to perform homotopy step
+[ros2_control_node-3]     ->ERROR:  Removing from active set failed
+[ros2_control_node-3]       ->ERROR:  Initialisation failed! QP could not be solved!
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Projected Hessian matrix not positive definite
+[ros2_control_node-3] ->ERROR:  Removing from active set failed
+[ros2_control_node-3]   ->ERROR:  Unable to perform homotopy step
+[ros2_control_node-3]     ->ERROR:  Removing from active set failed
+[ros2_control_node-3] [WARN] [1775750221.722699370] [controller_manager]: Overrun might occur, Total time : 2263.541 us (Expected < 1000.000 us) --> Read time : 8.663 us, Update time : 2135.572 us, Write time : 119.306 us
+[ros2_control_node-3] [WARN] [1775750221.722745417] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 1000 Hz. The loop took 2.375173 ms (missed cycles : 3).
+[ros2_control_node-3]       ->ERROR:  Initialisation failed! QP could not be solved!
+[ros2_control_node-3] ERROR:  Projected Hessian matrix not positive definite
+[ros2_control_node-3] ->ERROR:  Removing from active set failed
+[ros2_control_node-3]   ->ERROR:  Unable to perform homotopy step
+[ros2_control_node-3]     ->ERROR:  Removing from active set failed
+[ros2_control_node-3]       ->ERROR:  Initialisation failed! QP could not be solved!
+[ros2_control_node-3] ERROR:  Projected Hessian matrix not positive definite
+[ros2_control_node-3] ->ERROR:  Removing from active set failed
+[ros2_control_node-3]   ->ERROR:  Unable to perform homotopy step
+[ros2_control_node-3]     ->ERROR:  Removing from active set failed
+[ros2_control_node-3]       ->ERROR:  Initialisation failed! QP could not be solved!
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Projected Hessian matrix not positive definite
+[ros2_control_node-3] ->ERROR:  Removing from active set failed
+[ros2_control_node-3]   ->ERROR:  Unable to perform homotopy step
+[ros2_control_node-3]     ->ERROR:  Removing from active set failed
+[ros2_control_node-3]       ->ERROR:  Initialisation failed! QP could not be solved!
+[ros2_control_node-3] ERROR:  Projected Hessian matrix not positive definite
+[ros2_control_node-3] ->ERROR:  Removing from active set failed
+[ros2_control_node-3]   ->ERROR:  Unable to perform homotopy step
+[ros2_control_node-3]     ->ERROR:  Removing from active set failed
+[ros2_control_node-3]       ->ERROR:  Initialisation failed! QP could not be solved!
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Projected Hessian matrix not positive definite
+[ros2_control_node-3] ->ERROR:  Removing from active set failed
+[ros2_control_node-3]   ->ERROR:  Unable to perform homotopy step
+[ros2_control_node-3]     ->ERROR:  Removing from active set failed
+[ros2_control_node-3]       ->ERROR:  Initialisation failed! QP could not be solved!
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Projected Hessian matrix not positive definite
+[ros2_control_node-3] ->ERROR:  Removing from active set failed
+[ros2_control_node-3]   ->ERROR:  Unable to perform homotopy step
+[ros2_control_node-3]     ->ERROR:  Removing from active set failed
+[ros2_control_node-3]       ->ERROR:  Initialisation failed! QP could not be solved!
+[ros2_control_node-3] ERROR:  Projected Hessian matrix not positive definite
+[ros2_control_node-3] ->ERROR:  Removing from active set failed
+[ros2_control_node-3]   ->ERROR:  Unable to perform homotopy step
+[ros2_control_node-3]     ->ERROR:  Removing from active set failed
+[ros2_control_node-3]       ->ERROR:  Initialisation failed! QP could not be solved!
+[ros2_control_node-3] ERROR:  Projected Hessian matrix not positive definite
+[ros2_control_node-3] ->ERROR:  Removing from active set failed
+[ros2_control_node-3]   ->ERROR:  Unable to perform homotopy step
+[ros2_control_node-3]     ->ERROR:  Removing from active set failed
+[ros2_control_node-3]       ->ERROR:  Initialisation failed! QP could not be solved!
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] [INFO] [1775750222.394691565] [GaitManager]: Switch to gait: trot
+[ros2_control_node-3] [WARN] [1775750222.755564514] [controller_manager]: Overrun might occur, Total time : 1139.116 us (Expected < 1000.000 us) --> Read time : 5.331 us, Update time : 1028.551 us, Write time : 105.234 us
+[ros2_control_node-3] [WARN] [1775750222.755618632] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 1000 Hz. The loop took 1.248450 ms (missed cycles : 2).
+[ros2_control_node-3] ERROR:  Projected Hessian matrix not positive definite
+[ros2_control_node-3] ->ERROR:  Removing from active set failed
+[ros2_control_node-3]   ->ERROR:  Unable to perform homotopy step
+[ros2_control_node-3]     ->ERROR:  Removing from active set failed
+[ros2_control_node-3]       ->ERROR:  Initialisation failed! QP could not be solved!
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Projected Hessian matrix not positive definite
+[ros2_control_node-3] ->ERROR:  Removing from active set failed
+[ros2_control_node-3]   ->ERROR:  Unable to perform homotopy step
+[ros2_control_node-3]     ->ERROR:  Removing from active set failed
+[ros2_control_node-3]       ->ERROR:  Initialisation failed! QP could not be solved!
+[ros2_control_node-3] ERROR:  Projected Hessian matrix not positive definite
+[ros2_control_node-3] ->ERROR:  Removing from active set failed
+[ros2_control_node-3]   ->ERROR:  Unable to perform homotopy step
+[ros2_control_node-3]     ->ERROR:  Removing from active set failed
+[ros2_control_node-3]       ->ERROR:  Initialisation failed! QP could not be solved!
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Projected Hessian matrix not positive definite
+[ros2_control_node-3] ->ERROR:  Removing from active set failed
+[ros2_control_node-3]   ->ERROR:  Unable to perform homotopy step
+[ros2_control_node-3]     ->ERROR:  Removing from active set failed
+[ros2_control_node-3]       ->ERROR:  Initialisation failed! QP could not be solved!
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Projected Hessian matrix not positive definite
+[ros2_control_node-3] ->ERROR:  Removing from active set failed
+[ros2_control_node-3]   ->ERROR:  Unable to perform homotopy step
+[ros2_control_node-3]     ->ERROR:  Removing from active set failed
+[ros2_control_node-3]       ->ERROR:  Initialisation failed! QP could not be solved!
+[ros2_control_node-3] ERROR:  Projected Hessian matrix not positive definite
+[ros2_control_node-3] ->ERROR:  Removing from active set failed
+[ros2_control_node-3]   ->ERROR:  Unable to perform homotopy step
+[ros2_control_node-3]     ->ERROR:  Removing from active set failed
+[ros2_control_node-3]       ->ERROR:  Initialisation failed! QP could not be solved!
+[ros2_control_node-3] ERROR:  Projected Hessian matrix not positive definite
+[ros2_control_node-3] ->ERROR:  Removing from active set failed
+[ros2_control_node-3]   ->ERROR:  Unable to perform homotopy step
+[ros2_control_node-3]     ->ERROR:  Removing from active set failed
+[ros2_control_node-3]       ->ERROR:  Initialisation failed! QP could not be solved!
+[ros2_control_node-3] ERROR:  Projected Hessian matrix not positive definite
+[ros2_control_node-3] ->ERROR:  Removing from active set failed
+[ros2_control_node-3]   ->ERROR:  Unable to perform homotopy step
+[ros2_control_node-3]     ->ERROR:  Removing from active set failed
+[ros2_control_node-3]       ->ERROR:  Initialisation failed! QP could not be solved!
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Projected Hessian matrix not positive definite
+[ros2_control_node-3] ->ERROR:  Removing from active set failed
+[ros2_control_node-3]   ->ERROR:  Unable to perform homotopy step
+[ros2_control_node-3]     ->ERROR:  Removing from active set failed
+[ros2_control_node-3]       ->ERROR:  Initialisation failed! QP could not be solved!
+[ros2_control_node-3] ERROR:  Projected Hessian matrix not positive definite
+[ros2_control_node-3] ->ERROR:  Removing from active set failed
+[ros2_control_node-3]   ->ERROR:  Unable to perform homotopy step
+[ros2_control_node-3]     ->ERROR:  Removing from active set failed
+[ros2_control_node-3]       ->ERROR:  Initialisation failed! QP could not be solved!
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Projected Hessian matrix not positive definite
+[ros2_control_node-3] ->ERROR:  Removing from active set failed
+[ros2_control_node-3]   ->ERROR:  Unable to perform homotopy step
+[ros2_control_node-3]     ->ERROR:  Removing from active set failed
+[ros2_control_node-3]       ->ERROR:  Initialisation failed! QP could not be solved!
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Projected Hessian matrix not positive definite
+[ros2_control_node-3] ->ERROR:  Removing from active set failed
+[ros2_control_node-3]   ->ERROR:  Unable to perform homotopy step
+[ros2_control_node-3]     ->ERROR:  Removing from active set failed
+[ros2_control_node-3]       ->ERROR:  Initialisation failed! QP could not be solved!
+[ros2_control_node-3] ERROR:  Projected Hessian matrix not positive definite
+[ros2_control_node-3] ->ERROR:  Removing from active set failed
+[ros2_control_node-3]   ->ERROR:  Unable to perform homotopy step
+[ros2_control_node-3]     ->ERROR:  Removing from active set failed
+[ros2_control_node-3]       ->ERROR:  Initialisation failed! QP could not be solved!
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Projected Hessian matrix not positive definite
+[ros2_control_node-3] ->ERROR:  Removing from active set failed
+[ros2_control_node-3]   ->ERROR:  Unable to perform homotopy step
+[ros2_control_node-3]     ->ERROR:  Removing from active set failed
+[ros2_control_node-3]       ->ERROR:  Initialisation failed! QP could not be solved!
+[ros2_control_node-3] ERROR:  Projected Hessian matrix not positive definite
+[ros2_control_node-3] ->ERROR:  Removing from active set failed
+[ros2_control_node-3]   ->ERROR:  Unable to perform homotopy step
+[ros2_control_node-3]     ->ERROR:  Removing from active set failed
+[ros2_control_node-3]       ->ERROR:  Initialisation failed! QP could not be solved!
+[ros2_control_node-3] ERROR:  Projected Hessian matrix not positive definite
+[ros2_control_node-3] ->ERROR:  Removing from active set failed
+[ros2_control_node-3]   ->ERROR:  Unable to perform homotopy step
+[ros2_control_node-3]     ->ERROR:  Removing from active set failed
+[ros2_control_node-3]       ->ERROR:  Initialisation failed! QP could not be solved!
+[ros2_control_node-3] ERROR:  Projected Hessian matrix not positive definite
+[ros2_control_node-3] ->ERROR:  Removing from active set failed
+[ros2_control_node-3]   ->ERROR:  Unable to perform homotopy step
+[ros2_control_node-3]     ->ERROR:  Removing from active set failed
+[ros2_control_node-3]       ->ERROR:  Initialisation failed! QP could not be solved!
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Projected Hessian matrix not positive definite
+[ros2_control_node-3] ->ERROR:  Removing from active set failed
+[ros2_control_node-3]   ->ERROR:  Unable to perform homotopy step
+[ros2_control_node-3]     ->ERROR:  Removing from active set failed
+[ros2_control_node-3]       ->ERROR:  Initialisation failed! QP could not be solved!
+[ros2_control_node-3] ERROR:  Projected Hessian matrix not positive definite
+[ros2_control_node-3] ->ERROR:  Removing from active set failed
+[ros2_control_node-3]   ->ERROR:  Unable to perform homotopy step
+[ros2_control_node-3]     ->ERROR:  Removing from active set failed
+[ros2_control_node-3]       ->ERROR:  Initialisation failed! QP could not be solved!
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Projected Hessian matrix not positive definite
+[ros2_control_node-3] ->ERROR:  Removing from active set failed
+[ros2_control_node-3]   ->ERROR:  Unable to perform homotopy step
+[ros2_control_node-3]     ->ERROR:  Removing from active set failed
+[ros2_control_node-3]       ->ERROR:  Initialisation failed! QP could not be solved!
+[ros2_control_node-3] ERROR:  Projected Hessian matrix not positive definite
+[ros2_control_node-3] ->ERROR:  Removing from active set failed
+[ros2_control_node-3]   ->ERROR:  Unable to perform homotopy step
+[ros2_control_node-3]     ->ERROR:  Removing from active set failed
+[ros2_control_node-3]       ->ERROR:  Initialisation failed! QP could not be solved!
+[ros2_control_node-3] ERROR:  Projected Hessian matrix not positive definite
+[ros2_control_node-3] ->ERROR:  Removing from active set failed
+[ros2_control_node-3]   ->ERROR:  Unable to perform homotopy step
+[ros2_control_node-3]     ->ERROR:  Removing from active set failed
+[ros2_control_node-3]       ->ERROR:  Initialisation failed! QP could not be solved!
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Projected Hessian matrix not positive definite
+[ros2_control_node-3] ->ERROR:  Removing from active set failed
+[ros2_control_node-3]   ->ERROR:  Unable to perform homotopy step
+[ros2_control_node-3]     ->ERROR:  Removing from active set failed
+[ros2_control_node-3]       ->ERROR:  Initialisation failed! QP could not be solved!
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Projected Hessian matrix not positive definite
+[ros2_control_node-3] ->ERROR:  Removing from active set failed
+[ros2_control_node-3]   ->ERROR:  Unable to perform homotopy step
+[ros2_control_node-3]     ->ERROR:  Removing from active set failed
+[ros2_control_node-3]       ->ERROR:  Initialisation failed! QP could not be solved!
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Projected Hessian matrix not positive definite
+[ros2_control_node-3] ->ERROR:  Removing from active set failed
+[ros2_control_node-3]   ->ERROR:  Unable to perform homotopy step
+[ros2_control_node-3]     ->ERROR:  Removing from active set failed
+[ros2_control_node-3]       ->ERROR:  Initialisation failed! QP could not be solved!
+[ros2_control_node-3] ERROR:  Projected Hessian matrix not positive definite
+[ros2_control_node-3] ->ERROR:  Removing from active set failed
+[ros2_control_node-3]   ->ERROR:  Unable to perform homotopy step
+[ros2_control_node-3]     ->ERROR:  Removing from active set failed
+[ros2_control_node-3]       ->ERROR:  Initialisation failed! QP could not be solved!
+[ros2_control_node-3] ERROR:  Projected Hessian matrix not positive definite
+[ros2_control_node-3] ->ERROR:  Removing from active set failed
+[ros2_control_node-3]   ->ERROR:  Unable to perform homotopy step
+[ros2_control_node-3]     ->ERROR:  Removing from active set failed
+[ros2_control_node-3]       ->ERROR:  Initialisation failed! QP could not be solved!
+[ros2_control_node-3] ERROR:  Projected Hessian matrix not positive definite
+[ros2_control_node-3] ->ERROR:  Removing from active set failed
+[ros2_control_node-3]   ->ERROR:  Unable to perform homotopy step
+[ros2_control_node-3]     ->ERROR:  Removing from active set failed
+[ros2_control_node-3]       ->ERROR:  Initialisation failed! QP could not be solved!
+[ros2_control_node-3] ERROR:  Projected Hessian matrix not positive definite
+[ros2_control_node-3] ->ERROR:  Removing from active set failed
+[ros2_control_node-3]   ->ERROR:  Unable to perform homotopy step
+[ros2_control_node-3]     ->ERROR:  Removing from active set failed
+[ros2_control_node-3]       ->ERROR:  Initialisation failed! QP could not be solved!
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Projected Hessian matrix not positive definite
+[ros2_control_node-3] ->ERROR:  Removing from active set failed
+[ros2_control_node-3]   ->ERROR:  Unable to perform homotopy step
+[ros2_control_node-3]     ->ERROR:  Removing from active set failed
+[ros2_control_node-3]       ->ERROR:  Initialisation failed! QP could not be solved!
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Projected Hessian matrix not positive definite
+[ros2_control_node-3] ->ERROR:  Removing from active set failed
+[ros2_control_node-3]   ->ERROR:  Unable to perform homotopy step
+[ros2_control_node-3]     ->ERROR:  Removing from active set failed
+[ros2_control_node-3]       ->ERROR:  Initialisation failed! QP could not be solved!
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Projected Hessian matrix not positive definite
+[ros2_control_node-3] ->ERROR:  Removing from active set failed
+[ros2_control_node-3]   ->ERROR:  Unable to perform homotopy step
+[ros2_control_node-3]     ->ERROR:  Removing from active set failed
+[ros2_control_node-3]       ->ERROR:  Initialisation failed! QP could not be solved!
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Projected Hessian matrix not positive definite
+[ros2_control_node-3] ->ERROR:  Removing from active set failed
+[ros2_control_node-3]   ->ERROR:  Unable to perform homotopy step
+[ros2_control_node-3]     ->ERROR:  Removing from active set failed
+[ros2_control_node-3]       ->ERROR:  Initialisation failed! QP could not be solved!
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] [WARN] [1775750223.755578625] [controller_manager]: Overrun might occur, Total time : 1053.700 us (Expected < 1000.000 us) --> Read time : 11.875 us, Update time : 941.802 us, Write time : 100.023 us
+[ros2_control_node-3] [WARN] [1775750223.755622916] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 1000 Hz. The loop took 1.253027 ms (missed cycles : 2).
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Projected Hessian matrix not positive definite
+[ros2_control_node-3] ->ERROR:  Removing from active set failed
+[ros2_control_node-3]   ->ERROR:  Unable to perform homotopy step
+[ros2_control_node-3]     ->ERROR:  Removing from active set failed
+[ros2_control_node-3]       ->ERROR:  Initialisation failed! QP could not be solved!
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Projected Hessian matrix not positive definite
+[ros2_control_node-3] ->ERROR:  Removing from active set failed
+[ros2_control_node-3]   ->ERROR:  Unable to perform homotopy step
+[ros2_control_node-3]     ->ERROR:  Removing from active set failed
+[ros2_control_node-3]       ->ERROR:  Initialisation failed! QP could not be solved!
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Projected Hessian matrix not positive definite
+[ros2_control_node-3] ->ERROR:  Removing from active set failed
+[ros2_control_node-3]   ->ERROR:  Unable to perform homotopy step
+[ros2_control_node-3]     ->ERROR:  Removing from active set failed
+[ros2_control_node-3]       ->ERROR:  Initialisation failed! QP could not be solved!
+[ros2_control_node-3] ERROR:  Projected Hessian matrix not positive definite
+[ros2_control_node-3] ->ERROR:  Removing from active set failed
+[ros2_control_node-3]   ->ERROR:  Unable to perform homotopy step
+[ros2_control_node-3]     ->ERROR:  Removing from active set failed
+[ros2_control_node-3]       ->ERROR:  Initialisation failed! QP could not be solved!
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Projected Hessian matrix not positive definite
+[ros2_control_node-3] ->ERROR:  Removing from active set failed
+[ros2_control_node-3]   ->ERROR:  Unable to perform homotopy step
+[ros2_control_node-3]     ->ERROR:  Removing from active set failed
+[ros2_control_node-3]       ->ERROR:  Initialisation failed! QP could not be solved!
+[ros2_control_node-3] ERROR:  Projected Hessian matrix not positive definite
+[ros2_control_node-3] ->ERROR:  Removing from active set failed
+[ros2_control_node-3]   ->ERROR:  Unable to perform homotopy step
+[ros2_control_node-3]     ->ERROR:  Removing from active set failed
+[ros2_control_node-3]       ->ERROR:  Initialisation failed! QP could not be solved!
+[ros2_control_node-3] ERROR:  Projected Hessian matrix not positive definite
+[ros2_control_node-3] ->ERROR:  Removing from active set failed
+[ros2_control_node-3]   ->ERROR:  Unable to perform homotopy step
+[ros2_control_node-3]     ->ERROR:  Removing from active set failed
+[ros2_control_node-3]       ->ERROR:  Initialisation failed! QP could not be solved!
+[ros2_control_node-3] ERROR:  Projected Hessian matrix not positive definite
+[ros2_control_node-3] ->ERROR:  Removing from active set failed
+[ros2_control_node-3]   ->ERROR:  Unable to perform homotopy step
+[ros2_control_node-3]     ->ERROR:  Removing from active set failed
+[ros2_control_node-3]       ->ERROR:  Initialisation failed! QP could not be solved!
+[ros2_control_node-3] ERROR:  Projected Hessian matrix not positive definite
+[ros2_control_node-3] ->ERROR:  Removing from active set failed
+[ros2_control_node-3]   ->ERROR:  Unable to perform homotopy step
+[ros2_control_node-3]     ->ERROR:  Removing from active set failed
+[ros2_control_node-3]       ->ERROR:  Initialisation failed! QP could not be solved!
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Projected Hessian matrix not positive definite
+[ros2_control_node-3] ->ERROR:  Removing from active set failed
+[ros2_control_node-3]   ->ERROR:  Unable to perform homotopy step
+[ros2_control_node-3]     ->ERROR:  Removing from active set failed
+[ros2_control_node-3]       ->ERROR:  Initialisation failed! QP could not be solved!
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Projected Hessian matrix not positive definite
+[ros2_control_node-3] ->ERROR:  Removing from active set failed
+[ros2_control_node-3]   ->ERROR:  Unable to perform homotopy step
+[ros2_control_node-3]     ->ERROR:  Removing from active set failed
+[ros2_control_node-3]       ->ERROR:  Initialisation failed! QP could not be solved!
+[ros2_control_node-3] ERROR:  Projected Hessian matrix not positive definite
+[ros2_control_node-3] ->ERROR:  Removing from active set failed
+[ros2_control_node-3]   ->ERROR:  Unable to perform homotopy step
+[ros2_control_node-3]     ->ERROR:  Removing from active set failed
+[ros2_control_node-3]       ->ERROR:  Initialisation failed! QP could not be solved!
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Projected Hessian matrix not positive definite
+[ros2_control_node-3] ->ERROR:  Removing from active set failed
+[ros2_control_node-3]   ->ERROR:  Unable to perform homotopy step
+[ros2_control_node-3]     ->ERROR:  Removing from active set failed
+[ros2_control_node-3]       ->ERROR:  Initialisation failed! QP could not be solved!
+[ros2_control_node-3] ERROR:  Projected Hessian matrix not positive definite
+[ros2_control_node-3] ->ERROR:  Removing from active set failed
+[ros2_control_node-3]   ->ERROR:  Unable to perform homotopy step
+[ros2_control_node-3]     ->ERROR:  Removing from active set failed
+[ros2_control_node-3]       ->ERROR:  Initialisation failed! QP could not be solved!
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Projected Hessian matrix not positive definite
+[ros2_control_node-3] ->ERROR:  Removing from active set failed
+[ros2_control_node-3]   ->ERROR:  Unable to perform homotopy step
+[ros2_control_node-3]     ->ERROR:  Removing from active set failed
+[ros2_control_node-3]       ->ERROR:  Initialisation failed! QP could not be solved!
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Projected Hessian matrix not positive definite
+[ros2_control_node-3] ->ERROR:  Removing from active set failed
+[ros2_control_node-3]   ->ERROR:  Unable to perform homotopy step
+[ros2_control_node-3]     ->ERROR:  Removing from active set failed
+[ros2_control_node-3]       ->ERROR:  Initialisation failed! QP could not be solved!
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Projected Hessian matrix not positive definite
+[ros2_control_node-3] ->ERROR:  Removing from active set failed
+[ros2_control_node-3]   ->ERROR:  Unable to perform homotopy step
+[ros2_control_node-3]     ->ERROR:  Removing from active set failed
+[ros2_control_node-3]       ->ERROR:  Initialisation failed! QP could not be solved!
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Maximum number of working set recalculations performed
+[ros2_control_node-3] ERROR:  Projected Hessian matrix not positive definite
+[ros2_control_node-3] ->ERROR:  Removing from active set failed
+[ros2_control_node-3]   ->ERROR:  Unable to perform homotopy step
+[ros2_control_node-3]     ->ERROR:  Removing from active set failed
+[ros2_control_node-3]       ->ERROR:  Initialisation failed! QP could not be solved!
+[ros2_control_node-3] ERROR:  Projected Hessian matrix not positive definite
+[ros2_control_node-3] ->ERROR:  Removing from active set failed
+[ros2_control_node-3]   ->ERROR:  Unable to perform homotopy step
+[ros2_control_node-3]     ->ERROR:  Removing from active set failed
+[ros2_control_node-3]       ->ERROR:  Initialisation failed! QP could not be solved!
+[ros2_control_node-3] ERROR:  Projected Hessian matrix not positive definite
+[ros2_control_node-3] ->ERROR:  Removing from active set failed
+[ros2_control_node-3]   ->ERROR:  Unable to perform homotopy step
+[WARNING] [launch]: user interrupted with ctrl-c (SIGINT)
+[INFO] [fake_elevation_map_node-4]: sending signal 'SIGINT' to process[fake_elevation_map_node-4]
+[INFO] [ros2_control_node-3]: sending signal 'SIGINT' to process[ros2_control_node-3]
+[INFO] [robot_state_publisher-2]: sending signal 'SIGINT' to process[robot_state_publisher-2]
+[INFO] [rviz2-1]: sending signal 'SIGINT' to process[rviz2-1]
+[fake_elevation_map_node-4] [INFO] [1775750224.030964125] [rclcpp]: signal_handler(SIGINT/SIGTERM)
+[robot_state_publisher-2] [INFO] [1775750224.031039215] [rclcpp]: signal_handler(SIGINT/SIGTERM)
+[ros2_control_node-3] [INFO] [1775750224.031071231] [rclcpp]: signal_handler(SIGINT/SIGTERM)
+[ros2_control_node-3] [INFO] [1775750224.031134615] [controller_manager]: Shutdown request received....
+[ros2_control_node-3] [INFO] [1775750224.031168039] [controller_manager]: Shutting down all controllers in the controller manager.
+[ros2_control_node-3] [INFO] [1775750224.031197097] [controller_manager]: Deactivating controller 'imu_sensor_broadcaster'
+[ros2_control_node-3] [INFO] [1775750224.031241554] [controller_manager]: Shutting down controller 'imu_sensor_broadcaster'
+[ros2_control_node-3] [INFO] [1775750224.031403182] [controller_manager]: Deactivating controller 'ocs2_quadruped_controller_height_only_v1'
+[ros2_control_node-3] [INFO] [1775750224.031499129] [controller_manager]: Shutting down controller 'ocs2_quadruped_controller_height_only_v1'
+[ros2_control_node-3] [INFO] [1775750224.031572706] [controller_manager]: Deactivating controller 'joint_state_broadcaster'
+[ros2_control_node-3] [INFO] [1775750224.031606736] [controller_manager]: Shutting down controller 'joint_state_broadcaster'
+[ros2_control_node-3] [INFO] [1775750224.031661785] [resource_manager]: 'deactivate' hardware 'UnitreeSystem' 
+[ros2_control_node-3] [INFO] [1775750224.031682584] [resource_manager]: Successful 'deactivate' of hardware 'UnitreeSystem'
+[ros2_control_node-3] [INFO] [1775750224.031687289] [resource_manager]: 'shutdown' hardware 'UnitreeSystem' 
+[ros2_control_node-3] [INFO] [1775750224.031690872] [resource_manager]: Successful 'shutdown' of hardware 'UnitreeSystem'
+[ros2_control_node-3] [INFO] [1775750224.031741728] [controller_manager]: Shutting down the controller manager.
+[ros2_control_node-3] [ERROR] [1775750224.031820324] [controller_manager.pal_statistics]: Exception in publisher thread: context cannot be slept with because it's invalid!. Aborting!
+[rviz2-1] [INFO] [1775750224.031075534] [rclcpp]: signal_handler(SIGINT/SIGTERM)
+[ros2_control_node-3] [INFO] [1775750224.033823480] [controller_manager.pal_statistics]: Async messages lost 0
+[ros2_control_node-3] [INFO] [1775750224.033836699] [controller_manager.pal_statistics]: publish_async_failures_ 2
+[fake_elevation_map_node-4] [INFO] [1775750224.033951246] [rclcpp]: signal_handler(SIGINT/SIGTERM)
+[robot_state_publisher-2] [INFO] [1775750224.035329816] [rclcpp]: signal_handler(SIGINT/SIGTERM)
+[rviz2-1] [INFO] [1775750224.035919644] [rclcpp]: signal_handler(SIGINT/SIGTERM)
+[ERROR] [ros2_control_node-3]: process has died [pid 41857, exit code -2, cmd '/opt/ros/jazzy/lib/controller_manager/ros2_control_node --ros-args --params-file /home/ho/ros2_ws/src/quadruped_ros2_control/evaluation/go2_terrain_eval/results/20260410_005646_height_only_box_h095_height_only_v1_model2_h095_touchdownphase_debug_v1/robot_control_perceptive_height_only_v1.runtime.yaml -r ~/robot_description:=/robot_description'].
+[ros2_control_node-3]     ->ERROR:  R
+[INFO] [robot_state_publisher-2]: process has finished cleanly [pid 41856]
+[INFO] [fake_elevation_map_node-4]: process has finished cleanly [pid 41858]
+[INFO] [rviz2-1]: process has finished cleanly [pid 41855]

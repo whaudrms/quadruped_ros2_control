@@ -41,77 +41,34 @@ namespace ocs2::legged_robot
     {
         const auto timeHorizon = finalTime - initTime;
         modeSchedule = getGaitSchedule()->getModeSchedule(initTime - timeHorizon, finalTime + timeHorizon);
+        const auto& map = convexRegionSelectorPtr_->getPlanarTerrainPtr()->gridMap;
+        const scalar_t queryTime = initTime + 0.5 * timeHorizon;
+        const vector_t queryState = targetTrajectories.getDesiredState(queryTime);
+        const vector_t queryPos = centroidal_model::getBasePose(queryState, info_).head(3);
+        const grid_map::Position query(queryPos.x(), queryPos.y());
+        const bool hasUncertainty = map.exists(kUncertaintyLayer) && map.isInside(query);
+        const scalar_t uncertainty =
+            hasUncertainty ? std::clamp(static_cast<scalar_t>(map.atPosition(kUncertaintyLayer, query)), scalar_t(0.0),
+                                        scalar_t(1.0))
+                           : scalar_t(0.0);
 
-        TargetTrajectories newTargetTrajectories;
-        int nodeNum = 11;
-        for (size_t i = 0; i < nodeNum; ++i)
+        static scalar_t lastDebugLogTime = -1.0;
+        if (lastDebugLogTime < 0.0 || queryTime - lastDebugLogTime >= kDebugLogPeriod)
         {
-            scalar_t time = initTime + static_cast<double>(i) * timeHorizon / (nodeNum - 1);
-            vector_t state = targetTrajectories.getDesiredState(time);
-            vector_t input = targetTrajectories.getDesiredInput(time);
-            const auto& map = convexRegionSelectorPtr_->getPlanarTerrainPtr()->gridMap;
-            vector_t pos = centroidal_model::getBasePose(state, info_).head(3);
-            const grid_map::Position query(pos.x(), pos.y());
-            const bool hasUncertainty = map.exists(kUncertaintyLayer) && map.isInside(query);
-            const scalar_t uncertainty =
-                hasUncertainty ? std::clamp(static_cast<scalar_t>(map.atPosition(kUncertaintyLayer, query)), scalar_t(0.0),
-                                            scalar_t(1.0))
-                               : scalar_t(0.0);
-            const scalar_t terrainTrust = 1.0 - 0.7 * uncertainty;
-
-            // Base Orientation
-            scalar_t step = 0.3;
-            grid_map::Vector3 normalVector;
-            normalVector(0) = (map.atPosition("smooth_planar", pos + grid_map::Position(-step, 0)) -
-                    map.atPosition("smooth_planar", pos + grid_map::Position(step, 0))) /
-                (2 * step);
-            normalVector(1) = (map.atPosition("smooth_planar", pos + grid_map::Position(0, -step)) -
-                    map.atPosition("smooth_planar", pos + grid_map::Position(0, step))) /
-                (2 * step);
-            normalVector(2) = 1;
-            normalVector.normalize();
-            matrix3_t R;
-            scalar_t z = centroidal_model::getBasePose(state, info_)(3);
-            R << cos(z), -sin(z), 0,
-                 sin(z), cos(z), 0,
-                 0, 0, 1;
-            vector_t v = R.transpose() * normalVector;
-            const scalar_t currentPitch = centroidal_model::getBasePose(state, info_)(4);
-            const scalar_t terrainPitch = atan(v.x() / v.z());
-            const scalar_t blendedPitch = (0.15 * terrainTrust) * terrainPitch + (1.0 - 0.15 * terrainTrust) * currentPitch;
-            centroidal_model::getBasePose(state, info_)(4) = std::clamp(blendedPitch, scalar_t(-0.05), scalar_t(0.05));
-
-            // Base Z Position
-            const scalar_t terrainHeight =
-                map.atPosition("smooth_planar", pos) + terrainTrust * comHeight_ / cos(centroidal_model::getBasePose(state, info_)(4));
-            centroidal_model::getBasePose(state, info_)(2) =
-                std::max(centroidal_model::getBasePose(state, info_)(2), terrainHeight);
-
-            static scalar_t lastDebugLogTime = -1.0;
-            if ((i == nodeNum / 2) && (lastDebugLogTime < 0.0 || time - lastDebugLogTime >= kDebugLogPeriod))
+            if (FILE* debugFile = std::fopen(kDebugFilePath, "a"))
             {
-                if (FILE* debugFile = std::fopen(kDebugFilePath, "a"))
-                {
-                    const auto& basePose = centroidal_model::getBasePose(state, info_);
-                    std::fprintf(
-                        debugFile,
-                        "[HeightOnlyRef] init_t=%.3f query_t=%.3f pos=(%.4f,%.4f,%.4f) uncertainty=%.5f terrain_trust=%.5f terrain_pitch=%.5f blended_pitch=%.5f smooth_height=%.5f terrain_height=%.5f final_base_z=%.5f\n",
-                        static_cast<double>(initTime), static_cast<double>(time),
-                        static_cast<double>(basePose(0)), static_cast<double>(basePose(1)), static_cast<double>(basePose(2)),
-                        static_cast<double>(uncertainty), static_cast<double>(terrainTrust),
-                        static_cast<double>(terrainPitch), static_cast<double>(basePose(4)),
-                        static_cast<double>(map.atPosition("smooth_planar", pos)),
-                        static_cast<double>(terrainHeight), static_cast<double>(basePose(2)));
-                    std::fclose(debugFile);
-                }
-                lastDebugLogTime = time;
+                std::fprintf(
+                    debugFile,
+                    "[HeightOnlyRef] init_t=%.3f query_t=%.3f pass_through=1 pos=(%.4f,%.4f,%.4f) uncertainty=%.5f smooth_height=%.5f com_height=%.5f\n",
+                    static_cast<double>(initTime), static_cast<double>(queryTime),
+                    static_cast<double>(queryPos.x()), static_cast<double>(queryPos.y()), static_cast<double>(queryPos.z()),
+                    static_cast<double>(uncertainty),
+                    map.isInside(query) ? static_cast<double>(map.atPosition("smooth_planar", query)) : 0.0,
+                    static_cast<double>(comHeight_));
+                std::fclose(debugFile);
             }
-
-            newTargetTrajectories.timeTrajectory.push_back(time);
-            newTargetTrajectories.stateTrajectory.push_back(state);
-            newTargetTrajectories.inputTrajectory.push_back(input);
+            lastDebugLogTime = queryTime;
         }
-        targetTrajectories = newTargetTrajectories;
 
         // Footstep
         convexRegionSelectorPtr_->update(modeSchedule, initTime, initState, targetTrajectories);
@@ -130,11 +87,29 @@ namespace ocs2::legged_robot
         {
             size_t initIndex = lookup::findIndexInTimeArray(modeSchedule.eventTimes, initTime);
 
-            auto projections = convexRegionSelectorPtr_->getProjections(leg);
+            const auto terrainProjections = convexRegionSelectorPtr_->getProjections(leg);
+            auto projections = terrainProjections;
             modifyProjections(initTime, initState, leg, initIndex, contactFlagStocks[leg], projections);
 
             scalar_array_t liftOffHeights, touchDownHeights;
-            std::tie(liftOffHeights, touchDownHeights) = getHeights(contactFlagStocks[leg], projections);
+            // Heights must be computed from the original terrain projections.
+            // `modifyProjections()` rewrites stance projections with the current
+            // foot pose to preserve continuity, which is useful for execution but
+            // would otherwise erase the intended terrain touchdown height.
+            std::tie(liftOffHeights, touchDownHeights) = getHeights(contactFlagStocks[leg], terrainProjections);
+
+            // For front-leg step-up motions, preserve an elevated touchdown target
+            // directly from the terrain projection so the swing arc clears the box edge.
+            if (leg < 2) {
+                for (size_t phase = 0; phase < terrainProjections.size(); ++phase) {
+                    if (!contactFlagStocks[leg][phase]) {
+                        const scalar_t projectedHeight = terrainProjections[phase].positionInWorld.z();
+                        if (projectedHeight > 0.02) {
+                            touchDownHeights[phase] = std::max(touchDownHeights[phase], projectedHeight);
+                        }
+                    }
+                }
+            }
             liftOffHeightSequence[leg] = liftOffHeights;
             touchDownHeightSequence[leg] = touchDownHeights;
 
@@ -144,13 +119,46 @@ namespace ocs2::legged_robot
                 {
                     const auto sampleIndex = std::min(initIndex, projections.size() - 1);
                     const auto projected = projections[sampleIndex].positionInWorld;
+                    scalar_t maxTouchdown = 0.0;
+                    int firstNonzeroTouchdown = -1;
+                    scalar_t maxProjected = 0.0;
+                    int firstSwingPhase = -1;
+                    scalar_t firstSwingProjected = 0.0;
+                    int firstTouchdownCandidate = -1;
+                    scalar_t firstTouchdownProjected = 0.0;
+                    for (size_t idx = 0; idx < touchDownHeights.size(); ++idx) {
+                        if (touchDownHeights[idx] > maxTouchdown) {
+                            maxTouchdown = touchDownHeights[idx];
+                        }
+                        if (firstNonzeroTouchdown < 0 && touchDownHeights[idx] > 0.0) {
+                            firstNonzeroTouchdown = static_cast<int>(idx);
+                        }
+                        if (idx < terrainProjections.size()) {
+                            const scalar_t projectedHeight = terrainProjections[idx].positionInWorld.z();
+                            if (projectedHeight > maxProjected) {
+                                maxProjected = projectedHeight;
+                            }
+                            if (firstSwingPhase < 0 && !contactFlagStocks[leg][idx]) {
+                                firstSwingPhase = static_cast<int>(idx);
+                                firstSwingProjected = projectedHeight;
+                            }
+                            if (idx + 1 < terrainProjections.size() && firstTouchdownCandidate < 0 &&
+                                !contactFlagStocks[leg][idx] && contactFlagStocks[leg][idx + 1]) {
+                                firstTouchdownCandidate = static_cast<int>(idx);
+                                firstTouchdownProjected = terrainProjections[idx + 1].positionInWorld.z();
+                            }
+                        }
+                    }
                     std::fprintf(
                         debugFile,
-                        "[HeightOnlySwing] init_t=%.3f leg=%zu init_index=%zu projected=(%.4f,%.4f,%.4f) liftoff_h=%.5f touchdown_h=%.5f\n",
+                        "[HeightOnlySwing] init_t=%.3f leg=%zu init_index=%zu projected=(%.4f,%.4f,%.4f) liftoff_h=%.5f touchdown_h=%.5f max_touchdown_h=%.5f first_nonzero_touchdown_idx=%d max_projected_z=%.5f first_swing_phase=%d first_swing_projected_z=%.5f first_touchdown_candidate=%d first_touchdown_projected_z=%.5f\n",
                         static_cast<double>(initTime), leg, sampleIndex,
                         static_cast<double>(projected.x()), static_cast<double>(projected.y()), static_cast<double>(projected.z()),
                         liftOffHeights.empty() ? 0.0 : static_cast<double>(liftOffHeights[sampleIndex]),
-                        touchDownHeights.empty() ? 0.0 : static_cast<double>(touchDownHeights[sampleIndex]));
+                        touchDownHeights.empty() ? 0.0 : static_cast<double>(touchDownHeights[sampleIndex]),
+                        static_cast<double>(maxTouchdown), firstNonzeroTouchdown,
+                        static_cast<double>(maxProjected), firstSwingPhase, static_cast<double>(firstSwingProjected),
+                        firstTouchdownCandidate, static_cast<double>(firstTouchdownProjected));
                     std::fclose(debugFile);
                 }
             }

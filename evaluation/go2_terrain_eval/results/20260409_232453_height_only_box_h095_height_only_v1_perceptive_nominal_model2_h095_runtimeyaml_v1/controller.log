@@ -1,0 +1,1243 @@
+[INFO] [launch]: All log files can be found below /home/ho/.ros/log/2026-04-09-23-24-56-499297-ho-36644
+[INFO] [launch]: Default logging verbosity is set to INFO
+[INFO] [rviz2-1]: process started with pid [36666]
+[INFO] [robot_state_publisher-2]: process started with pid [36667]
+[INFO] [ros2_control_node-3]: process started with pid [36668]
+[INFO] [fake_elevation_map_node-4]: process started with pid [36669]
+[INFO] [spawner-5]: process started with pid [36670]
+[robot_state_publisher-2] [INFO] [1775744696.643243928] [robot_state_publisher]: Robot initialized
+[ros2_control_node-3] [INFO] [1775744696.656054890] [controller_manager]: Using Steady (Monotonic) clock for triggering controller manager cycles.
+[ros2_control_node-3] [INFO] [1775744696.659199667] [controller_manager]: Subscribing to '/robot_description' topic for robot description.
+[ros2_control_node-3] [INFO] [1775744696.660679967] [controller_manager]: update rate is 1000 Hz
+[ros2_control_node-3] [INFO] [1775744696.660709762] [controller_manager]: Overruns handling is : enabled
+[ros2_control_node-3] [INFO] [1775744696.660714373] [controller_manager]: Spawning controller_manager RT thread with scheduler priority: 50
+[ros2_control_node-3] [WARN] [1775744696.660766331] [controller_manager]: Could not enable FIFO RT scheduling policy: with error number <1>(Operation not permitted). See [https://control.ros.org/master/doc/ros2_control/controller_manager/doc/userdoc.html] for details on how to enable realtime scheduling.
+[fake_elevation_map_node-4] [INFO] [1775744696.699701136] [fake_elevation_map_node]: Generated box terrain map: center=(0.450, 0.000) size=(0.360, 1.100) height=0.095 map=(2.800 x 1.800)
+[fake_elevation_map_node-4] [INFO] [1775744696.703872685] [fake_elevation_map_node]: Publishing static elevation map on: /elevation_mapping/elevation_map_raw
+[fake_elevation_map_node-4] [INFO] [1775744696.703908620] [fake_elevation_map_node]: Publishing uncertainty layer 'uncertainty' with base=0.050 gradient_weight=0.350 blur_kernel=5
+[ros2_control_node-3] [INFO] [1775744696.835725678] [controller_manager]: Received robot description from topic.
+[ros2_control_node-3] [INFO] [1775744696.840347874] [controller_manager]: Loading hardware 'UnitreeSystem' 
+[ros2_control_node-3] [INFO] [1775744696.846088962] [controller_manager]: Loaded hardware 'UnitreeSystem' from plugin 'hardware_unitree_sdk2/HardwareUnitree'
+[ros2_control_node-3] [INFO] [1775744696.846237356] [controller_manager]: Initialize hardware 'UnitreeSystem' 
+[ros2_control_node-3] [INFO] [1775744696.853903365] [controller_manager.hardware_component.system.UnitreeSystem]:  network_interface: lo, domain: 1
+[ros2_control_node-3] 1775744696.856164 [1] ros2_contr: selected interface "lo" is not multicast-capable: disabling multicast
+[rviz2-1] [INFO] [1775744696.857878431] [rviz2]: Stereo is NOT SUPPORTED
+[rviz2-1] [INFO] [1775744696.857939835] [rviz2]: OpenGl version: 4.6 (GLSL 4.6)
+[rviz2-1] [INFO] [1775744696.872565311] [rviz2]: Stereo is NOT SUPPORTED
+[spawner-5] [INFO] [1775744696.938983492] [spawner_joint_state_broadcaster]: waiting for service /controller_manager/list_controllers to become available...
+[ros2_control_node-3] [INFO] [1775744696.962671180] [controller_manager]: Successful initialization of hardware 'UnitreeSystem'
+[ros2_control_node-3] [INFO] [1775744696.963964298] [resource_manager]: 'configure' hardware 'UnitreeSystem' 
+[ros2_control_node-3] [INFO] [1775744696.963995677] [resource_manager]: Successful 'configure' of hardware 'UnitreeSystem'
+[ros2_control_node-3] [INFO] [1775744696.964015792] [resource_manager]: 'activate' hardware 'UnitreeSystem' 
+[ros2_control_node-3] [INFO] [1775744696.964026824] [resource_manager]: Successful 'activate' of hardware 'UnitreeSystem'
+[ros2_control_node-3] [INFO] [1775744696.964145989] [controller_manager]: Registering statistics for : UnitreeSystem
+[ros2_control_node-3] [INFO] [1775744696.964221495] [controller_manager]: Resource Manager has been successfully initialized. Starting Controller Manager services...
+[ros2_control_node-3] [INFO] [1775744697.190806043] [controller_manager]: Loading controller : 'joint_state_broadcaster' of type 'joint_state_broadcaster/JointStateBroadcaster'
+[ros2_control_node-3] [INFO] [1775744697.190857372] [controller_manager]: Loading controller 'joint_state_broadcaster'
+[ros2_control_node-3] [INFO] [1775744697.194959627] [controller_manager]: Controller 'joint_state_broadcaster' node arguments: --ros-args --params-file /home/ho/ros2_ws/src/quadruped_ros2_control/evaluation/go2_terrain_eval/results/20260409_232453_height_only_box_h095_height_only_v1_perceptive_nominal_model2_h095_runtimeyaml_v1/robot_control_perceptive_height_only_v1.runtime.yaml 
+[spawner-5] [INFO] [1775744697.202187838] [spawner_joint_state_broadcaster]: Loaded joint_state_broadcaster
+[ros2_control_node-3] [INFO] [1775744697.202923179] [controller_manager]: Configuring controller: 'joint_state_broadcaster'
+[ros2_control_node-3] [INFO] [1775744697.203082917] [joint_state_broadcaster]: 'joints' or 'interfaces' parameter is empty. All available state interfaces will be published
+[ros2_control_node-3] [INFO] [1775744697.214765627] [controller_manager]: Activating controllers: [ joint_state_broadcaster ]
+[ros2_control_node-3] [INFO] [1775744697.215266904] [controller_manager]: Successfully switched controllers!
+[spawner-5] [INFO] [1775744697.216925414] [spawner_joint_state_broadcaster]: Configured and activated joint_state_broadcaster
+[INFO] [spawner-5]: process has finished cleanly [pid 36670]
+[INFO] [spawner-6]: process started with pid [36785]
+[spawner-6] [INFO] [1775744697.702531019] [spawner_imu_sensor_broadcaster]: waiting for service /controller_manager/list_controllers to become available...
+[ros2_control_node-3] [INFO] [1775744698.204441232] [controller_manager]: Loading controller : 'imu_sensor_broadcaster' of type 'imu_sensor_broadcaster/IMUSensorBroadcaster'
+[ros2_control_node-3] [INFO] [1775744698.204493958] [controller_manager]: Loading controller 'imu_sensor_broadcaster'
+[ros2_control_node-3] [INFO] [1775744698.205708797] [controller_manager]: Controller 'imu_sensor_broadcaster' node arguments: --ros-args --params-file /home/ho/ros2_ws/src/quadruped_ros2_control/evaluation/go2_terrain_eval/results/20260409_232453_height_only_box_h095_height_only_v1_perceptive_nominal_model2_h095_runtimeyaml_v1/robot_control_perceptive_height_only_v1.runtime.yaml 
+[spawner-6] [INFO] [1775744698.213007535] [spawner_imu_sensor_broadcaster]: Loaded imu_sensor_broadcaster
+[ros2_control_node-3] [INFO] [1775744698.213958738] [controller_manager]: Configuring controller: 'imu_sensor_broadcaster'
+[ros2_control_node-3] [INFO] [1775744698.217068611] [controller_manager]: Activating controllers: [ imu_sensor_broadcaster ]
+[ros2_control_node-3] [INFO] [1775744698.218142034] [controller_manager]: Successfully switched controllers!
+[spawner-6] [INFO] [1775744698.220066728] [spawner_imu_sensor_broadcaster]: Configured and activated imu_sensor_broadcaster
+[INFO] [spawner-6]: process has finished cleanly [pid 36785]
+[INFO] [spawner-7]: process started with pid [36801]
+[spawner-7] [INFO] [1775744698.697716041] [spawner_ocs2_quadruped_controller_height_only_v1]: waiting for service /controller_manager/list_controllers to become available...
+[ros2_control_node-3] [WARN] [1775744699.897351327] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 1000 Hz. The loop took 1.366150 ms (missed cycles : 2).
+[ros2_control_node-3] [WARN] [1775744699.900895532] [controller_manager]: Overrun might occur, Total time : 1771.783 us (Expected < 1000.000 us) --> Read time : 17.219 us, Update time : 48.819 us, Write time : 1705.745 us
+[ros2_control_node-3] [INFO] [1775744700.200265704] [controller_manager]: Loading controller : 'ocs2_quadruped_controller_height_only_v1' of type 'ocs2_quadruped_controller_height_only_v1/Ocs2QuadrupedController'
+[ros2_control_node-3] [INFO] [1775744700.200307980] [controller_manager]: Loading controller 'ocs2_quadruped_controller_height_only_v1'
+[ros2_control_node-3] [INFO] [1775744700.267217380] [controller_manager]: Controller 'ocs2_quadruped_controller_height_only_v1' node arguments: --ros-args --params-file /home/ho/ros2_ws/src/quadruped_ros2_control/evaluation/go2_terrain_eval/results/20260409_232453_height_only_box_h095_height_only_v1_perceptive_nominal_model2_h095_runtimeyaml_v1/robot_control_perceptive_height_only_v1.runtime.yaml 
+[ros2_control_node-3] [INFO] [1775744700.272758724] [ocs2_quadruped_controller_height_only_v1]: Controller Manager Update Rate: 500 Hz
+[ros2_control_node-3] [LeggedInterface] Loading task file: "/home/ho/ros2_ws/src/quadruped_ros2_control/descriptions/unitree/go2_description_height_only_v1/config/ocs2/task_h095.info"
+[ros2_control_node-3] [LeggedInterface] Loading Pinocchio model from: "/home/ho/ros2_ws/install/go2_description_height_only_v1/share/go2_description_height_only_v1/urdf/robot.urdf"
+[ros2_control_node-3] [LeggedInterface] Loading target command settings from: "/home/ho/ros2_ws/install/go2_description_height_only_v1/share/go2_description_height_only_v1/config/ocs2/reference.info"
+[ros2_control_node-3] [CppAdInterface] Loading Shared Library: /home/ho/ocs2_cpp_ad/go2/ALL_FOOT_position/cppad_generated/ALL_FOOT_position_lib.so
+[ros2_control_node-3] [CppAdInterface] Loading Shared Library: /home/ho/ocs2_cpp_ad/go2/ALL_FOOT_velocity/cppad_generated/ALL_FOOT_velocity_lib.so
+[ros2_control_node-3] [CppAdInterface] Loading Shared Library: /home/ho/ocs2_cpp_ad/go2/ALL_FOOT_orientation/cppad_generated/ALL_FOOT_orientation_lib.so
+[ros2_control_node-3] [CppAdInterface] Loading Shared Library: /home/ho/ocs2_cpp_ad/go2/dynamics_systemFlowMap/cppad_generated/dynamics_systemFlowMap_lib.so
+[ros2_control_node-3] WARNING: Loaded at least one default value in matrix: "Q"
+[ros2_control_node-3] WARNING: Loaded at least one default value in matrix: "R"
+[ros2_control_node-3] [CppAdInterface] Loading Shared Library: /home/ho/ocs2_cpp_ad/go2/FL_foot_position/cppad_generated/FL_foot_position_lib.so
+[ros2_control_node-3] [CppAdInterface] Loading Shared Library: /home/ho/ocs2_cpp_ad/go2/FL_foot_velocity/cppad_generated/FL_foot_velocity_lib.so
+[ros2_control_node-3] [CppAdInterface] Loading Shared Library: /home/ho/ocs2_cpp_ad/go2/FL_foot_orientation/cppad_generated/FL_foot_orientation_lib.so
+[ros2_control_node-3] [CppAdInterface] Loading Shared Library: /home/ho/ocs2_cpp_ad/go2/FR_foot_position/cppad_generated/FR_foot_position_lib.so
+[ros2_control_node-3] [CppAdInterface] Loading Shared Library: /home/ho/ocs2_cpp_ad/go2/FR_foot_velocity/cppad_generated/FR_foot_velocity_lib.so
+[ros2_control_node-3] [CppAdInterface] Loading Shared Library: /home/ho/ocs2_cpp_ad/go2/FR_foot_orientation/cppad_generated/FR_foot_orientation_lib.so
+[ros2_control_node-3] [CppAdInterface] Loading Shared Library: /home/ho/ocs2_cpp_ad/go2/RL_foot_position/cppad_generated/RL_foot_position_lib.so
+[ros2_control_node-3] [CppAdInterface] Loading Shared Library: /home/ho/ocs2_cpp_ad/go2/RL_foot_velocity/cppad_generated/RL_foot_velocity_lib.so
+[ros2_control_node-3] [CppAdInterface] Loading Shared Library: /home/ho/ocs2_cpp_ad/go2/RL_foot_orientation/cppad_generated/RL_foot_orientation_lib.so
+[ros2_control_node-3] [CppAdInterface] Loading Shared Library: /home/ho/ocs2_cpp_ad/go2/RR_foot_position/cppad_generated/RR_foot_position_lib.so
+[ros2_control_node-3] [CppAdInterface] Loading Shared Library: /home/ho/ocs2_cpp_ad/go2/RR_foot_velocity/cppad_generated/RR_foot_velocity_lib.so
+[ros2_control_node-3] [CppAdInterface] Loading Shared Library: /home/ho/ocs2_cpp_ad/go2/RR_foot_orientation/cppad_generated/RR_foot_orientation_lib.so
+[ros2_control_node-3] [CppAdInterface] Loading Shared Library: /home/ho/ocs2_cpp_ad/go2/FL_foot_position/cppad_generated/FL_foot_position_lib.so
+[ros2_control_node-3] [CppAdInterface] Loading Shared Library: /home/ho/ocs2_cpp_ad/go2/FL_foot_velocity/cppad_generated/FL_foot_velocity_lib.so
+[ros2_control_node-3] [CppAdInterface] Loading Shared Library: /home/ho/ocs2_cpp_ad/go2/FL_foot_orientation/cppad_generated/FL_foot_orientation_lib.so
+[ros2_control_node-3] [CppAdInterface] Loading Shared Library: /home/ho/ocs2_cpp_ad/go2/FR_foot_position/cppad_generated/FR_foot_position_lib.so
+[ros2_control_node-3] [CppAdInterface] Loading Shared Library: /home/ho/ocs2_cpp_ad/go2/FR_foot_velocity/cppad_generated/FR_foot_velocity_lib.so
+[ros2_control_node-3] [CppAdInterface] Loading Shared Library: /home/ho/ocs2_cpp_ad/go2/FR_foot_orientation/cppad_generated/FR_foot_orientation_lib.so
+[ros2_control_node-3] [CppAdInterface] Loading Shared Library: /home/ho/ocs2_cpp_ad/go2/RL_foot_position/cppad_generated/RL_foot_position_lib.so
+[ros2_control_node-3] [CppAdInterface] Loading Shared Library: /home/ho/ocs2_cpp_ad/go2/RL_foot_velocity/cppad_generated/RL_foot_velocity_lib.so
+[ros2_control_node-3] [CppAdInterface] Loading Shared Library: /home/ho/ocs2_cpp_ad/go2/RL_foot_orientation/cppad_generated/RL_foot_orientation_lib.so
+[ros2_control_node-3] [CppAdInterface] Loading Shared Library: /home/ho/ocs2_cpp_ad/go2/RR_foot_position/cppad_generated/RR_foot_position_lib.so
+[ros2_control_node-3] [CppAdInterface] Loading Shared Library: /home/ho/ocs2_cpp_ad/go2/RR_foot_velocity/cppad_generated/RR_foot_velocity_lib.so
+[ros2_control_node-3] [CppAdInterface] Loading Shared Library: /home/ho/ocs2_cpp_ad/go2/RR_foot_orientation/cppad_generated/RR_foot_orientation_lib.so
+[ros2_control_node-3] WARNING: Failed to set threads priority (one possible reason could be that the user and the group permissions are not set properly.)
+[ros2_control_node-3] WARNING: Failed to set threads priority (one possible reason could be that the user and the group permissions are not set properly.)
+[ros2_control_node-3] [INFO] [1775744700.322452084] [gait_manager]: GaitManager is ready.
+[ros2_control_node-3] WARNING: Failed to set threads priority (one possible reason could be that the user and the group permissions are not set properly.)
+[ros2_control_node-3] [INFO] [1775744700.325274340] [ocs2_quadruped_controller_height_only_v1]: MRT initialized. MPC thread started.
+[ros2_control_node-3] [INFO] [1775744700.332138237] [ocs2_quadruped_controller_height_only_v1]: Using Ground Truth Estimator
+[spawner-7] [INFO] [1775744700.335094948] [spawner_ocs2_quadruped_controller_height_only_v1]: Loaded ocs2_quadruped_controller_height_only_v1
+[ros2_control_node-3] [INFO] [1775744700.336167185] [controller_manager]: Configuring controller: 'ocs2_quadruped_controller_height_only_v1'
+[ros2_control_node-3] [INFO] [1775744700.339100949] [controller_manager]: Activating controllers: [ ocs2_quadruped_controller_height_only_v1 ]
+[ros2_control_node-3] [INFO] [1775744700.340292530] [controller_manager]: Successfully switched controllers!
+[spawner-7] [INFO] [1775744700.341750723] [spawner_ocs2_quadruped_controller_height_only_v1]: Configured and activated ocs2_quadruped_controller_height_only_v1
+[INFO] [spawner-7]: process has finished cleanly [pid 36801]
+[ros2_control_node-3] [INFO] [1775744704.743187757] [ocs2_quadruped_controller_height_only_v1]: Switched from passive to OCS2 State
+[ros2_control_node-3] [INFO] [1775744704.745145868] [ocs2_quadruped_controller_height_only_v1]: Waiting for the initial policy ...
+[ros2_control_node-3] [INFO] [1775744704.793150485] [GaitManager]: Switch to gait: stance
+[ros2_control_node-3] [INFO] [1775744704.801745092] [ocs2_quadruped_controller_height_only_v1]: Initial policy has been received.
+[ros2_control_node-3] [WARN] [1775744704.801952065] [controller_manager]: Overrun might occur, Total time : 56933.657 us (Expected < 1000.000 us) --> Read time : 7.176 us, Update time : 56818.537 us, Write time : 107.944 us
+[ros2_control_node-3] [WARN] [1775744704.801993970] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 1000 Hz. The loop took 57.008964 ms (missed cycles : 58).
+[ros2_control_node-3] [WARN] [1775744705.817084221] [controller_manager]: Overrun might occur, Total time : 1037.851 us (Expected < 1000.000 us) --> Read time : 7.268 us, Update time : 883.428 us, Write time : 147.155 us
+[ros2_control_node-3] [WARN] [1775744705.817151301] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 1000 Hz. The loop took 1.165863 ms (missed cycles : 2).
+[ros2_control_node-3] [WARN] [1775744706.820993125] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 1000 Hz. The loop took 1.007960 ms (missed cycles : 2).
+[ros2_control_node-3] [WARN] [1775744706.852572785] [controller_manager]: Overrun might occur, Total time : 2525.515 us (Expected < 1000.000 us) --> Read time : 6.175 us, Update time : 2396.330 us, Write time : 123.010 us
+[ros2_control_node-3] [WARN] [1775744707.847015308] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 1000 Hz. The loop took 1.029963 ms (missed cycles : 2).
+[ros2_control_node-3] [WARN] [1775744707.865053083] [controller_manager]: Overrun might occur, Total time : 1005.261 us (Expected < 1000.000 us) --> Read time : 7.484 us, Update time : 820.475 us, Write time : 177.302 us
+[ros2_control_node-3] [WARN] [1775744708.891565566] [controller_manager]: Overrun might occur, Total time : 2523.058 us (Expected < 1000.000 us) --> Read time : 3.102 us, Update time : 2431.778 us, Write time : 88.178 us
+[ros2_control_node-3] [WARN] [1775744708.891608811] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 1000 Hz. The loop took 2.623825 ms (missed cycles : 3).
+[ros2_control_node-3] [INFO] [1775744709.669936935] [GaitManager]: Switch to gait: trot
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=7 liftOff=0.0651429 touchDown=0.095 stepUp=0.0298571 baseMid=0.195 extra=0.0179143 finalMid=0.212914
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=6 liftOff=0.0651156 touchDown=0.095 stepUp=0.0298844 baseMid=0.195 extra=0.0179306 finalMid=0.212931
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=7 liftOff=0.0650348 touchDown=0.095 stepUp=0.0299652 baseMid=0.195 extra=0.0179791 finalMid=0.212979
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=6 liftOff=0.0650074 touchDown=0.095 stepUp=0.0299926 baseMid=0.195 extra=0.0179955 finalMid=0.212996
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=6 liftOff=0.0650087 touchDown=0.095 stepUp=0.0299913 baseMid=0.195 extra=0.0179948 finalMid=0.212995
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=5 liftOff=0.0649794 touchDown=0.095 stepUp=0.0300206 baseMid=0.195 extra=0.0180124 finalMid=0.213012
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=6 liftOff=0.0652507 touchDown=0.095 stepUp=0.0297493 baseMid=0.195 extra=0.0178496 finalMid=0.21285
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=5 liftOff=0.0652127 touchDown=0.095 stepUp=0.0297873 baseMid=0.195 extra=0.0178724 finalMid=0.212872
+[ros2_control_node-3] [WARN] [1775744709.910047401] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 1000 Hz. The loop took 1.062038 ms (missed cycles : 2).
+[ros2_control_node-3] [WARN] [1775744709.912317162] [controller_manager]: Overrun might occur, Total time : 1266.737 us (Expected < 1000.000 us) --> Read time : 15.206 us, Update time : 1107.199 us, Write time : 144.332 us
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=6 liftOff=0.0652274 touchDown=0.095 stepUp=0.0297726 baseMid=0.195 extra=0.0178635 finalMid=0.212864
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=5 liftOff=0.0651936 touchDown=0.095 stepUp=0.0298064 baseMid=0.195 extra=0.0178838 finalMid=0.212884
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=6 liftOff=0.065199 touchDown=0.095 stepUp=0.029801 baseMid=0.195 extra=0.0178806 finalMid=0.212881
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=5 liftOff=0.0651696 touchDown=0.095 stepUp=0.0298304 baseMid=0.195 extra=0.0178982 finalMid=0.212898
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=6 liftOff=0.0651914 touchDown=0.095 stepUp=0.0298086 baseMid=0.195 extra=0.0178851 finalMid=0.212885
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=5 liftOff=0.0651622 touchDown=0.095 stepUp=0.0298378 baseMid=0.195 extra=0.0179027 finalMid=0.212903
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=6 liftOff=0.0651907 touchDown=0.095 stepUp=0.0298093 baseMid=0.195 extra=0.0178856 finalMid=0.212886
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=5 liftOff=0.0651628 touchDown=0.095 stepUp=0.0298372 baseMid=0.195 extra=0.0179023 finalMid=0.212902
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=6 liftOff=0.0651911 touchDown=0.095 stepUp=0.0298089 baseMid=0.195 extra=0.0178853 finalMid=0.212885
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=5 liftOff=0.0651646 touchDown=0.095 stepUp=0.0298354 baseMid=0.195 extra=0.0179012 finalMid=0.212901
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=6 liftOff=0.0651887 touchDown=0.095 stepUp=0.0298113 baseMid=0.195 extra=0.0178868 finalMid=0.212887
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=5 liftOff=0.0651628 touchDown=0.095 stepUp=0.0298372 baseMid=0.195 extra=0.0179023 finalMid=0.212902
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=6 liftOff=0.0651827 touchDown=0.095 stepUp=0.0298173 baseMid=0.195 extra=0.0178904 finalMid=0.21289
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=5 liftOff=0.0651572 touchDown=0.095 stepUp=0.0298428 baseMid=0.195 extra=0.0179057 finalMid=0.212906
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=5 liftOff=0.0651635 touchDown=0.095 stepUp=0.0298365 baseMid=0.195 extra=0.0179019 finalMid=0.212902
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=4 liftOff=0.0651334 touchDown=0.095 stepUp=0.0298666 baseMid=0.195 extra=0.01792 finalMid=0.21292
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=5 liftOff=0.0651709 touchDown=0.095 stepUp=0.0298291 baseMid=0.195 extra=0.0178974 finalMid=0.212897
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=4 liftOff=0.0651521 touchDown=0.095 stepUp=0.0298479 baseMid=0.195 extra=0.0179088 finalMid=0.212909
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=5 liftOff=0.0651555 touchDown=0.095 stepUp=0.0298445 baseMid=0.195 extra=0.0179067 finalMid=0.212907
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=4 liftOff=0.0651488 touchDown=0.095 stepUp=0.0298512 baseMid=0.195 extra=0.0179107 finalMid=0.212911
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=5 liftOff=0.0651296 touchDown=0.095 stepUp=0.0298704 baseMid=0.195 extra=0.0179222 finalMid=0.212922
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=4 liftOff=0.0651762 touchDown=0.095 stepUp=0.0298238 baseMid=0.195 extra=0.0178943 finalMid=0.212894
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=5 liftOff=0.0651226 touchDown=0.095 stepUp=0.0298774 baseMid=0.195 extra=0.0179264 finalMid=0.212926
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=4 liftOff=0.0652061 touchDown=0.095 stepUp=0.0297939 baseMid=0.195 extra=0.0178763 finalMid=0.212876
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=5 liftOff=0.0651669 touchDown=0.095 stepUp=0.0298331 baseMid=0.195 extra=0.0178998 finalMid=0.2129
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=4 liftOff=0.0652724 touchDown=0.095 stepUp=0.0297276 baseMid=0.195 extra=0.0178366 finalMid=0.212837
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=5 liftOff=0.0653099 touchDown=0.095 stepUp=0.0296901 baseMid=0.195 extra=0.017814 finalMid=0.212814
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=4 liftOff=0.0653907 touchDown=0.095 stepUp=0.0296093 baseMid=0.195 extra=0.0177656 finalMid=0.212766
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=5 liftOff=0.0656438 touchDown=0.095 stepUp=0.0293562 baseMid=0.195 extra=0.0176137 finalMid=0.212614
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=4 liftOff=0.0653907 touchDown=0.095 stepUp=0.0296093 baseMid=0.195 extra=0.0177656 finalMid=0.212766
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=5 liftOff=0.0647931 touchDown=0.095 stepUp=0.0302069 baseMid=0.195 extra=0.0181241 finalMid=0.213124
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=4 liftOff=0.0653907 touchDown=0.095 stepUp=0.0296093 baseMid=0.195 extra=0.0177656 finalMid=0.212766
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=5 liftOff=0.063913 touchDown=0.095 stepUp=0.031087 baseMid=0.195 extra=0.0186522 finalMid=0.213652
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=4 liftOff=0.0653907 touchDown=0.095 stepUp=0.0296093 baseMid=0.195 extra=0.0177656 finalMid=0.212766
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=4 liftOff=0.063023 touchDown=0.095 stepUp=0.031977 baseMid=0.195 extra=0.0191862 finalMid=0.214186
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=3 liftOff=0.0653907 touchDown=0.095 stepUp=0.0296093 baseMid=0.195 extra=0.0177656 finalMid=0.212766
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=4 liftOff=0.0629083 touchDown=0.095 stepUp=0.0320917 baseMid=0.195 extra=0.019255 finalMid=0.214255
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=3 liftOff=0.0653907 touchDown=0.095 stepUp=0.0296093 baseMid=0.195 extra=0.0177656 finalMid=0.212766
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=4 liftOff=0.0632749 touchDown=0.095 stepUp=0.0317251 baseMid=0.195 extra=0.0190351 finalMid=0.214035
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=3 liftOff=0.0653907 touchDown=0.095 stepUp=0.0296093 baseMid=0.195 extra=0.0177656 finalMid=0.212766
+[ros2_control_node-3] [WARN] [1775744710.912009110] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 1000 Hz. The loop took 1.023781 ms (missed cycles : 2).
+[ros2_control_node-3] [WARN] [1775744710.914180417] [controller_manager]: Overrun might occur, Total time : 1124.959 us (Expected < 1000.000 us) --> Read time : 18.246 us, Update time : 940.730 us, Write time : 165.983 us
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=4 liftOff=0.0636775 touchDown=0.095 stepUp=0.0313225 baseMid=0.195 extra=0.0187935 finalMid=0.213794
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=3 liftOff=0.0653907 touchDown=0.095 stepUp=0.0296093 baseMid=0.195 extra=0.0177656 finalMid=0.212766
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=4 liftOff=0.0641303 touchDown=0.095 stepUp=0.0308697 baseMid=0.195 extra=0.0185218 finalMid=0.213522
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=3 liftOff=0.0653907 touchDown=0.095 stepUp=0.0296093 baseMid=0.195 extra=0.0177656 finalMid=0.212766
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=4 liftOff=0.0661316 touchDown=0.095 stepUp=0.0288684 baseMid=0.195 extra=0.0173211 finalMid=0.212321
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=3 liftOff=0.0653907 touchDown=0.095 stepUp=0.0296093 baseMid=0.195 extra=0.0177656 finalMid=0.212766
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=4 liftOff=0.0661316 touchDown=0.095 stepUp=0.0288684 baseMid=0.195 extra=0.0173211 finalMid=0.212321
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=5 liftOff=0.0746192 touchDown=0.095 stepUp=0.0203808 baseMid=0.195 extra=0.0122285 finalMid=0.207228
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=4 liftOff=0.0661316 touchDown=0.095 stepUp=0.0288684 baseMid=0.195 extra=0.0173211 finalMid=0.212321
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=5 liftOff=0.0612547 touchDown=0.095 stepUp=0.0337453 baseMid=0.195 extra=0.0202472 finalMid=0.215247
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=4 liftOff=0.0661316 touchDown=0.095 stepUp=0.0288684 baseMid=0.195 extra=0.0173211 finalMid=0.212321
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=5 liftOff=0.0621005 touchDown=0.095 stepUp=0.0328995 baseMid=0.195 extra=0.0197397 finalMid=0.21474
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=4 liftOff=0.0661316 touchDown=0.095 stepUp=0.0288684 baseMid=0.195 extra=0.0173211 finalMid=0.212321
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=5 liftOff=0.0614331 touchDown=0.095 stepUp=0.0335669 baseMid=0.195 extra=0.0201401 finalMid=0.21514
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0.0661316 touchDown=0.095 stepUp=0.0288684 baseMid=0.195 extra=0.0173211 finalMid=0.212321
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=4 liftOff=0.0624361 touchDown=0.095 stepUp=0.0325639 baseMid=0.195 extra=0.0195384 finalMid=0.214538
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0.0661316 touchDown=0.095 stepUp=0.0288684 baseMid=0.195 extra=0.0173211 finalMid=0.212321
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=4 liftOff=0.0636102 touchDown=0.095 stepUp=0.0313898 baseMid=0.195 extra=0.0188339 finalMid=0.213834
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0.0661316 touchDown=0.095 stepUp=0.0288684 baseMid=0.195 extra=0.0173211 finalMid=0.212321
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=4 liftOff=0.0645938 touchDown=0.095 stepUp=0.0304062 baseMid=0.195 extra=0.0182437 finalMid=0.213244
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0.0661316 touchDown=0.095 stepUp=0.0288684 baseMid=0.195 extra=0.0173211 finalMid=0.212321
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=4 liftOff=0.0667508 touchDown=0.095 stepUp=0.0282492 baseMid=0.195 extra=0.0169495 finalMid=0.21195
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0 touchDown=0.0747477 stepUp=0.0747477 baseMid=0.174748 extra=0.0448486 finalMid=0.219596
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=5 liftOff=0.0747477 touchDown=0.095 stepUp=0.0202523 baseMid=0.195 extra=0.0121514 finalMid=0.207151
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=4 liftOff=0.0667508 touchDown=0.095 stepUp=0.0282492 baseMid=0.195 extra=0.0169495 finalMid=0.21195
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0 touchDown=0.0613108 stepUp=0.0613108 baseMid=0.161311 extra=0.0367865 finalMid=0.198097
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=4 liftOff=0.0667508 touchDown=0.095 stepUp=0.0282492 baseMid=0.195 extra=0.0169495 finalMid=0.21195
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0 touchDown=0.0619229 stepUp=0.0619229 baseMid=0.161923 extra=0.0371537 finalMid=0.199077
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=6 liftOff=0 touchDown=0.095 stepUp=0.095 baseMid=0.195 extra=0.057 finalMid=0.252
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0 touchDown=0.0614899 stepUp=0.0614899 baseMid=0.16149 extra=0.0368939 finalMid=0.198384
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=6 liftOff=0 touchDown=0.095 stepUp=0.095 baseMid=0.195 extra=0.057 finalMid=0.252
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0 touchDown=0.0613959 stepUp=0.0613959 baseMid=0.161396 extra=0.0368375 finalMid=0.198233
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0 touchDown=0.0615512 stepUp=0.0615512 baseMid=0.161551 extra=0.0369307 finalMid=0.198482
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0 touchDown=0.0618116 stepUp=0.0618116 baseMid=0.161812 extra=0.0370869 finalMid=0.198899
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=2 liftOff=0 touchDown=0.0622466 stepUp=0.0622466 baseMid=0.162247 extra=0.037348 finalMid=0.199595
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=2 liftOff=0 touchDown=0.062673 stepUp=0.062673 baseMid=0.162673 extra=0.0376038 finalMid=0.200277
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=2 liftOff=0 touchDown=0.0631682 stepUp=0.0631682 baseMid=0.163168 extra=0.0379009 finalMid=0.201069
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=2 liftOff=0 touchDown=0.0636534 stepUp=0.0636534 baseMid=0.163653 extra=0.038192 finalMid=0.201845
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=2 liftOff=0 touchDown=0.0642232 stepUp=0.0642232 baseMid=0.164223 extra=0.0385339 finalMid=0.202757
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=2 liftOff=0 touchDown=0.0644234 stepUp=0.0644234 baseMid=0.164423 extra=0.0386541 finalMid=0.203077
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=2 liftOff=0 touchDown=0.0655294 stepUp=0.0655294 baseMid=0.165529 extra=0.0393176 finalMid=0.204847
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=2 liftOff=0 touchDown=0.0663722 stepUp=0.0663722 baseMid=0.166372 extra=0.0398233 finalMid=0.206196
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=2 liftOff=0 touchDown=0.0661582 stepUp=0.0661582 baseMid=0.166158 extra=0.0396949 finalMid=0.205853
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=3 liftOff=0 touchDown=0.0645553 stepUp=0.0645553 baseMid=0.164555 extra=0.0387332 finalMid=0.203288
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=3 liftOff=0 touchDown=0.0643845 stepUp=0.0643845 baseMid=0.164384 extra=0.0386307 finalMid=0.203015
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=3 liftOff=0 touchDown=0.0632254 stepUp=0.0632254 baseMid=0.163225 extra=0.0379352 finalMid=0.201161
+[ros2_control_node-3] [WARN] [1775744711.922121745] [controller_manager]: Overrun might occur, Total time : 1040.570 us (Expected < 1000.000 us) --> Read time : 14.932 us, Update time : 854.204 us, Write time : 171.434 us
+[ros2_control_node-3] [WARN] [1775744711.922177328] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 1000 Hz. The loop took 1.192272 ms (missed cycles : 2).
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=3 liftOff=0 touchDown=0.0622672 stepUp=0.0622672 baseMid=0.162267 extra=0.0373603 finalMid=0.199627
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=3 liftOff=0 touchDown=0.0617567 stepUp=0.0617567 baseMid=0.161757 extra=0.037054 finalMid=0.198811
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=3 liftOff=0 touchDown=0.0615589 stepUp=0.0615589 baseMid=0.161559 extra=0.0369353 finalMid=0.198494
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=3 liftOff=0 touchDown=0.0616564 stepUp=0.0616564 baseMid=0.161656 extra=0.0369939 finalMid=0.19865
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=2 liftOff=0 touchDown=0.0619733 stepUp=0.0619733 baseMid=0.161973 extra=0.037184 finalMid=0.199157
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=2 liftOff=0 touchDown=0.0624266 stepUp=0.0624266 baseMid=0.162427 extra=0.037456 finalMid=0.199883
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=2 liftOff=0 touchDown=0.0630263 stepUp=0.0630263 baseMid=0.163026 extra=0.0378158 finalMid=0.200842
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=2 liftOff=0 touchDown=0.0635657 stepUp=0.0635657 baseMid=0.163566 extra=0.0381394 finalMid=0.201705
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=2 liftOff=0 touchDown=0.0640287 stepUp=0.0640287 baseMid=0.164029 extra=0.0384172 finalMid=0.202446
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=2 liftOff=0 touchDown=0.0643997 stepUp=0.0643997 baseMid=0.1644 extra=0.0386398 finalMid=0.203039
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=5 liftOff=0 touchDown=0.095 stepUp=0.095 baseMid=0.195 extra=0.057 finalMid=0.252
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=2 liftOff=0 touchDown=0.0651164 stepUp=0.0651164 baseMid=0.165116 extra=0.0390699 finalMid=0.204186
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=6 liftOff=0 touchDown=0.095 stepUp=0.095 baseMid=0.195 extra=0.057 finalMid=0.252
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=5 liftOff=0 touchDown=0.095 stepUp=0.095 baseMid=0.195 extra=0.057 finalMid=0.252
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=2 liftOff=0 touchDown=0.0657388 stepUp=0.0657388 baseMid=0.165739 extra=0.0394433 finalMid=0.205182
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=6 liftOff=0 touchDown=0.095 stepUp=0.095 baseMid=0.195 extra=0.057 finalMid=0.252
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0 touchDown=0.0649545 stepUp=0.0649545 baseMid=0.164954 extra=0.0389727 finalMid=0.203927
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=7 liftOff=0 touchDown=0.095 stepUp=0.095 baseMid=0.195 extra=0.057 finalMid=0.252
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=6 liftOff=0 touchDown=0.095 stepUp=0.095 baseMid=0.195 extra=0.057 finalMid=0.252
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0 touchDown=0.0638616 stepUp=0.0638616 baseMid=0.163862 extra=0.038317 finalMid=0.202179
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=6 liftOff=0 touchDown=0.095 stepUp=0.095 baseMid=0.195 extra=0.057 finalMid=0.252
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0 touchDown=0.0628105 stepUp=0.0628105 baseMid=0.16281 extra=0.0376863 finalMid=0.200497
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0 touchDown=0.0611467 stepUp=0.0611467 baseMid=0.161147 extra=0.036688 finalMid=0.197835
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0 touchDown=0.0609237 stepUp=0.0609237 baseMid=0.160924 extra=0.0365542 finalMid=0.197478
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0 touchDown=0.0612076 stepUp=0.0612076 baseMid=0.161208 extra=0.0367246 finalMid=0.197932
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0 touchDown=0.0612145 stepUp=0.0612145 baseMid=0.161215 extra=0.0367287 finalMid=0.197943
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=2 liftOff=0 touchDown=0.0613939 stepUp=0.0613939 baseMid=0.161394 extra=0.0368364 finalMid=0.19823
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=2 liftOff=0 touchDown=0.0615941 stepUp=0.0615941 baseMid=0.161594 extra=0.0369564 finalMid=0.19855
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=2 liftOff=0 touchDown=0.062055 stepUp=0.062055 baseMid=0.162055 extra=0.037233 finalMid=0.199288
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=2 liftOff=0 touchDown=0.0626743 stepUp=0.0626743 baseMid=0.162674 extra=0.0376046 finalMid=0.200279
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=2 liftOff=0 touchDown=0.0632416 stepUp=0.0632416 baseMid=0.163242 extra=0.037945 finalMid=0.201187
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=2 liftOff=0 touchDown=0.0637975 stepUp=0.0637975 baseMid=0.163797 extra=0.0382785 finalMid=0.202076
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=2 liftOff=0 touchDown=0.0641701 stepUp=0.0641701 baseMid=0.16417 extra=0.038502 finalMid=0.202672
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=2 liftOff=0 touchDown=0.0651742 stepUp=0.0651742 baseMid=0.165174 extra=0.0391045 finalMid=0.204279
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=2 liftOff=0 touchDown=0.0654847 stepUp=0.0654847 baseMid=0.165485 extra=0.0392908 finalMid=0.204776
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=3 liftOff=0 touchDown=0.062079 stepUp=0.062079 baseMid=0.162079 extra=0.0372474 finalMid=0.199326
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=3 liftOff=0 touchDown=0.0641041 stepUp=0.0641041 baseMid=0.164104 extra=0.0384625 finalMid=0.202567
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=3 liftOff=0 touchDown=0.0644465 stepUp=0.0644465 baseMid=0.164447 extra=0.0386679 finalMid=0.203114
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=3 liftOff=0 touchDown=0.0632325 stepUp=0.0632325 baseMid=0.163232 extra=0.0379395 finalMid=0.201172
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=3 liftOff=0 touchDown=0.0620982 stepUp=0.0620982 baseMid=0.162098 extra=0.0372589 finalMid=0.199357
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=3 liftOff=0 touchDown=0.0615879 stepUp=0.0615879 baseMid=0.161588 extra=0.0369528 finalMid=0.198541
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=3 liftOff=0 touchDown=0.0614556 stepUp=0.0614556 baseMid=0.161456 extra=0.0368734 finalMid=0.198329
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=3 liftOff=0 touchDown=0.0615017 stepUp=0.0615017 baseMid=0.161502 extra=0.036901 finalMid=0.198403
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=2 liftOff=0 touchDown=0.0618717 stepUp=0.0618717 baseMid=0.161872 extra=0.037123 finalMid=0.198995
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=2 liftOff=0 touchDown=0.0624081 stepUp=0.0624081 baseMid=0.162408 extra=0.0374449 finalMid=0.199853
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=2 liftOff=0 touchDown=0.063026 stepUp=0.063026 baseMid=0.163026 extra=0.0378156 finalMid=0.200842
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=2 liftOff=0 touchDown=0.0635668 stepUp=0.0635668 baseMid=0.163567 extra=0.0381401 finalMid=0.201707
+[ros2_control_node-3] [WARN] [1775744712.935082698] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 1000 Hz. The loop took 1.096876 ms (missed cycles : 2).
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=2 liftOff=0 touchDown=0.0642851 stepUp=0.0642851 baseMid=0.164285 extra=0.038571 finalMid=0.202856
+[ros2_control_node-3] [WARN] [1775744712.971177937] [controller_manager]: Overrun might occur, Total time : 1108.937 us (Expected < 1000.000 us) --> Read time : 18.802 us, Update time : 992.316 us, Write time : 97.819 us
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=2 liftOff=0 touchDown=0.0645459 stepUp=0.0645459 baseMid=0.164546 extra=0.0387275 finalMid=0.203273
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=2 liftOff=0 touchDown=0.0655103 stepUp=0.0655103 baseMid=0.16551 extra=0.0393062 finalMid=0.204816
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=2 liftOff=0 touchDown=0.0653078 stepUp=0.0653078 baseMid=0.165308 extra=0.0391847 finalMid=0.204493
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0 touchDown=0.064366 stepUp=0.064366 baseMid=0.164366 extra=0.0386196 finalMid=0.202986
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0 touchDown=0.0643593 stepUp=0.0643593 baseMid=0.164359 extra=0.0386156 finalMid=0.202975
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0 touchDown=0.0643711 stepUp=0.0643711 baseMid=0.164371 extra=0.0386227 finalMid=0.202994
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0 touchDown=0.0615784 stepUp=0.0615784 baseMid=0.161578 extra=0.0369471 finalMid=0.198525
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0 touchDown=0.061334 stepUp=0.061334 baseMid=0.161334 extra=0.0368004 finalMid=0.198134
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0 touchDown=0.0614414 stepUp=0.0614414 baseMid=0.161441 extra=0.0368648 finalMid=0.198306
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0 touchDown=0.0616802 stepUp=0.0616802 baseMid=0.16168 extra=0.0370081 finalMid=0.198688
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=2 liftOff=0 touchDown=0.06205 stepUp=0.06205 baseMid=0.16205 extra=0.03723 finalMid=0.19928
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=2 liftOff=0 touchDown=0.0624922 stepUp=0.0624922 baseMid=0.162492 extra=0.0374953 finalMid=0.199988
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=2 liftOff=0 touchDown=0.0630421 stepUp=0.0630421 baseMid=0.163042 extra=0.0378253 finalMid=0.200867
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=2 liftOff=0 touchDown=0.0635365 stepUp=0.0635365 baseMid=0.163536 extra=0.0381219 finalMid=0.201658
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=2 liftOff=0 touchDown=0.0639668 stepUp=0.0639668 baseMid=0.163967 extra=0.0383801 finalMid=0.202347
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=2 liftOff=0 touchDown=0.0642995 stepUp=0.0642995 baseMid=0.164299 extra=0.0385797 finalMid=0.202879
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=2 liftOff=0 touchDown=0.0648612 stepUp=0.0648612 baseMid=0.164861 extra=0.0389167 finalMid=0.203778
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=2 liftOff=0 touchDown=0.0662679 stepUp=0.0662679 baseMid=0.166268 extra=0.0397607 finalMid=0.206029
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=2 liftOff=0 touchDown=0.0661147 stepUp=0.0661147 baseMid=0.166115 extra=0.0396688 finalMid=0.205784
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=3 liftOff=0 touchDown=0.064182 stepUp=0.064182 baseMid=0.164182 extra=0.0385092 finalMid=0.202691
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=3 liftOff=0 touchDown=0.0651033 stepUp=0.0651033 baseMid=0.165103 extra=0.039062 finalMid=0.204165
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=3 liftOff=0 touchDown=0.064519 stepUp=0.064519 baseMid=0.164519 extra=0.0387114 finalMid=0.20323
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=3 liftOff=0 touchDown=0.0635427 stepUp=0.0635427 baseMid=0.163543 extra=0.0381256 finalMid=0.201668
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=3 liftOff=0 touchDown=0.0627805 stepUp=0.0627805 baseMid=0.162781 extra=0.0376683 finalMid=0.200449
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=3 liftOff=0 touchDown=0.0622802 stepUp=0.0622802 baseMid=0.16228 extra=0.0373681 finalMid=0.199648
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=3 liftOff=0 touchDown=0.0621457 stepUp=0.0621457 baseMid=0.162146 extra=0.0372874 finalMid=0.199433
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=2 liftOff=0 touchDown=0.0623148 stepUp=0.0623148 baseMid=0.162315 extra=0.0373889 finalMid=0.199704
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=2 liftOff=0 touchDown=0.0627229 stepUp=0.0627229 baseMid=0.162723 extra=0.0376337 finalMid=0.200357
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=2 liftOff=0 touchDown=0.0632985 stepUp=0.0632985 baseMid=0.163299 extra=0.0379791 finalMid=0.201278
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=2 liftOff=0 touchDown=0.0636527 stepUp=0.0636527 baseMid=0.163653 extra=0.0381916 finalMid=0.201844
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=2 liftOff=0 touchDown=0.0640568 stepUp=0.0640568 baseMid=0.164057 extra=0.0384341 finalMid=0.202491
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=2 liftOff=0 touchDown=0.0644107 stepUp=0.0644107 baseMid=0.164411 extra=0.0386464 finalMid=0.203057
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=2 liftOff=0 touchDown=0.0659072 stepUp=0.0659072 baseMid=0.165907 extra=0.0395443 finalMid=0.205452
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=2 liftOff=0 touchDown=0.0661648 stepUp=0.0661648 baseMid=0.166165 extra=0.0396989 finalMid=0.205864
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0 touchDown=0.0636858 stepUp=0.0636858 baseMid=0.163686 extra=0.0382115 finalMid=0.201897
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0 touchDown=0.0653532 stepUp=0.0653532 baseMid=0.165353 extra=0.0392119 finalMid=0.204565
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0 touchDown=0.0651955 stepUp=0.0651955 baseMid=0.165196 extra=0.0391173 finalMid=0.204313
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0 touchDown=0.0641807 stepUp=0.0641807 baseMid=0.164181 extra=0.0385084 finalMid=0.202689
+[ros2_control_node-3] [WARN] [1775744713.937632784] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 1000 Hz. The loop took 1.648209 ms (missed cycles : 2).
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0 touchDown=0.0632063 stepUp=0.0632063 baseMid=0.163206 extra=0.0379238 finalMid=0.20113
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0 touchDown=0.0626705 stepUp=0.0626705 baseMid=0.162671 extra=0.0376023 finalMid=0.200273
+[ros2_control_node-3] [WARN] [1775744713.981083799] [controller_manager]: Overrun might occur, Total time : 1011.905 us (Expected < 1000.000 us) --> Read time : 16.899 us, Update time : 809.687 us, Write time : 185.319 us
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0 touchDown=0.0623721 stepUp=0.0623721 baseMid=0.162372 extra=0.0374233 finalMid=0.199795
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0 touchDown=0.0625035 stepUp=0.0625035 baseMid=0.162503 extra=0.0375021 finalMid=0.200006
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=2 liftOff=0 touchDown=0.0627748 stepUp=0.0627748 baseMid=0.162775 extra=0.0376649 finalMid=0.20044
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=2 liftOff=0 touchDown=0.0631392 stepUp=0.0631392 baseMid=0.163139 extra=0.0378835 finalMid=0.201023
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=2 liftOff=0 touchDown=0.0635255 stepUp=0.0635255 baseMid=0.163525 extra=0.0381153 finalMid=0.201641
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=2 liftOff=0 touchDown=0.0639042 stepUp=0.0639042 baseMid=0.163904 extra=0.0383425 finalMid=0.202247
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=2 liftOff=0 touchDown=0.0639484 stepUp=0.0639484 baseMid=0.163948 extra=0.0383691 finalMid=0.202317
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=2 liftOff=0 touchDown=0.0643594 stepUp=0.0643594 baseMid=0.164359 extra=0.0386156 finalMid=0.202975
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=2 liftOff=0 touchDown=0.0652701 stepUp=0.0652701 baseMid=0.16527 extra=0.0391621 finalMid=0.204432
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=2 liftOff=0 touchDown=0.0665251 stepUp=0.0665251 baseMid=0.166525 extra=0.039915 finalMid=0.20644
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=3 liftOff=0 touchDown=0.0628486 stepUp=0.0628486 baseMid=0.162849 extra=0.0377091 finalMid=0.200558
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=3 liftOff=0 touchDown=0.0655175 stepUp=0.0655175 baseMid=0.165518 extra=0.0393105 finalMid=0.204828
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=3 liftOff=0 touchDown=0.0652297 stepUp=0.0652297 baseMid=0.16523 extra=0.0391378 finalMid=0.204368
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=3 liftOff=0 touchDown=0.0642916 stepUp=0.0642916 baseMid=0.164292 extra=0.038575 finalMid=0.202867
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=3 liftOff=0 touchDown=0.0634283 stepUp=0.0634283 baseMid=0.163428 extra=0.038057 finalMid=0.201485
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=3 liftOff=0 touchDown=0.0628473 stepUp=0.0628473 baseMid=0.162847 extra=0.0377084 finalMid=0.200556
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=3 liftOff=0 touchDown=0.0625622 stepUp=0.0625622 baseMid=0.162562 extra=0.0375373 finalMid=0.200099
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=3 liftOff=0 touchDown=0.0626025 stepUp=0.0626025 baseMid=0.162603 extra=0.0375615 finalMid=0.200164
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=2 liftOff=0 touchDown=0.0628542 stepUp=0.0628542 baseMid=0.162854 extra=0.0377125 finalMid=0.200567
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=2 liftOff=0 touchDown=0.0633145 stepUp=0.0633145 baseMid=0.163315 extra=0.0379887 finalMid=0.201303
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=2 liftOff=0 touchDown=0.063571 stepUp=0.063571 baseMid=0.163571 extra=0.0381426 finalMid=0.201714
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=2 liftOff=0 touchDown=0.0639077 stepUp=0.0639077 baseMid=0.163908 extra=0.0383446 finalMid=0.202252
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=2 liftOff=0 touchDown=0.0641613 stepUp=0.0641613 baseMid=0.164161 extra=0.0384968 finalMid=0.202658
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=2 liftOff=0 touchDown=0.0644879 stepUp=0.0644879 baseMid=0.164488 extra=0.0386928 finalMid=0.203181
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=2 liftOff=0 touchDown=0.0661282 stepUp=0.0661282 baseMid=0.166128 extra=0.0396769 finalMid=0.205805
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0 touchDown=0.0629615 stepUp=0.0629615 baseMid=0.162961 extra=0.0377769 finalMid=0.200738
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0 touchDown=0.0654925 stepUp=0.0654925 baseMid=0.165492 extra=0.0392955 finalMid=0.204788
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0 touchDown=0.0654218 stepUp=0.0654218 baseMid=0.165422 extra=0.0392531 finalMid=0.204675
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0 touchDown=0.0645739 stepUp=0.0645739 baseMid=0.164574 extra=0.0387443 finalMid=0.203318
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0 touchDown=0.0636631 stepUp=0.0636631 baseMid=0.163663 extra=0.0381979 finalMid=0.201861
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0 touchDown=0.0630293 stepUp=0.0630293 baseMid=0.163029 extra=0.0378176 finalMid=0.200847
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0 touchDown=0.0626939 stepUp=0.0626939 baseMid=0.162694 extra=0.0376163 finalMid=0.20031
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0 touchDown=0.0626514 stepUp=0.0626514 baseMid=0.162651 extra=0.0375908 finalMid=0.200242
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=2 liftOff=0 touchDown=0.0628479 stepUp=0.0628479 baseMid=0.162848 extra=0.0377088 finalMid=0.200557
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=2 liftOff=0 touchDown=0.0631591 stepUp=0.0631591 baseMid=0.163159 extra=0.0378954 finalMid=0.201054
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=2 liftOff=0 touchDown=0.0634651 stepUp=0.0634651 baseMid=0.163465 extra=0.0380791 finalMid=0.201544
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=2 liftOff=0 touchDown=0.0637952 stepUp=0.0637952 baseMid=0.163795 extra=0.0382771 finalMid=0.202072
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=2 liftOff=0 touchDown=0.0640396 stepUp=0.0640396 baseMid=0.16404 extra=0.0384238 finalMid=0.202463
+[ros2_control_node-3] [WARN] [1775744714.948270172] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 1000 Hz. The loop took 1.285191 ms (missed cycles : 2).
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=2 liftOff=0 touchDown=0.0641908 stepUp=0.0641908 baseMid=0.164191 extra=0.0385145 finalMid=0.202705
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=2 liftOff=0 touchDown=0.0650252 stepUp=0.0650252 baseMid=0.165025 extra=0.0390151 finalMid=0.20404
+[ros2_control_node-3] [WARN] [1775744715.014078813] [controller_manager]: Overrun might occur, Total time : 1023.288 us (Expected < 1000.000 us) --> Read time : 10.545 us, Update time : 878.367 us, Write time : 134.376 us
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=2 liftOff=0 touchDown=0.0660122 stepUp=0.0660122 baseMid=0.166012 extra=0.0396073 finalMid=0.20562
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=3 liftOff=0 touchDown=0.0630168 stepUp=0.0630168 baseMid=0.163017 extra=0.0378101 finalMid=0.200827
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=3 liftOff=0 touchDown=0.0653088 stepUp=0.0653088 baseMid=0.165309 extra=0.0391853 finalMid=0.204494
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=3 liftOff=0 touchDown=0.0655447 stepUp=0.0655447 baseMid=0.165545 extra=0.0393268 finalMid=0.204872
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=3 liftOff=0 touchDown=0.0646306 stepUp=0.0646306 baseMid=0.164631 extra=0.0387784 finalMid=0.203409
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=3 liftOff=0 touchDown=0.0638549 stepUp=0.0638549 baseMid=0.163855 extra=0.0383129 finalMid=0.202168
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=3 liftOff=0 touchDown=0.0632876 stepUp=0.0632876 baseMid=0.163288 extra=0.0379726 finalMid=0.20126
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=3 liftOff=0 touchDown=0.0629799 stepUp=0.0629799 baseMid=0.16298 extra=0.037788 finalMid=0.200768
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=3 liftOff=0 touchDown=0.0629831 stepUp=0.0629831 baseMid=0.162983 extra=0.0377898 finalMid=0.200773
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=2 liftOff=0 touchDown=0.0631787 stepUp=0.0631787 baseMid=0.163179 extra=0.0379072 finalMid=0.201086
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=2 liftOff=0 touchDown=0.0634553 stepUp=0.0634553 baseMid=0.163455 extra=0.0380732 finalMid=0.201529
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=2 liftOff=0 touchDown=0.0637401 stepUp=0.0637401 baseMid=0.16374 extra=0.0382441 finalMid=0.201984
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=2 liftOff=0 touchDown=0.0641678 stepUp=0.0641678 baseMid=0.164168 extra=0.0385007 finalMid=0.202668
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=2 liftOff=0 touchDown=0.0641379 stepUp=0.0641379 baseMid=0.164138 extra=0.0384828 finalMid=0.202621
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=2 liftOff=0 touchDown=0.0642752 stepUp=0.0642752 baseMid=0.164275 extra=0.0385651 finalMid=0.20284
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=2 liftOff=0 touchDown=0.0664681 stepUp=0.0664681 baseMid=0.166468 extra=0.0398809 finalMid=0.206349
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=2 liftOff=0 touchDown=0.066323 stepUp=0.066323 baseMid=0.166323 extra=0.0397938 finalMid=0.206117
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0 touchDown=0.0648335 stepUp=0.0648335 baseMid=0.164834 extra=0.0389001 finalMid=0.203734
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0 touchDown=0.0661551 stepUp=0.0661551 baseMid=0.166155 extra=0.0396931 finalMid=0.205848
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0 touchDown=0.0653565 stepUp=0.0653565 baseMid=0.165357 extra=0.0392139 finalMid=0.20457
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0 touchDown=0.0647378 stepUp=0.0647378 baseMid=0.164738 extra=0.0388427 finalMid=0.203581
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0 touchDown=0.0640574 stepUp=0.0640574 baseMid=0.164057 extra=0.0384344 finalMid=0.202492
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0 touchDown=0.0635472 stepUp=0.0635472 baseMid=0.163547 extra=0.0381283 finalMid=0.201676
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0 touchDown=0.0633054 stepUp=0.0633054 baseMid=0.163305 extra=0.0379832 finalMid=0.201289
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0 touchDown=0.0632925 stepUp=0.0632925 baseMid=0.163292 extra=0.0379755 finalMid=0.201268
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=2 liftOff=0 touchDown=0.0634313 stepUp=0.0634313 baseMid=0.163431 extra=0.0380588 finalMid=0.20149
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=2 liftOff=0 touchDown=0.0636488 stepUp=0.0636488 baseMid=0.163649 extra=0.0381893 finalMid=0.201838
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=2 liftOff=0 touchDown=0.0638381 stepUp=0.0638381 baseMid=0.163838 extra=0.0383028 finalMid=0.202141
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=2 liftOff=0 touchDown=0.0640061 stepUp=0.0640061 baseMid=0.164006 extra=0.0384036 finalMid=0.20241
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=2 liftOff=0 touchDown=0.0638881 stepUp=0.0638881 baseMid=0.163888 extra=0.0383329 finalMid=0.202221
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=2 liftOff=0 touchDown=0.0642508 stepUp=0.0642508 baseMid=0.164251 extra=0.0385505 finalMid=0.202801
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=2 liftOff=0 touchDown=0.0666514 stepUp=0.0666514 baseMid=0.166651 extra=0.0399908 finalMid=0.206642
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=2 liftOff=0 touchDown=0.0664809 stepUp=0.0664809 baseMid=0.166481 extra=0.0398886 finalMid=0.206369
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=3 liftOff=0 touchDown=0.0645644 stepUp=0.0645644 baseMid=0.164564 extra=0.0387387 finalMid=0.203303
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=3 liftOff=0 touchDown=0.066518 stepUp=0.066518 baseMid=0.166518 extra=0.0399108 finalMid=0.206429
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=3 liftOff=0 touchDown=0.0657674 stepUp=0.0657674 baseMid=0.165767 extra=0.0394605 finalMid=0.205228
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=3 liftOff=0 touchDown=0.0648709 stepUp=0.0648709 baseMid=0.164871 extra=0.0389225 finalMid=0.203793
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=3 liftOff=0 touchDown=0.0641395 stepUp=0.0641395 baseMid=0.164139 extra=0.0384837 finalMid=0.202623
+[ros2_control_node-3] [WARN] [1775744715.967068862] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 1000 Hz. The loop took 1.084181 ms (missed cycles : 2).
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=3 liftOff=0 touchDown=0.0636039 stepUp=0.0636039 baseMid=0.163604 extra=0.0381623 finalMid=0.201766
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=3 liftOff=0 touchDown=0.0633859 stepUp=0.0633859 baseMid=0.163386 extra=0.0380315 finalMid=0.201417
+[ros2_control_node-3] [WARN] [1775744716.031560150] [controller_manager]: Overrun might occur, Total time : 1510.836 us (Expected < 1000.000 us) --> Read time : 6.617 us, Update time : 1382.013 us, Write time : 122.206 us
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=2 liftOff=0 touchDown=0.0634056 stepUp=0.0634056 baseMid=0.163406 extra=0.0380434 finalMid=0.201449
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=2 liftOff=0 touchDown=0.0635485 stepUp=0.0635485 baseMid=0.163548 extra=0.0381291 finalMid=0.201678
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=2 liftOff=0 touchDown=0.0637535 stepUp=0.0637535 baseMid=0.163753 extra=0.0382521 finalMid=0.202006
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=2 liftOff=0 touchDown=0.0639377 stepUp=0.0639377 baseMid=0.163938 extra=0.0383626 finalMid=0.2023
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=2 liftOff=0 touchDown=0.0640655 stepUp=0.0640655 baseMid=0.164065 extra=0.0384393 finalMid=0.202505
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=2 liftOff=0 touchDown=0.0641349 stepUp=0.0641349 baseMid=0.164135 extra=0.0384809 finalMid=0.202616
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=2 liftOff=0 touchDown=0.0653422 stepUp=0.0653422 baseMid=0.165342 extra=0.0392053 finalMid=0.204548
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=2 liftOff=0 touchDown=0.0666258 stepUp=0.0666258 baseMid=0.166626 extra=0.0399755 finalMid=0.206601
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0 touchDown=0.0634176 stepUp=0.0634176 baseMid=0.163418 extra=0.0380506 finalMid=0.201468
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0 touchDown=0.0662722 stepUp=0.0662722 baseMid=0.166272 extra=0.0397633 finalMid=0.206035
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0 touchDown=0.066177 stepUp=0.066177 baseMid=0.166177 extra=0.0397062 finalMid=0.205883
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0 touchDown=0.065478 stepUp=0.065478 baseMid=0.165478 extra=0.0392868 finalMid=0.204765
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0 touchDown=0.0645673 stepUp=0.0645673 baseMid=0.164567 extra=0.0387404 finalMid=0.203308
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0 touchDown=0.0640098 stepUp=0.0640098 baseMid=0.16401 extra=0.0384059 finalMid=0.202416
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0 touchDown=0.0636509 stepUp=0.0636509 baseMid=0.163651 extra=0.0381905 finalMid=0.201841
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0 touchDown=0.06355 stepUp=0.06355 baseMid=0.16355 extra=0.03813 finalMid=0.20168
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=2 liftOff=0 touchDown=0.0636063 stepUp=0.0636063 baseMid=0.163606 extra=0.0381638 finalMid=0.20177
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=2 liftOff=0 touchDown=0.0637362 stepUp=0.0637362 baseMid=0.163736 extra=0.0382417 finalMid=0.201978
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=2 liftOff=0 touchDown=0.0638773 stepUp=0.0638773 baseMid=0.163877 extra=0.0383264 finalMid=0.202204
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=2 liftOff=0 touchDown=0.0640013 stepUp=0.0640013 baseMid=0.164001 extra=0.0384008 finalMid=0.202402
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=2 liftOff=0 touchDown=0.064093 stepUp=0.064093 baseMid=0.164093 extra=0.0384558 finalMid=0.202549
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=2 liftOff=0 touchDown=0.0641165 stepUp=0.0641165 baseMid=0.164117 extra=0.0384699 finalMid=0.202586
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=2 liftOff=0 touchDown=0.0656295 stepUp=0.0656295 baseMid=0.16563 extra=0.0393777 finalMid=0.205007
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=2 liftOff=0 touchDown=0.0665691 stepUp=0.0665691 baseMid=0.166569 extra=0.0399414 finalMid=0.206511
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=3 liftOff=0 touchDown=0.0635321 stepUp=0.0635321 baseMid=0.163532 extra=0.0381192 finalMid=0.201651
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=3 liftOff=0 touchDown=0.0661434 stepUp=0.0661434 baseMid=0.166143 extra=0.039686 finalMid=0.205829
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=3 liftOff=0 touchDown=0.066017 stepUp=0.066017 baseMid=0.166017 extra=0.0396102 finalMid=0.205627
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=3 liftOff=0 touchDown=0.0653255 stepUp=0.0653255 baseMid=0.165326 extra=0.0391953 finalMid=0.204521
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=3 liftOff=0 touchDown=0.064581 stepUp=0.064581 baseMid=0.164581 extra=0.0387486 finalMid=0.20333
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=3 liftOff=0 touchDown=0.0640145 stepUp=0.0640145 baseMid=0.164014 extra=0.0384087 finalMid=0.202423
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=3 liftOff=0 touchDown=0.0637335 stepUp=0.0637335 baseMid=0.163734 extra=0.0382401 finalMid=0.201974
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=3 liftOff=0 touchDown=0.0636525 stepUp=0.0636525 baseMid=0.163652 extra=0.0381915 finalMid=0.201844
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=2 liftOff=0 touchDown=0.0636886 stepUp=0.0636886 baseMid=0.163689 extra=0.0382131 finalMid=0.201902
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=2 liftOff=0 touchDown=0.063802 stepUp=0.063802 baseMid=0.163802 extra=0.0382812 finalMid=0.202083
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=2 liftOff=0 touchDown=0.0639303 stepUp=0.0639303 baseMid=0.16393 extra=0.0383582 finalMid=0.202288
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=2 liftOff=0 touchDown=0.0640195 stepUp=0.0640195 baseMid=0.164019 extra=0.0384117 finalMid=0.202431
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=2 liftOff=0 touchDown=0.0640629 stepUp=0.0640629 baseMid=0.164063 extra=0.0384377 finalMid=0.202501
+[ros2_control_node-3] [WARN] [1775744716.969164833] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 1000 Hz. The loop took 1.180366 ms (missed cycles : 2).
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=2 liftOff=0 touchDown=0.0640879 stepUp=0.0640879 baseMid=0.164088 extra=0.0384527 finalMid=0.202541
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=2 liftOff=0 touchDown=0.0665122 stepUp=0.0665122 baseMid=0.166512 extra=0.0399073 finalMid=0.206419
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=2 liftOff=0 touchDown=0.06654 stepUp=0.06654 baseMid=0.16654 extra=0.039924 finalMid=0.206464
+[ros2_control_node-3] [WARN] [1775744717.047133100] [controller_manager]: Overrun might occur, Total time : 1083.087 us (Expected < 1000.000 us) --> Read time : 8.137 us, Update time : 926.769 us, Write time : 148.181 us
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0 touchDown=0.064716 stepUp=0.064716 baseMid=0.164716 extra=0.0388296 finalMid=0.203546
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0 touchDown=0.0666105 stepUp=0.0666105 baseMid=0.16661 extra=0.0399663 finalMid=0.206577
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0 touchDown=0.0661196 stepUp=0.0661196 baseMid=0.16612 extra=0.0396717 finalMid=0.205791
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0 touchDown=0.0652194 stepUp=0.0652194 baseMid=0.165219 extra=0.0391316 finalMid=0.204351
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0 touchDown=0.0645393 stepUp=0.0645393 baseMid=0.164539 extra=0.0387236 finalMid=0.203263
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0 touchDown=0.0640591 stepUp=0.0640591 baseMid=0.164059 extra=0.0384354 finalMid=0.202495
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0 touchDown=0.0637751 stepUp=0.0637751 baseMid=0.163775 extra=0.0382651 finalMid=0.20204
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0 touchDown=0.0634444 stepUp=0.0634444 baseMid=0.163444 extra=0.0380666 finalMid=0.201511
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=2 liftOff=0 touchDown=0.0636642 stepUp=0.0636642 baseMid=0.163664 extra=0.0381985 finalMid=0.201863
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=2 liftOff=0 touchDown=0.0637444 stepUp=0.0637444 baseMid=0.163744 extra=0.0382466 finalMid=0.201991
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=2 liftOff=0 touchDown=0.0638404 stepUp=0.0638404 baseMid=0.16384 extra=0.0383043 finalMid=0.202145
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=2 liftOff=0 touchDown=0.0639428 stepUp=0.0639428 baseMid=0.163943 extra=0.0383657 finalMid=0.202308
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=2 liftOff=0 touchDown=0.0640015 stepUp=0.0640015 baseMid=0.164002 extra=0.0384009 finalMid=0.202402
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=2 liftOff=0 touchDown=0.0640185 stepUp=0.0640185 baseMid=0.164018 extra=0.0384111 finalMid=0.20243
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=2 liftOff=0 touchDown=0.0645183 stepUp=0.0645183 baseMid=0.164518 extra=0.038711 finalMid=0.203229
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=2 liftOff=0 touchDown=0.0667732 stepUp=0.0667732 baseMid=0.166773 extra=0.0400639 finalMid=0.206837
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=2 liftOff=0 touchDown=0.0668657 stepUp=0.0668657 baseMid=0.166866 extra=0.0401194 finalMid=0.206985
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=3 liftOff=0 touchDown=0.0646303 stepUp=0.0646303 baseMid=0.16463 extra=0.0387782 finalMid=0.203408
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=3 liftOff=0 touchDown=0.0667361 stepUp=0.0667361 baseMid=0.166736 extra=0.0400416 finalMid=0.206778
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=3 liftOff=0 touchDown=0.0662672 stepUp=0.0662672 baseMid=0.166267 extra=0.0397603 finalMid=0.206027
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=3 liftOff=0 touchDown=0.0655954 stepUp=0.0655954 baseMid=0.165595 extra=0.0393572 finalMid=0.204953
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=3 liftOff=0 touchDown=0.0648678 stepUp=0.0648678 baseMid=0.164868 extra=0.0389207 finalMid=0.203788
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=3 liftOff=0 touchDown=0.0643355 stepUp=0.0643355 baseMid=0.164336 extra=0.0386013 finalMid=0.202937
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=3 liftOff=0 touchDown=0.0640172 stepUp=0.0640172 baseMid=0.164017 extra=0.0384103 finalMid=0.202427
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=3 liftOff=0 touchDown=0.0638948 stepUp=0.0638948 baseMid=0.163895 extra=0.0383369 finalMid=0.202232
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=2 liftOff=0 touchDown=0.0638693 stepUp=0.0638693 baseMid=0.163869 extra=0.0383216 finalMid=0.202191
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=2 liftOff=0 touchDown=0.0639167 stepUp=0.0639167 baseMid=0.163917 extra=0.03835 finalMid=0.202267
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=2 liftOff=0 touchDown=0.0639857 stepUp=0.0639857 baseMid=0.163986 extra=0.0383914 finalMid=0.202377
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=2 liftOff=0 touchDown=0.0637761 stepUp=0.0637761 baseMid=0.163776 extra=0.0382657 finalMid=0.202042
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=2 liftOff=0 touchDown=0.0640377 stepUp=0.0640377 baseMid=0.164038 extra=0.0384226 finalMid=0.20246
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=2 liftOff=0 touchDown=0.0640854 stepUp=0.0640854 baseMid=0.164085 extra=0.0384513 finalMid=0.202537
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=2 liftOff=0 touchDown=0.0671058 stepUp=0.0671058 baseMid=0.167106 extra=0.0402635 finalMid=0.207369
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=2 liftOff=0 touchDown=0.0669347 stepUp=0.0669347 baseMid=0.166935 extra=0.0401608 finalMid=0.207095
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0 touchDown=0.0645409 stepUp=0.0645409 baseMid=0.164541 extra=0.0387246 finalMid=0.203265
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0 touchDown=0.0667863 stepUp=0.0667863 baseMid=0.166786 extra=0.0400718 finalMid=0.206858
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0 touchDown=0.0660179 stepUp=0.0660179 baseMid=0.166018 extra=0.0396108 finalMid=0.205629
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0 touchDown=0.065681 stepUp=0.065681 baseMid=0.165681 extra=0.0394086 finalMid=0.20509
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0 touchDown=0.0651724 stepUp=0.0651724 baseMid=0.165172 extra=0.0391035 finalMid=0.204276
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0 touchDown=0.0645216 stepUp=0.0645216 baseMid=0.164522 extra=0.038713 finalMid=0.203235
+[ros2_control_node-3] [WARN] [1775744717.976636452] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 1000 Hz. The loop took 1.650961 ms (missed cycles : 2).
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0 touchDown=0.06437 stepUp=0.06437 baseMid=0.16437 extra=0.038622 finalMid=0.202992
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=7 liftOff=0 touchDown=0.095 stepUp=0.095 baseMid=0.195 extra=0.057 finalMid=0.252
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0 touchDown=0.0641169 stepUp=0.0641169 baseMid=0.164117 extra=0.0384701 finalMid=0.202587
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=7 liftOff=0 touchDown=0.095 stepUp=0.095 baseMid=0.195 extra=0.057 finalMid=0.252
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=2 liftOff=0 touchDown=0.0640157 stepUp=0.0640157 baseMid=0.164016 extra=0.0384094 finalMid=0.202425
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=6 liftOff=0 touchDown=0.095 stepUp=0.095 baseMid=0.195 extra=0.057 finalMid=0.252
+[ros2_control_node-3] [WARN] [1775744718.066155362] [controller_manager]: Overrun might occur, Total time : 1105.784 us (Expected < 1000.000 us) --> Read time : 10.094 us, Update time : 940.780 us, Write time : 154.910 us
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=2 liftOff=0 touchDown=0.0640017 stepUp=0.0640017 baseMid=0.164002 extra=0.038401 finalMid=0.202403
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=6 liftOff=0 touchDown=0.095 stepUp=0.095 baseMid=0.195 extra=0.057 finalMid=0.252
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=2 liftOff=0 touchDown=0.063782 stepUp=0.063782 baseMid=0.163782 extra=0.0382692 finalMid=0.202051
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=6 liftOff=0 touchDown=0.095 stepUp=0.095 baseMid=0.195 extra=0.057 finalMid=0.252
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=5 liftOff=0 touchDown=0.095 stepUp=0.095 baseMid=0.195 extra=0.057 finalMid=0.252
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=2 liftOff=0 touchDown=0.0637869 stepUp=0.0637869 baseMid=0.163787 extra=0.0382721 finalMid=0.202059
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=6 liftOff=0 touchDown=0.095 stepUp=0.095 baseMid=0.195 extra=0.057 finalMid=0.252
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=5 liftOff=0 touchDown=0.095 stepUp=0.095 baseMid=0.195 extra=0.057 finalMid=0.252
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=2 liftOff=0 touchDown=0.0641155 stepUp=0.0641155 baseMid=0.164115 extra=0.0384693 finalMid=0.202585
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=6 liftOff=0 touchDown=0.095 stepUp=0.095 baseMid=0.195 extra=0.057 finalMid=0.252
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=5 liftOff=0 touchDown=0.095 stepUp=0.095 baseMid=0.195 extra=0.057 finalMid=0.252
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=2 liftOff=0 touchDown=0.0647184 stepUp=0.0647184 baseMid=0.164718 extra=0.038831 finalMid=0.203549
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=6 liftOff=0 touchDown=0.095 stepUp=0.095 baseMid=0.195 extra=0.057 finalMid=0.252
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=5 liftOff=0 touchDown=0.095 stepUp=0.095 baseMid=0.195 extra=0.057 finalMid=0.252
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=2 liftOff=0 touchDown=0.0675605 stepUp=0.0675605 baseMid=0.167561 extra=0.0405363 finalMid=0.208097
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=6 liftOff=0 touchDown=0.095 stepUp=0.095 baseMid=0.195 extra=0.057 finalMid=0.252
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=5 liftOff=0 touchDown=0.095 stepUp=0.095 baseMid=0.195 extra=0.057 finalMid=0.252
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=6 liftOff=0 touchDown=0.095 stepUp=0.095 baseMid=0.195 extra=0.057 finalMid=0.252
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=3 liftOff=0 touchDown=0.0662007 stepUp=0.0662007 baseMid=0.166201 extra=0.0397204 finalMid=0.205921
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=5 liftOff=0.0662007 touchDown=0.095 stepUp=0.0287993 baseMid=0.195 extra=0.0172796 finalMid=0.21228
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=6 liftOff=0 touchDown=0.095 stepUp=0.095 baseMid=0.195 extra=0.057 finalMid=0.252
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=3 liftOff=0 touchDown=0.0665872 stepUp=0.0665872 baseMid=0.166587 extra=0.0399523 finalMid=0.206539
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=5 liftOff=0.0665872 touchDown=0.095 stepUp=0.0284128 baseMid=0.195 extra=0.0170477 finalMid=0.212048
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=6 liftOff=0 touchDown=0.095 stepUp=0.095 baseMid=0.195 extra=0.057 finalMid=0.252
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=3 liftOff=0 touchDown=0.0658572 stepUp=0.0658572 baseMid=0.165857 extra=0.0395143 finalMid=0.205372
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=5 liftOff=0.0658572 touchDown=0.095 stepUp=0.0291428 baseMid=0.195 extra=0.0174857 finalMid=0.212486
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=6 liftOff=0 touchDown=0.095 stepUp=0.095 baseMid=0.195 extra=0.057 finalMid=0.252
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=3 liftOff=0 touchDown=0.0649646 stepUp=0.0649646 baseMid=0.164965 extra=0.0389787 finalMid=0.203943
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=5 liftOff=0.0649646 touchDown=0.095 stepUp=0.0300354 baseMid=0.195 extra=0.0180213 finalMid=0.213021
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=6 liftOff=0 touchDown=0.095 stepUp=0.095 baseMid=0.195 extra=0.057 finalMid=0.252
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=3 liftOff=0 touchDown=0.0643427 stepUp=0.0643427 baseMid=0.164343 extra=0.0386056 finalMid=0.202948
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=5 liftOff=0.0643427 touchDown=0.095 stepUp=0.0306573 baseMid=0.195 extra=0.0183944 finalMid=0.213394
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=6 liftOff=0 touchDown=0.095 stepUp=0.095 baseMid=0.195 extra=0.057 finalMid=0.252
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=3 liftOff=0 touchDown=0.0640352 stepUp=0.0640352 baseMid=0.164035 extra=0.0384211 finalMid=0.202456
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=5 liftOff=0.0640352 touchDown=0.095 stepUp=0.0309648 baseMid=0.195 extra=0.0185789 finalMid=0.213579
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=5 liftOff=0 touchDown=0.095 stepUp=0.095 baseMid=0.195 extra=0.057 finalMid=0.252
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=2 liftOff=0 touchDown=0.0639454 stepUp=0.0639454 baseMid=0.163945 extra=0.0383672 finalMid=0.202313
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=4 liftOff=0.0639454 touchDown=0.095 stepUp=0.0310546 baseMid=0.195 extra=0.0186328 finalMid=0.213633
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=5 liftOff=0 touchDown=0.095 stepUp=0.095 baseMid=0.195 extra=0.057 finalMid=0.252
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=2 liftOff=0 touchDown=0.0639704 stepUp=0.0639704 baseMid=0.16397 extra=0.0383823 finalMid=0.202353
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=4 liftOff=0.0639704 touchDown=0.095 stepUp=0.0310296 baseMid=0.195 extra=0.0186177 finalMid=0.213618
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=5 liftOff=0 touchDown=0.095 stepUp=0.095 baseMid=0.195 extra=0.057 finalMid=0.252
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=2 liftOff=0 touchDown=0.0640104 stepUp=0.0640104 baseMid=0.16401 extra=0.0384062 finalMid=0.202417
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=4 liftOff=0.0640104 touchDown=0.095 stepUp=0.0309896 baseMid=0.195 extra=0.0185938 finalMid=0.213594
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=5 liftOff=0 touchDown=0.095 stepUp=0.095 baseMid=0.195 extra=0.057 finalMid=0.252
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=2 liftOff=0 touchDown=0.064038 stepUp=0.064038 baseMid=0.164038 extra=0.0384228 finalMid=0.202461
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=4 liftOff=0.064038 touchDown=0.095 stepUp=0.030962 baseMid=0.195 extra=0.0185772 finalMid=0.213577
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=5 liftOff=0 touchDown=0.095 stepUp=0.095 baseMid=0.195 extra=0.057 finalMid=0.252
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=2 liftOff=0 touchDown=0.0650674 stepUp=0.0650674 baseMid=0.165067 extra=0.0390404 finalMid=0.204108
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=4 liftOff=0.0650674 touchDown=0.095 stepUp=0.0299326 baseMid=0.195 extra=0.0179596 finalMid=0.21296
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=5 liftOff=0 touchDown=0.095 stepUp=0.095 baseMid=0.195 extra=0.057 finalMid=0.252
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=2 liftOff=0 touchDown=0.0673132 stepUp=0.0673132 baseMid=0.167313 extra=0.0403879 finalMid=0.207701
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=4 liftOff=0.0673132 touchDown=0.095 stepUp=0.0276868 baseMid=0.195 extra=0.0166121 finalMid=0.211612
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0 touchDown=0.0671314 stepUp=0.0671314 baseMid=0.167131 extra=0.0402788 finalMid=0.20741
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=5 liftOff=0.0671314 touchDown=0.095 stepUp=0.0278686 baseMid=0.195 extra=0.0167212 finalMid=0.211721
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=6 liftOff=0 touchDown=0.095 stepUp=0.095 baseMid=0.195 extra=0.057 finalMid=0.252
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0 touchDown=0.0668033 stepUp=0.0668033 baseMid=0.166803 extra=0.040082 finalMid=0.206885
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=5 liftOff=0.0668033 touchDown=0.095 stepUp=0.0281967 baseMid=0.195 extra=0.016918 finalMid=0.211918
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=6 liftOff=0 touchDown=0.095 stepUp=0.095 baseMid=0.195 extra=0.057 finalMid=0.252
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0 touchDown=0.0656932 stepUp=0.0656932 baseMid=0.165693 extra=0.0394159 finalMid=0.205109
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=5 liftOff=0.0656932 touchDown=0.095 stepUp=0.0293068 baseMid=0.195 extra=0.0175841 finalMid=0.212584
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=6 liftOff=0 touchDown=0.095 stepUp=0.095 baseMid=0.195 extra=0.057 finalMid=0.252
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0 touchDown=0.0650704 stepUp=0.0650704 baseMid=0.16507 extra=0.0390422 finalMid=0.204113
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=5 liftOff=0.0650704 touchDown=0.095 stepUp=0.0299296 baseMid=0.195 extra=0.0179578 finalMid=0.212958
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=6 liftOff=0 touchDown=0.095 stepUp=0.095 baseMid=0.195 extra=0.057 finalMid=0.252
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0 touchDown=0.0645855 stepUp=0.0645855 baseMid=0.164586 extra=0.0387513 finalMid=0.203337
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=5 liftOff=0.0645855 touchDown=0.095 stepUp=0.0304145 baseMid=0.195 extra=0.0182487 finalMid=0.213249
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=6 liftOff=0 touchDown=0.095 stepUp=0.095 baseMid=0.195 extra=0.057 finalMid=0.252
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0 touchDown=0.0642943 stepUp=0.0642943 baseMid=0.164294 extra=0.0385766 finalMid=0.202871
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=5 liftOff=0.0642943 touchDown=0.095 stepUp=0.0307057 baseMid=0.195 extra=0.0184234 finalMid=0.213423
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=6 liftOff=0 touchDown=0.095 stepUp=0.095 baseMid=0.195 extra=0.057 finalMid=0.252
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=2 liftOff=0 touchDown=0.0643985 stepUp=0.0643985 baseMid=0.164399 extra=0.0386391 finalMid=0.203038
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=4 liftOff=0.0643985 touchDown=0.095 stepUp=0.0306015 baseMid=0.195 extra=0.0183609 finalMid=0.213361
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=5 liftOff=0 touchDown=0.095 stepUp=0.095 baseMid=0.195 extra=0.057 finalMid=0.252
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=2 liftOff=0 touchDown=0.0641271 stepUp=0.0641271 baseMid=0.164127 extra=0.0384763 finalMid=0.202603
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=4 liftOff=0.0641271 touchDown=0.095 stepUp=0.0308729 baseMid=0.195 extra=0.0185237 finalMid=0.213524
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=5 liftOff=0 touchDown=0.095 stepUp=0.095 baseMid=0.195 extra=0.057 finalMid=0.252
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=2 liftOff=0 touchDown=0.0644072 stepUp=0.0644072 baseMid=0.164407 extra=0.0386443 finalMid=0.203052
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=4 liftOff=0.0644072 touchDown=0.095 stepUp=0.0305928 baseMid=0.195 extra=0.0183557 finalMid=0.213356
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=5 liftOff=0 touchDown=0.095 stepUp=0.095 baseMid=0.195 extra=0.057 finalMid=0.252
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=2 liftOff=0 touchDown=0.0641553 stepUp=0.0641553 baseMid=0.164155 extra=0.0384932 finalMid=0.202648
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=4 liftOff=0.0641553 touchDown=0.095 stepUp=0.0308447 baseMid=0.195 extra=0.0185068 finalMid=0.213507
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=5 liftOff=0 touchDown=0.095 stepUp=0.095 baseMid=0.195 extra=0.057 finalMid=0.252
+[ros2_control_node-3] [WARN] [1775744718.996007754] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 1000 Hz. The loop took 1.022699 ms (missed cycles : 2).
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=2 liftOff=0 touchDown=0.0643731 stepUp=0.0643731 baseMid=0.164373 extra=0.0386239 finalMid=0.202997
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=4 liftOff=0.0643731 touchDown=0.095 stepUp=0.0306269 baseMid=0.195 extra=0.0183761 finalMid=0.213376
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=5 liftOff=0 touchDown=0.095 stepUp=0.095 baseMid=0.195 extra=0.057 finalMid=0.252
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=2 liftOff=0 touchDown=0.0662039 stepUp=0.0662039 baseMid=0.166204 extra=0.0397224 finalMid=0.205926
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=4 liftOff=0.0662039 touchDown=0.095 stepUp=0.0287961 baseMid=0.195 extra=0.0172776 finalMid=0.212278
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=5 liftOff=0 touchDown=0.095 stepUp=0.095 baseMid=0.195 extra=0.057 finalMid=0.252
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=4 liftOff=0.0662039 touchDown=0.095 stepUp=0.0287961 baseMid=0.195 extra=0.0172776 finalMid=0.212278
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=3 liftOff=0 touchDown=0.0677311 stepUp=0.0677311 baseMid=0.167731 extra=0.0406387 finalMid=0.20837
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=5 liftOff=0.0677311 touchDown=0.095 stepUp=0.0272689 baseMid=0.195 extra=0.0163613 finalMid=0.211361
+[ros2_control_node-3] [WARN] [1775744719.102274963] [controller_manager]: Overrun might occur, Total time : 1222.287 us (Expected < 1000.000 us) --> Read time : 10.130 us, Update time : 1110.938 us, Write time : 101.219 us
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=4 liftOff=0.0662039 touchDown=0.095 stepUp=0.0287961 baseMid=0.195 extra=0.0172776 finalMid=0.212278
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=3 liftOff=0 touchDown=0.0668446 stepUp=0.0668446 baseMid=0.166845 extra=0.0401067 finalMid=0.206951
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=5 liftOff=0.0668446 touchDown=0.095 stepUp=0.0281554 baseMid=0.195 extra=0.0168933 finalMid=0.211893
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=4 liftOff=0.0662039 touchDown=0.095 stepUp=0.0287961 baseMid=0.195 extra=0.0172776 finalMid=0.212278
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=3 liftOff=0 touchDown=0.0660147 stepUp=0.0660147 baseMid=0.166015 extra=0.0396088 finalMid=0.205623
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=5 liftOff=0.0660147 touchDown=0.095 stepUp=0.0289853 baseMid=0.195 extra=0.0173912 finalMid=0.212391
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=4 liftOff=0.0662039 touchDown=0.095 stepUp=0.0287961 baseMid=0.195 extra=0.0172776 finalMid=0.212278
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=3 liftOff=0 touchDown=0.0649847 stepUp=0.0649847 baseMid=0.164985 extra=0.0389908 finalMid=0.203976
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=5 liftOff=0.0649847 touchDown=0.095 stepUp=0.0300153 baseMid=0.195 extra=0.0180092 finalMid=0.213009
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=4 liftOff=0.0662039 touchDown=0.095 stepUp=0.0287961 baseMid=0.195 extra=0.0172776 finalMid=0.212278
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=3 liftOff=0 touchDown=0.0643531 stepUp=0.0643531 baseMid=0.164353 extra=0.0386119 finalMid=0.202965
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=5 liftOff=0.0643531 touchDown=0.095 stepUp=0.0306469 baseMid=0.195 extra=0.0183881 finalMid=0.213388
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0.0662039 touchDown=0.095 stepUp=0.0287961 baseMid=0.195 extra=0.0172776 finalMid=0.212278
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=2 liftOff=0 touchDown=0.0640064 stepUp=0.0640064 baseMid=0.164006 extra=0.0384039 finalMid=0.20241
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=4 liftOff=0.0640064 touchDown=0.095 stepUp=0.0309936 baseMid=0.195 extra=0.0185961 finalMid=0.213596
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0.0662039 touchDown=0.095 stepUp=0.0287961 baseMid=0.195 extra=0.0172776 finalMid=0.212278
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=2 liftOff=0 touchDown=0.0639277 stepUp=0.0639277 baseMid=0.163928 extra=0.0383566 finalMid=0.202284
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=4 liftOff=0.0639277 touchDown=0.095 stepUp=0.0310723 baseMid=0.195 extra=0.0186434 finalMid=0.213643
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0.0662039 touchDown=0.095 stepUp=0.0287961 baseMid=0.195 extra=0.0172776 finalMid=0.212278
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=2 liftOff=0 touchDown=0.063934 stepUp=0.063934 baseMid=0.163934 extra=0.0383604 finalMid=0.202294
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=4 liftOff=0.063934 touchDown=0.095 stepUp=0.031066 baseMid=0.195 extra=0.0186396 finalMid=0.21364
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0.0662039 touchDown=0.095 stepUp=0.0287961 baseMid=0.195 extra=0.0172776 finalMid=0.212278
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=2 liftOff=0 touchDown=0.063913 stepUp=0.063913 baseMid=0.163913 extra=0.0383478 finalMid=0.202261
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=4 liftOff=0.063913 touchDown=0.095 stepUp=0.031087 baseMid=0.195 extra=0.0186522 finalMid=0.213652
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0.0662039 touchDown=0.095 stepUp=0.0287961 baseMid=0.195 extra=0.0172776 finalMid=0.212278
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=2 liftOff=0 touchDown=0.0638506 stepUp=0.0638506 baseMid=0.163851 extra=0.0383104 finalMid=0.202161
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=4 liftOff=0.0638506 touchDown=0.095 stepUp=0.0311494 baseMid=0.195 extra=0.0186896 finalMid=0.21369
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0.0662039 touchDown=0.095 stepUp=0.0287961 baseMid=0.195 extra=0.0172776 finalMid=0.212278
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=2 liftOff=0 touchDown=0.0651544 stepUp=0.0651544 baseMid=0.165154 extra=0.0390926 finalMid=0.204247
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=4 liftOff=0.0651544 touchDown=0.095 stepUp=0.0298456 baseMid=0.195 extra=0.0179074 finalMid=0.212907
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=5 liftOff=0.0855989 touchDown=0.095 stepUp=0.00940112 baseMid=0.195 extra=0 finalMid=0.195
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=4 liftOff=0.0651544 touchDown=0.095 stepUp=0.0298456 baseMid=0.195 extra=0.0179074 finalMid=0.212907
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=5 liftOff=0.06103 touchDown=0.095 stepUp=0.03397 baseMid=0.195 extra=0.020382 finalMid=0.215382
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=4 liftOff=0.0651544 touchDown=0.095 stepUp=0.0298456 baseMid=0.195 extra=0.0179074 finalMid=0.212907
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=5 liftOff=0.0627233 touchDown=0.095 stepUp=0.0322767 baseMid=0.195 extra=0.019366 finalMid=0.214366
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=4 liftOff=0.0651544 touchDown=0.095 stepUp=0.0298456 baseMid=0.195 extra=0.0179074 finalMid=0.212907
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=5 liftOff=0.0623853 touchDown=0.095 stepUp=0.0326147 baseMid=0.195 extra=0.0195688 finalMid=0.214569
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=4 liftOff=0.0651544 touchDown=0.095 stepUp=0.0298456 baseMid=0.195 extra=0.0179074 finalMid=0.212907
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=5 liftOff=0.0626146 touchDown=0.095 stepUp=0.0323854 baseMid=0.195 extra=0.0194312 finalMid=0.214431
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=4 liftOff=0.0651544 touchDown=0.095 stepUp=0.0298456 baseMid=0.195 extra=0.0179074 finalMid=0.212907
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=4 liftOff=0.0626693 touchDown=0.095 stepUp=0.0323307 baseMid=0.195 extra=0.0193984 finalMid=0.214398
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=3 liftOff=0.0651544 touchDown=0.095 stepUp=0.0298456 baseMid=0.195 extra=0.0179074 finalMid=0.212907
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=4 liftOff=0.062955 touchDown=0.095 stepUp=0.032045 baseMid=0.195 extra=0.019227 finalMid=0.214227
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=3 liftOff=0.0651544 touchDown=0.095 stepUp=0.0298456 baseMid=0.195 extra=0.0179074 finalMid=0.212907
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=4 liftOff=0.0632776 touchDown=0.095 stepUp=0.0317224 baseMid=0.195 extra=0.0190335 finalMid=0.214033
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=3 liftOff=0.0651544 touchDown=0.095 stepUp=0.0298456 baseMid=0.195 extra=0.0179074 finalMid=0.212907
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=4 liftOff=0.0635266 touchDown=0.095 stepUp=0.0314734 baseMid=0.195 extra=0.018884 finalMid=0.213884
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=3 liftOff=0.0651544 touchDown=0.095 stepUp=0.0298456 baseMid=0.195 extra=0.0179074 finalMid=0.212907
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=4 liftOff=0.0647425 touchDown=0.095 stepUp=0.0302575 baseMid=0.195 extra=0.0181545 finalMid=0.213154
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=3 liftOff=0.0651544 touchDown=0.095 stepUp=0.0298456 baseMid=0.195 extra=0.0179074 finalMid=0.212907
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=4 liftOff=0.0647425 touchDown=0.095 stepUp=0.0302575 baseMid=0.195 extra=0.0181545 finalMid=0.213154
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=5 liftOff=0.0792706 touchDown=0.095 stepUp=0.0157294 baseMid=0.195 extra=0 finalMid=0.195
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=4 liftOff=0.0647425 touchDown=0.095 stepUp=0.0302575 baseMid=0.195 extra=0.0181545 finalMid=0.213154
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=5 liftOff=0.0621991 touchDown=0.095 stepUp=0.0328009 baseMid=0.195 extra=0.0196805 finalMid=0.214681
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=4 liftOff=0.0647425 touchDown=0.095 stepUp=0.0302575 baseMid=0.195 extra=0.0181545 finalMid=0.213154
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=5 liftOff=0.0632144 touchDown=0.095 stepUp=0.0317856 baseMid=0.195 extra=0.0190714 finalMid=0.214071
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=4 liftOff=0.0647425 touchDown=0.095 stepUp=0.0302575 baseMid=0.195 extra=0.0181545 finalMid=0.213154
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=5 liftOff=0.0616886 touchDown=0.095 stepUp=0.0333114 baseMid=0.195 extra=0.0199868 finalMid=0.214987
+[ros2_control_node-3] [WARN] [1775744719.998172521] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 1000 Hz. The loop took 1.187162 ms (missed cycles : 2).
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=4 liftOff=0.0647425 touchDown=0.095 stepUp=0.0302575 baseMid=0.195 extra=0.0181545 finalMid=0.213154
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=5 liftOff=0.0615582 touchDown=0.095 stepUp=0.0334418 baseMid=0.195 extra=0.0200651 finalMid=0.215065
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0.0647425 touchDown=0.095 stepUp=0.0302575 baseMid=0.195 extra=0.0181545 finalMid=0.213154
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=4 liftOff=0.0620322 touchDown=0.095 stepUp=0.0329678 baseMid=0.195 extra=0.0197807 finalMid=0.214781
+[ros2_control_node-3] [WARN] [1775744720.122222559] [controller_manager]: Overrun might occur, Total time : 1181.875 us (Expected < 1000.000 us) --> Read time : 3.161 us, Update time : 1094.871 us, Write time : 83.843 us
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0.0647425 touchDown=0.095 stepUp=0.0302575 baseMid=0.195 extra=0.0181545 finalMid=0.213154
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=4 liftOff=0.0627496 touchDown=0.095 stepUp=0.0322504 baseMid=0.195 extra=0.0193502 finalMid=0.21435
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0.0647425 touchDown=0.095 stepUp=0.0302575 baseMid=0.195 extra=0.0181545 finalMid=0.213154
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=4 liftOff=0.0633751 touchDown=0.095 stepUp=0.0316249 baseMid=0.195 extra=0.0189749 finalMid=0.213975
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0.0647425 touchDown=0.095 stepUp=0.0302575 baseMid=0.195 extra=0.0181545 finalMid=0.213154
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=4 liftOff=0.0641684 touchDown=0.095 stepUp=0.0308316 baseMid=0.195 extra=0.0184989 finalMid=0.213499
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0.0647425 touchDown=0.095 stepUp=0.0302575 baseMid=0.195 extra=0.0181545 finalMid=0.213154
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=4 liftOff=0.0661816 touchDown=0.095 stepUp=0.0288184 baseMid=0.195 extra=0.017291 finalMid=0.212291
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=5 liftOff=0.0696971 touchDown=0.095 stepUp=0.0253029 baseMid=0.195 extra=0.0151817 finalMid=0.210182
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=4 liftOff=0.0661816 touchDown=0.095 stepUp=0.0288184 baseMid=0.195 extra=0.017291 finalMid=0.212291
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=5 liftOff=0.062029 touchDown=0.095 stepUp=0.032971 baseMid=0.195 extra=0.0197826 finalMid=0.214783
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=4 liftOff=0.0661816 touchDown=0.095 stepUp=0.0288184 baseMid=0.195 extra=0.017291 finalMid=0.212291
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=5 liftOff=0.0627564 touchDown=0.095 stepUp=0.0322436 baseMid=0.195 extra=0.0193461 finalMid=0.214346
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=4 liftOff=0.0661816 touchDown=0.095 stepUp=0.0288184 baseMid=0.195 extra=0.017291 finalMid=0.212291
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=5 liftOff=0.061505 touchDown=0.095 stepUp=0.033495 baseMid=0.195 extra=0.020097 finalMid=0.215097
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=4 liftOff=0.0661816 touchDown=0.095 stepUp=0.0288184 baseMid=0.195 extra=0.017291 finalMid=0.212291
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=4 liftOff=0.0619661 touchDown=0.095 stepUp=0.0330339 baseMid=0.195 extra=0.0198203 finalMid=0.21482
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=3 liftOff=0.0661816 touchDown=0.095 stepUp=0.0288184 baseMid=0.195 extra=0.017291 finalMid=0.212291
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=4 liftOff=0.0625145 touchDown=0.095 stepUp=0.0324855 baseMid=0.195 extra=0.0194913 finalMid=0.214491
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=3 liftOff=0.0661816 touchDown=0.095 stepUp=0.0288184 baseMid=0.195 extra=0.017291 finalMid=0.212291
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=4 liftOff=0.063166 touchDown=0.095 stepUp=0.031834 baseMid=0.195 extra=0.0191004 finalMid=0.2141
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=3 liftOff=0.0661816 touchDown=0.095 stepUp=0.0288184 baseMid=0.195 extra=0.017291 finalMid=0.212291
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=4 liftOff=0.0637193 touchDown=0.095 stepUp=0.0312807 baseMid=0.195 extra=0.0187684 finalMid=0.213768
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=3 liftOff=0.0661816 touchDown=0.095 stepUp=0.0288184 baseMid=0.195 extra=0.017291 finalMid=0.212291
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=4 liftOff=0.0659309 touchDown=0.095 stepUp=0.0290691 baseMid=0.195 extra=0.0174415 finalMid=0.212441
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=3 liftOff=0.0661816 touchDown=0.095 stepUp=0.0288184 baseMid=0.195 extra=0.017291 finalMid=0.212291
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=4 liftOff=0.0659309 touchDown=0.095 stepUp=0.0290691 baseMid=0.195 extra=0.0174415 finalMid=0.212441
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=5 liftOff=0.0841098 touchDown=0.095 stepUp=0.0108902 baseMid=0.195 extra=0 finalMid=0.195
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=4 liftOff=0.0659309 touchDown=0.095 stepUp=0.0290691 baseMid=0.195 extra=0.0174415 finalMid=0.212441
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=5 liftOff=0.0620591 touchDown=0.095 stepUp=0.0329409 baseMid=0.195 extra=0.0197645 finalMid=0.214765
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=4 liftOff=0.0659309 touchDown=0.095 stepUp=0.0290691 baseMid=0.195 extra=0.0174415 finalMid=0.212441
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=5 liftOff=0.0626335 touchDown=0.095 stepUp=0.0323665 baseMid=0.195 extra=0.0194199 finalMid=0.21442
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=4 liftOff=0.0659309 touchDown=0.095 stepUp=0.0290691 baseMid=0.195 extra=0.0174415 finalMid=0.212441
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=5 liftOff=0.0608047 touchDown=0.095 stepUp=0.0341953 baseMid=0.195 extra=0.0205172 finalMid=0.215517
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=4 liftOff=0.0659309 touchDown=0.095 stepUp=0.0290691 baseMid=0.195 extra=0.0174415 finalMid=0.212441
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=5 liftOff=0.0612152 touchDown=0.095 stepUp=0.0337848 baseMid=0.195 extra=0.0202709 finalMid=0.215271
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0.0659309 touchDown=0.095 stepUp=0.0290691 baseMid=0.195 extra=0.0174415 finalMid=0.212441
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=4 liftOff=0.0617733 touchDown=0.095 stepUp=0.0332267 baseMid=0.195 extra=0.019936 finalMid=0.214936
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0.0659309 touchDown=0.095 stepUp=0.0290691 baseMid=0.195 extra=0.0174415 finalMid=0.212441
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=4 liftOff=0.0626516 touchDown=0.095 stepUp=0.0323484 baseMid=0.195 extra=0.0194091 finalMid=0.214409
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0.0659309 touchDown=0.095 stepUp=0.0290691 baseMid=0.195 extra=0.0174415 finalMid=0.212441
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=4 liftOff=0.0634724 touchDown=0.095 stepUp=0.0315276 baseMid=0.195 extra=0.0189166 finalMid=0.213917
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0.0659309 touchDown=0.095 stepUp=0.0290691 baseMid=0.195 extra=0.0174415 finalMid=0.212441
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=4 liftOff=0.0648109 touchDown=0.095 stepUp=0.0301891 baseMid=0.195 extra=0.0181135 finalMid=0.213113
+[ros2_control_node-3] [WARN] [1775744721.014237490] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 1000 Hz. The loop took 1.252141 ms (missed cycles : 2).
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0.0659309 touchDown=0.095 stepUp=0.0290691 baseMid=0.195 extra=0.0174415 finalMid=0.212441
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=4 liftOff=0.0655593 touchDown=0.095 stepUp=0.0294407 baseMid=0.195 extra=0.0176644 finalMid=0.212664
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=5 liftOff=0.0761255 touchDown=0.095 stepUp=0.0188745 baseMid=0.195 extra=0 finalMid=0.195
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=4 liftOff=0.0655593 touchDown=0.095 stepUp=0.0294407 baseMid=0.195 extra=0.0176644 finalMid=0.212664
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=5 liftOff=0.0589802 touchDown=0.095 stepUp=0.0360198 baseMid=0.195 extra=0.0216119 finalMid=0.216612
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=4 liftOff=0.0655593 touchDown=0.095 stepUp=0.0294407 baseMid=0.195 extra=0.0176644 finalMid=0.212664
+[ros2_control_node-3] [WARN] [1775744721.135077568] [controller_manager]: Overrun might occur, Total time : 1023.148 us (Expected < 1000.000 us) --> Read time : 13.666 us, Update time : 856.824 us, Write time : 152.658 us
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=5 liftOff=0.0611145 touchDown=0.095 stepUp=0.0338855 baseMid=0.195 extra=0.0203313 finalMid=0.215331
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=4 liftOff=0.0655593 touchDown=0.095 stepUp=0.0294407 baseMid=0.195 extra=0.0176644 finalMid=0.212664
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=5 liftOff=0.0601242 touchDown=0.095 stepUp=0.0348758 baseMid=0.195 extra=0.0209255 finalMid=0.215925
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=4 liftOff=0.0655593 touchDown=0.095 stepUp=0.0294407 baseMid=0.195 extra=0.0176644 finalMid=0.212664
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=4 liftOff=0.0620863 touchDown=0.095 stepUp=0.0329137 baseMid=0.195 extra=0.0197482 finalMid=0.214748
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=3 liftOff=0.0655593 touchDown=0.095 stepUp=0.0294407 baseMid=0.195 extra=0.0176644 finalMid=0.212664
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=4 liftOff=0.0615861 touchDown=0.095 stepUp=0.0334139 baseMid=0.195 extra=0.0200483 finalMid=0.215048
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=3 liftOff=0.0655593 touchDown=0.095 stepUp=0.0294407 baseMid=0.195 extra=0.0176644 finalMid=0.212664
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=4 liftOff=0.0628087 touchDown=0.095 stepUp=0.0321913 baseMid=0.195 extra=0.0193148 finalMid=0.214315
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=3 liftOff=0.0655593 touchDown=0.095 stepUp=0.0294407 baseMid=0.195 extra=0.0176644 finalMid=0.212664
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=4 liftOff=0.0635972 touchDown=0.095 stepUp=0.0314028 baseMid=0.195 extra=0.0188417 finalMid=0.213842
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=3 liftOff=0.0655593 touchDown=0.095 stepUp=0.0294407 baseMid=0.195 extra=0.0176644 finalMid=0.212664
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=4 liftOff=0.0654924 touchDown=0.095 stepUp=0.0295076 baseMid=0.195 extra=0.0177045 finalMid=0.212705
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=3 liftOff=0.0655593 touchDown=0.095 stepUp=0.0294407 baseMid=0.195 extra=0.0176644 finalMid=0.212664
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=4 liftOff=0.0659411 touchDown=0.095 stepUp=0.0290589 baseMid=0.195 extra=0.0174353 finalMid=0.212435
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=3 liftOff=0.0655593 touchDown=0.095 stepUp=0.0294407 baseMid=0.195 extra=0.0176644 finalMid=0.212664
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=4 liftOff=0.0659411 touchDown=0.095 stepUp=0.0290589 baseMid=0.195 extra=0.0174353 finalMid=0.212435
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=5 liftOff=0.0688974 touchDown=0.095 stepUp=0.0261026 baseMid=0.195 extra=0.0156616 finalMid=0.210662
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=4 liftOff=0.0659411 touchDown=0.095 stepUp=0.0290589 baseMid=0.195 extra=0.0174353 finalMid=0.212435
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=5 liftOff=0.059938 touchDown=0.095 stepUp=0.035062 baseMid=0.195 extra=0.0210372 finalMid=0.216037
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=4 liftOff=0.0659411 touchDown=0.095 stepUp=0.0290589 baseMid=0.195 extra=0.0174353 finalMid=0.212435
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=5 liftOff=0.0609061 touchDown=0.095 stepUp=0.0340939 baseMid=0.195 extra=0.0204564 finalMid=0.215456
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=4 liftOff=0.0659411 touchDown=0.095 stepUp=0.0290589 baseMid=0.195 extra=0.0174353 finalMid=0.212435
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=5 liftOff=0.0594973 touchDown=0.095 stepUp=0.0355027 baseMid=0.195 extra=0.0213016 finalMid=0.216302
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0.0659411 touchDown=0.095 stepUp=0.0290589 baseMid=0.195 extra=0.0174353 finalMid=0.212435
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=4 liftOff=0.0616138 touchDown=0.095 stepUp=0.0333862 baseMid=0.195 extra=0.0200317 finalMid=0.215032
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0.0659411 touchDown=0.095 stepUp=0.0290589 baseMid=0.195 extra=0.0174353 finalMid=0.212435
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=4 liftOff=0.0623454 touchDown=0.095 stepUp=0.0326546 baseMid=0.195 extra=0.0195927 finalMid=0.214593
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0.0659411 touchDown=0.095 stepUp=0.0290589 baseMid=0.195 extra=0.0174353 finalMid=0.212435
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=4 liftOff=0.0629481 touchDown=0.095 stepUp=0.0320519 baseMid=0.195 extra=0.0192311 finalMid=0.214231
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0.0659411 touchDown=0.095 stepUp=0.0290589 baseMid=0.195 extra=0.0174353 finalMid=0.212435
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=2 liftOff=0 touchDown=0.0641036 stepUp=0.0641036 baseMid=0.164104 extra=0.0384621 finalMid=0.202566
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=4 liftOff=0.0641036 touchDown=0.095 stepUp=0.0308964 baseMid=0.195 extra=0.0185379 finalMid=0.213538
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0.0659411 touchDown=0.095 stepUp=0.0290589 baseMid=0.195 extra=0.0174353 finalMid=0.212435
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=2 liftOff=0 touchDown=0.064614 stepUp=0.064614 baseMid=0.164614 extra=0.0387684 finalMid=0.203382
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=4 liftOff=0.064614 touchDown=0.095 stepUp=0.030386 baseMid=0.195 extra=0.0182316 finalMid=0.213232
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0 touchDown=0.0954677 stepUp=0.0954677 baseMid=0.195468 extra=0.0572806 finalMid=0.252748
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=4 liftOff=0.064614 touchDown=0.095 stepUp=0.030386 baseMid=0.195 extra=0.0182316 finalMid=0.213232
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0 touchDown=0.0583624 stepUp=0.0583624 baseMid=0.158362 extra=0.0350175 finalMid=0.19338
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=5 liftOff=0.0583624 touchDown=0.095 stepUp=0.0366376 baseMid=0.195 extra=0.0219825 finalMid=0.216983
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=4 liftOff=0.064614 touchDown=0.095 stepUp=0.030386 baseMid=0.195 extra=0.0182316 finalMid=0.213232
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0 touchDown=0.0592149 stepUp=0.0592149 baseMid=0.159215 extra=0.0355289 finalMid=0.194744
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=5 liftOff=0.0592149 touchDown=0.095 stepUp=0.0357851 baseMid=0.195 extra=0.0214711 finalMid=0.216471
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=4 liftOff=0.064614 touchDown=0.095 stepUp=0.030386 baseMid=0.195 extra=0.0182316 finalMid=0.213232
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0 touchDown=0.0600358 stepUp=0.0600358 baseMid=0.160036 extra=0.0360215 finalMid=0.196057
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=5 liftOff=0.0600358 touchDown=0.095 stepUp=0.0349642 baseMid=0.195 extra=0.0209785 finalMid=0.215979
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=4 liftOff=0.064614 touchDown=0.095 stepUp=0.030386 baseMid=0.195 extra=0.0182316 finalMid=0.213232
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0 touchDown=0.059233 stepUp=0.059233 baseMid=0.159233 extra=0.0355398 finalMid=0.194773
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=5 liftOff=0.059233 touchDown=0.095 stepUp=0.035767 baseMid=0.195 extra=0.0214602 finalMid=0.21646
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=4 liftOff=0.064614 touchDown=0.095 stepUp=0.030386 baseMid=0.195 extra=0.0182316 finalMid=0.213232
+[ros2_control_node-3] [WARN] [1775744722.018991794] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 1000 Hz. The loop took 1.006699 ms (missed cycles : 2).
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0 touchDown=0.0609022 stepUp=0.0609022 baseMid=0.160902 extra=0.0365413 finalMid=0.197444
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=5 liftOff=0.0609022 touchDown=0.095 stepUp=0.0340978 baseMid=0.195 extra=0.0204587 finalMid=0.215459
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=4 liftOff=0.064614 touchDown=0.095 stepUp=0.030386 baseMid=0.195 extra=0.0182316 finalMid=0.213232
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=2 liftOff=0 touchDown=0.0600762 stepUp=0.0600762 baseMid=0.160076 extra=0.0360457 finalMid=0.196122
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=4 liftOff=0.0600762 touchDown=0.095 stepUp=0.0349238 baseMid=0.195 extra=0.0209543 finalMid=0.215954
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=3 liftOff=0.064614 touchDown=0.095 stepUp=0.030386 baseMid=0.195 extra=0.0182316 finalMid=0.213232
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=2 liftOff=0 touchDown=0.0605933 stepUp=0.0605933 baseMid=0.160593 extra=0.036356 finalMid=0.196949
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=4 liftOff=0.0605933 touchDown=0.095 stepUp=0.0344067 baseMid=0.195 extra=0.020644 finalMid=0.215644
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=3 liftOff=0.064614 touchDown=0.095 stepUp=0.030386 baseMid=0.195 extra=0.0182316 finalMid=0.213232
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=2 liftOff=0 touchDown=0.0617802 stepUp=0.0617802 baseMid=0.16178 extra=0.0370681 finalMid=0.198848
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=4 liftOff=0.0617802 touchDown=0.095 stepUp=0.0332198 baseMid=0.195 extra=0.0199319 finalMid=0.214932
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=3 liftOff=0.064614 touchDown=0.095 stepUp=0.030386 baseMid=0.195 extra=0.0182316 finalMid=0.213232
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=2 liftOff=0 touchDown=0.0624464 stepUp=0.0624464 baseMid=0.162446 extra=0.0374678 finalMid=0.199914
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=4 liftOff=0.0624464 touchDown=0.095 stepUp=0.0325536 baseMid=0.195 extra=0.0195322 finalMid=0.214532
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=3 liftOff=0.064614 touchDown=0.095 stepUp=0.030386 baseMid=0.195 extra=0.0182316 finalMid=0.213232
+[ros2_control_node-3] [WARN] [1775744722.166160338] [controller_manager]: Overrun might occur, Total time : 1081.292 us (Expected < 1000.000 us) --> Read time : 19.344 us, Update time : 954.570 us, Write time : 107.378 us
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=2 liftOff=0 touchDown=0.0616557 stepUp=0.0616557 baseMid=0.161656 extra=0.0369934 finalMid=0.198649
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=4 liftOff=0.0616557 touchDown=0.095 stepUp=0.0333443 baseMid=0.195 extra=0.0200066 finalMid=0.215007
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=5 liftOff=0 touchDown=0.095 stepUp=0.095 baseMid=0.195 extra=0.057 finalMid=0.252
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=2 liftOff=0 touchDown=0.0632683 stepUp=0.0632683 baseMid=0.163268 extra=0.037961 finalMid=0.201229
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=4 liftOff=0.0632683 touchDown=0.095 stepUp=0.0317317 baseMid=0.195 extra=0.019039 finalMid=0.214039
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=5 liftOff=0 touchDown=0.095 stepUp=0.095 baseMid=0.195 extra=0.057 finalMid=0.252
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=4 liftOff=0.0632683 touchDown=0.095 stepUp=0.0317317 baseMid=0.195 extra=0.019039 finalMid=0.214039
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=3 liftOff=0 touchDown=0.115142 stepUp=0.115142 baseMid=0.215142 extra=0.069085 finalMid=0.284227
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=4 liftOff=0.0632683 touchDown=0.095 stepUp=0.0317317 baseMid=0.195 extra=0.019039 finalMid=0.214039
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=3 liftOff=0 touchDown=0.0650021 stepUp=0.0650021 baseMid=0.165002 extra=0.0390013 finalMid=0.204003
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=5 liftOff=0.0650021 touchDown=0.095 stepUp=0.0299979 baseMid=0.195 extra=0.0179987 finalMid=0.212999
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=4 liftOff=0.0632683 touchDown=0.095 stepUp=0.0317317 baseMid=0.195 extra=0.019039 finalMid=0.214039
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=3 liftOff=0 touchDown=0.055091 stepUp=0.055091 baseMid=0.155091 extra=0.0330546 finalMid=0.188146
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=5 liftOff=0.055091 touchDown=0.095 stepUp=0.039909 baseMid=0.195 extra=0.0239454 finalMid=0.218945
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=4 liftOff=0.0632683 touchDown=0.095 stepUp=0.0317317 baseMid=0.195 extra=0.019039 finalMid=0.214039
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=3 liftOff=0 touchDown=0.0571463 stepUp=0.0571463 baseMid=0.157146 extra=0.0342878 finalMid=0.191434
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=5 liftOff=0.0571463 touchDown=0.095 stepUp=0.0378537 baseMid=0.195 extra=0.0227122 finalMid=0.217712
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=4 liftOff=0.0632683 touchDown=0.095 stepUp=0.0317317 baseMid=0.195 extra=0.019039 finalMid=0.214039
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=3 liftOff=0 touchDown=0.055793 stepUp=0.055793 baseMid=0.155793 extra=0.0334758 finalMid=0.189269
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=5 liftOff=0.055793 touchDown=0.095 stepUp=0.039207 baseMid=0.195 extra=0.0235242 finalMid=0.218524
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=6 liftOff=0 touchDown=0.095 stepUp=0.095 baseMid=0.195 extra=0.057 finalMid=0.252
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=3 liftOff=0 touchDown=0.0570012 stepUp=0.0570012 baseMid=0.157001 extra=0.0342007 finalMid=0.191202
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=5 liftOff=0.0570012 touchDown=0.095 stepUp=0.0379988 baseMid=0.195 extra=0.0227993 finalMid=0.217799
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=5 liftOff=0 touchDown=0.095 stepUp=0.095 baseMid=0.195 extra=0.057 finalMid=0.252
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=2 liftOff=0 touchDown=0.0622599 stepUp=0.0622599 baseMid=0.16226 extra=0.0373559 finalMid=0.199616
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=4 liftOff=0.0622599 touchDown=0.095 stepUp=0.0327401 baseMid=0.195 extra=0.0196441 finalMid=0.214644
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=5 liftOff=0 touchDown=0.095 stepUp=0.095 baseMid=0.195 extra=0.057 finalMid=0.252
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=2 liftOff=0 touchDown=0.0822848 stepUp=0.0822848 baseMid=0.182285 extra=0.0493709 finalMid=0.231656
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=4 liftOff=0.0822848 touchDown=0.095 stepUp=0.0127152 baseMid=0.195 extra=0 finalMid=0.195
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=5 liftOff=0 touchDown=0.095 stepUp=0.095 baseMid=0.195 extra=0.057 finalMid=0.252
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=2 liftOff=0 touchDown=0.108422 stepUp=0.108422 baseMid=0.208422 extra=0.065053 finalMid=0.273475
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=6 liftOff=0 touchDown=0.095 stepUp=0.095 baseMid=0.195 extra=0.057 finalMid=0.252
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=5 liftOff=0 touchDown=0.095 stepUp=0.095 baseMid=0.195 extra=0.057 finalMid=0.252
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=2 liftOff=0 touchDown=0.140712 stepUp=0.140712 baseMid=0.240712 extra=0.0844274 finalMid=0.32514
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=6 liftOff=0 touchDown=0.095 stepUp=0.095 baseMid=0.195 extra=0.057 finalMid=0.252
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=5 liftOff=0 touchDown=0.095 stepUp=0.095 baseMid=0.195 extra=0.057 finalMid=0.252
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=2 liftOff=0 touchDown=0.184696 stepUp=0.184696 baseMid=0.284696 extra=0.110818 finalMid=0.395514
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=6 liftOff=0 touchDown=0.095 stepUp=0.095 baseMid=0.195 extra=0.057 finalMid=0.252
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=5 liftOff=0 touchDown=0.095 stepUp=0.095 baseMid=0.195 extra=0.057 finalMid=0.252
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=2 liftOff=0 touchDown=0.228338 stepUp=0.228338 baseMid=0.328338 extra=0.137003 finalMid=0.46534
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=6 liftOff=0 touchDown=0.095 stepUp=0.095 baseMid=0.195 extra=0.057 finalMid=0.252
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0 touchDown=0.26083 stepUp=0.26083 baseMid=0.36083 extra=0.156498 finalMid=0.517328
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=7 liftOff=0 touchDown=0.095 stepUp=0.095 baseMid=0.195 extra=0.057 finalMid=0.252
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=6 liftOff=0 touchDown=0.095 stepUp=0.095 baseMid=0.195 extra=0.057 finalMid=0.252
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0 touchDown=0.213126 stepUp=0.213126 baseMid=0.313126 extra=0.127876 finalMid=0.441001
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=7 liftOff=0 touchDown=0.095 stepUp=0.095 baseMid=0.195 extra=0.057 finalMid=0.252
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=6 liftOff=0 touchDown=0.095 stepUp=0.095 baseMid=0.195 extra=0.057 finalMid=0.252
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0 touchDown=0.160868 stepUp=0.160868 baseMid=0.260868 extra=0.0965209 finalMid=0.357389
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=6 liftOff=0 touchDown=0.095 stepUp=0.095 baseMid=0.195 extra=0.057 finalMid=0.252
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0 touchDown=0.118166 stepUp=0.118166 baseMid=0.218166 extra=0.0708994 finalMid=0.289065
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=6 liftOff=0 touchDown=0.095 stepUp=0.095 baseMid=0.195 extra=0.057 finalMid=0.252
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0 touchDown=0.0701556 stepUp=0.0701556 baseMid=0.170156 extra=0.0420934 finalMid=0.212249
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=6 liftOff=0 touchDown=0.095 stepUp=0.095 baseMid=0.195 extra=0.057 finalMid=0.252
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0 touchDown=0.0518319 stepUp=0.0518319 baseMid=0.151832 extra=0.0310991 finalMid=0.182931
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=6 liftOff=0 touchDown=0.095 stepUp=0.095 baseMid=0.195 extra=0.057 finalMid=0.252
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=2 liftOff=0 touchDown=0.0560222 stepUp=0.0560222 baseMid=0.156022 extra=0.0336133 finalMid=0.189636
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=5 liftOff=0 touchDown=0.095 stepUp=0.095 baseMid=0.195 extra=0.057 finalMid=0.252
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=2 liftOff=0 touchDown=0.0541318 stepUp=0.0541318 baseMid=0.154132 extra=0.0324791 finalMid=0.186611
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=5 liftOff=0 touchDown=0.095 stepUp=0.095 baseMid=0.195 extra=0.057 finalMid=0.252
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=2 liftOff=0 touchDown=0.0595975 stepUp=0.0595975 baseMid=0.159598 extra=0.0357585 finalMid=0.195356
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=5 liftOff=0 touchDown=0.095 stepUp=0.095 baseMid=0.195 extra=0.057 finalMid=0.252
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=2 liftOff=0 touchDown=0.0686166 stepUp=0.0686166 baseMid=0.168617 extra=0.04117 finalMid=0.209787
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=5 liftOff=0 touchDown=0.095 stepUp=0.095 baseMid=0.195 extra=0.057 finalMid=0.252
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=2 liftOff=0 touchDown=0.0826472 stepUp=0.0826472 baseMid=0.182647 extra=0.0495883 finalMid=0.232236
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=5 liftOff=0 touchDown=0.095 stepUp=0.095 baseMid=0.195 extra=0.057 finalMid=0.252
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=2 liftOff=0 touchDown=0.0808261 stepUp=0.0808261 baseMid=0.180826 extra=0.0484957 finalMid=0.229322
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=5 liftOff=0 touchDown=0.095 stepUp=0.095 baseMid=0.195 extra=0.057 finalMid=0.252
+[ros2_control_node-3] [WARN] [1775744723.020058631] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 1000 Hz. The loop took 1.073666 ms (missed cycles : 2).
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=2 liftOff=0 touchDown=0.0521425 stepUp=0.0521425 baseMid=0.152142 extra=0.0312855 finalMid=0.183428
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=5 liftOff=0 touchDown=0.095 stepUp=0.095 baseMid=0.195 extra=0.057 finalMid=0.252
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=3 liftOff=0 touchDown=0.0589942 stepUp=0.0589942 baseMid=0.158994 extra=0.0353965 finalMid=0.194391
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=5 liftOff=0.0589942 touchDown=0.095 stepUp=0.0360058 baseMid=0.195 extra=0.0216035 finalMid=0.216603
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=3 liftOff=0 touchDown=0.0569695 stepUp=0.0569695 baseMid=0.15697 extra=0.0341817 finalMid=0.191151
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=5 liftOff=0.0569695 touchDown=0.095 stepUp=0.0380305 baseMid=0.195 extra=0.0228183 finalMid=0.217818
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=3 liftOff=0 touchDown=0.055197 stepUp=0.055197 baseMid=0.155197 extra=0.0331182 finalMid=0.188315
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=5 liftOff=0.055197 touchDown=0.095 stepUp=0.039803 baseMid=0.195 extra=0.0238818 finalMid=0.218882
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=3 liftOff=0 touchDown=0.0525761 stepUp=0.0525761 baseMid=0.152576 extra=0.0315457 finalMid=0.184122
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=5 liftOff=0.0525761 touchDown=0.095 stepUp=0.0424239 baseMid=0.195 extra=0.0254543 finalMid=0.220454
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=3 liftOff=0 touchDown=0.0501846 stepUp=0.0501846 baseMid=0.150185 extra=0.0301108 finalMid=0.180295
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=5 liftOff=0.0501846 touchDown=0.095 stepUp=0.0448154 baseMid=0.195 extra=0.0268892 finalMid=0.221889
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=3 liftOff=0 touchDown=0.0491409 stepUp=0.0491409 baseMid=0.149141 extra=0.0294845 finalMid=0.178625
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=5 liftOff=0.0491409 touchDown=0.095 stepUp=0.0458591 baseMid=0.195 extra=0.0275155 finalMid=0.222515
+[ros2_control_node-3] [WARN] [1775744723.210127667] [controller_manager]: Overrun might occur, Total time : 1055.096 us (Expected < 1000.000 us) --> Read time : 14.089 us, Update time : 932.137 us, Write time : 108.870 us
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=6 liftOff=0 touchDown=0.095 stepUp=0.095 baseMid=0.195 extra=0.057 finalMid=0.252
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=3 liftOff=0 touchDown=0.0502458 stepUp=0.0502458 baseMid=0.150246 extra=0.0301475 finalMid=0.180393
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=5 liftOff=0.0502458 touchDown=0.095 stepUp=0.0447542 baseMid=0.195 extra=0.0268525 finalMid=0.221853
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=5 liftOff=0 touchDown=0.095 stepUp=0.095 baseMid=0.195 extra=0.057 finalMid=0.252
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=2 liftOff=0 touchDown=0.0506692 stepUp=0.0506692 baseMid=0.150669 extra=0.0304015 finalMid=0.181071
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=4 liftOff=0.0506692 touchDown=0.095 stepUp=0.0443308 baseMid=0.195 extra=0.0265985 finalMid=0.221598
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=5 liftOff=0 touchDown=0.095 stepUp=0.095 baseMid=0.195 extra=0.057 finalMid=0.252
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=2 liftOff=0 touchDown=0.0532216 stepUp=0.0532216 baseMid=0.153222 extra=0.031933 finalMid=0.185155
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=4 liftOff=0.0532216 touchDown=0.095 stepUp=0.0417784 baseMid=0.195 extra=0.025067 finalMid=0.220067
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=5 liftOff=0 touchDown=0.095 stepUp=0.095 baseMid=0.195 extra=0.057 finalMid=0.252
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=2 liftOff=0 touchDown=0.0563166 stepUp=0.0563166 baseMid=0.156317 extra=0.0337899 finalMid=0.190107
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=4 liftOff=0.0563166 touchDown=0.095 stepUp=0.0386834 baseMid=0.195 extra=0.0232101 finalMid=0.21821
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=5 liftOff=0 touchDown=0.095 stepUp=0.095 baseMid=0.195 extra=0.057 finalMid=0.252
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=2 liftOff=0 touchDown=0.0626531 stepUp=0.0626531 baseMid=0.162653 extra=0.0375918 finalMid=0.200245
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=4 liftOff=0.0626531 touchDown=0.095 stepUp=0.0323469 baseMid=0.195 extra=0.0194082 finalMid=0.214408
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=5 liftOff=0 touchDown=0.095 stepUp=0.095 baseMid=0.195 extra=0.057 finalMid=0.252
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=2 liftOff=0 touchDown=0.0573571 stepUp=0.0573571 baseMid=0.157357 extra=0.0344142 finalMid=0.191771
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=4 liftOff=0.0573571 touchDown=0.095 stepUp=0.0376429 baseMid=0.195 extra=0.0225858 finalMid=0.217586
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=5 liftOff=0 touchDown=0.095 stepUp=0.095 baseMid=0.195 extra=0.057 finalMid=0.252
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=2 liftOff=0 touchDown=0.0583127 stepUp=0.0583127 baseMid=0.158313 extra=0.0349876 finalMid=0.1933
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=4 liftOff=0.0583127 touchDown=0.095 stepUp=0.0366873 baseMid=0.195 extra=0.0220124 finalMid=0.217012
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0 touchDown=0.114224 stepUp=0.114224 baseMid=0.214224 extra=0.0685342 finalMid=0.282758
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=4 liftOff=0.0583127 touchDown=0.095 stepUp=0.0366873 baseMid=0.195 extra=0.0220124 finalMid=0.217012
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0 touchDown=0.0531432 stepUp=0.0531432 baseMid=0.153143 extra=0.0318859 finalMid=0.185029
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=5 liftOff=0.0531432 touchDown=0.095 stepUp=0.0418568 baseMid=0.195 extra=0.0251141 finalMid=0.220114
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=4 liftOff=0.0583127 touchDown=0.095 stepUp=0.0366873 baseMid=0.195 extra=0.0220124 finalMid=0.217012
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0 touchDown=0.0523259 stepUp=0.0523259 baseMid=0.152326 extra=0.0313956 finalMid=0.183721
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=5 liftOff=0.0523259 touchDown=0.095 stepUp=0.0426741 baseMid=0.195 extra=0.0256044 finalMid=0.220604
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=4 liftOff=0.0583127 touchDown=0.095 stepUp=0.0366873 baseMid=0.195 extra=0.0220124 finalMid=0.217012
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0 touchDown=0.0544571 stepUp=0.0544571 baseMid=0.154457 extra=0.0326743 finalMid=0.187131
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=5 liftOff=0.0544571 touchDown=0.095 stepUp=0.0405429 baseMid=0.195 extra=0.0243257 finalMid=0.219326
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=4 liftOff=0.0583127 touchDown=0.095 stepUp=0.0366873 baseMid=0.195 extra=0.0220124 finalMid=0.217012
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0 touchDown=0.0568822 stepUp=0.0568822 baseMid=0.156882 extra=0.0341293 finalMid=0.191011
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=5 liftOff=0.0568822 touchDown=0.095 stepUp=0.0381178 baseMid=0.195 extra=0.0228707 finalMid=0.217871
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=4 liftOff=0.0583127 touchDown=0.095 stepUp=0.0366873 baseMid=0.195 extra=0.0220124 finalMid=0.217012
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0 touchDown=0.0575353 stepUp=0.0575353 baseMid=0.157535 extra=0.0345212 finalMid=0.192057
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=5 liftOff=0.0575353 touchDown=0.095 stepUp=0.0374647 baseMid=0.195 extra=0.0224788 finalMid=0.217479
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=4 liftOff=0.0583127 touchDown=0.095 stepUp=0.0366873 baseMid=0.195 extra=0.0220124 finalMid=0.217012
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=2 liftOff=0 touchDown=0.0560105 stepUp=0.0560105 baseMid=0.15601 extra=0.0336063 finalMid=0.189617
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=4 liftOff=0.0560105 touchDown=0.095 stepUp=0.0389895 baseMid=0.195 extra=0.0233937 finalMid=0.218394
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=3 liftOff=0.0583127 touchDown=0.095 stepUp=0.0366873 baseMid=0.195 extra=0.0220124 finalMid=0.217012
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=2 liftOff=0 touchDown=0.0614073 stepUp=0.0614073 baseMid=0.161407 extra=0.0368444 finalMid=0.198252
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=4 liftOff=0.0614073 touchDown=0.095 stepUp=0.0335927 baseMid=0.195 extra=0.0201556 finalMid=0.215156
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=3 liftOff=0.0583127 touchDown=0.095 stepUp=0.0366873 baseMid=0.195 extra=0.0220124 finalMid=0.217012
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=2 liftOff=0 touchDown=0.0739974 stepUp=0.0739974 baseMid=0.173997 extra=0.0443984 finalMid=0.218396
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=4 liftOff=0.0739974 touchDown=0.095 stepUp=0.0210026 baseMid=0.195 extra=0.0126016 finalMid=0.207602
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=5 liftOff=0 touchDown=0.095 stepUp=0.095 baseMid=0.195 extra=0.057 finalMid=0.252
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=2 liftOff=0 touchDown=0.0766316 stepUp=0.0766316 baseMid=0.176632 extra=0.0459789 finalMid=0.22261
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=4 liftOff=0.0766316 touchDown=0.095 stepUp=0.0183684 baseMid=0.195 extra=0 finalMid=0.195
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=5 liftOff=0 touchDown=0.095 stepUp=0.095 baseMid=0.195 extra=0.057 finalMid=0.252
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=2 liftOff=0 touchDown=0.0988137 stepUp=0.0988137 baseMid=0.198814 extra=0.0592882 finalMid=0.258102
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=5 liftOff=0 touchDown=0.095 stepUp=0.095 baseMid=0.195 extra=0.057 finalMid=0.252
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=2 liftOff=0 touchDown=0.12397 stepUp=0.12397 baseMid=0.22397 extra=0.0743819 finalMid=0.298352
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=5 liftOff=0 touchDown=0.095 stepUp=0.095 baseMid=0.195 extra=0.057 finalMid=0.252
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=3 liftOff=0 touchDown=0.221769 stepUp=0.221769 baseMid=0.321769 extra=0.133062 finalMid=0.454831
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=6 liftOff=0 touchDown=0.095 stepUp=0.095 baseMid=0.195 extra=0.057 finalMid=0.252
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=3 liftOff=0 touchDown=0.147117 stepUp=0.147117 baseMid=0.247117 extra=0.0882699 finalMid=0.335387
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=6 liftOff=0 touchDown=0.095 stepUp=0.095 baseMid=0.195 extra=0.057 finalMid=0.252
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=3 liftOff=0 touchDown=0.0502117 stepUp=0.0502117 baseMid=0.150212 extra=0.030127 finalMid=0.180339
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=5 liftOff=0.0502117 touchDown=0.095 stepUp=0.0447883 baseMid=0.195 extra=0.026873 finalMid=0.221873
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=6 liftOff=0 touchDown=0.095 stepUp=0.095 baseMid=0.195 extra=0.057 finalMid=0.252
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=3 liftOff=0 touchDown=0.0485033 stepUp=0.0485033 baseMid=0.148503 extra=0.029102 finalMid=0.177605
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=5 liftOff=0.0485033 touchDown=0.095 stepUp=0.0464967 baseMid=0.195 extra=0.027898 finalMid=0.222898
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=6 liftOff=0 touchDown=0.095 stepUp=0.095 baseMid=0.195 extra=0.057 finalMid=0.252
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=3 liftOff=0 touchDown=0.0520171 stepUp=0.0520171 baseMid=0.152017 extra=0.0312103 finalMid=0.183227
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=7 liftOff=0 touchDown=0.095 stepUp=0.095 baseMid=0.195 extra=0.057 finalMid=0.252
+[ros2_control_node-3] [WARN] [1775744724.030106523] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 1000 Hz. The loop took 1.120864 ms (missed cycles : 2).
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=6 liftOff=0 touchDown=0.095 stepUp=0.095 baseMid=0.195 extra=0.057 finalMid=0.252
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=3 liftOff=0 touchDown=0.0580052 stepUp=0.0580052 baseMid=0.158005 extra=0.0348031 finalMid=0.192808
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=7 liftOff=0 touchDown=0.095 stepUp=0.095 baseMid=0.195 extra=0.057 finalMid=0.252
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=5 liftOff=0 touchDown=0.095 stepUp=0.095 baseMid=0.195 extra=0.057 finalMid=0.252
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=2 liftOff=0 touchDown=0.0673201 stepUp=0.0673201 baseMid=0.16732 extra=0.0403921 finalMid=0.207712
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=2 liftOff=0 touchDown=0.0900412 stepUp=0.0900412 baseMid=0.190041 extra=0.0540247 finalMid=0.244066
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=2 liftOff=0 touchDown=0.103802 stepUp=0.103802 baseMid=0.203802 extra=0.0622811 finalMid=0.266083
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=2 liftOff=0 touchDown=0.11346 stepUp=0.11346 baseMid=0.21346 extra=0.0680758 finalMid=0.281535
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=2 liftOff=0 touchDown=0.139967 stepUp=0.139967 baseMid=0.239967 extra=0.0839802 finalMid=0.323947
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=2 liftOff=0 touchDown=0.17248 stepUp=0.17248 baseMid=0.27248 extra=0.103488 finalMid=0.375968
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=2 liftOff=0 touchDown=0.199583 stepUp=0.199583 baseMid=0.299583 extra=0.11975 finalMid=0.419333
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0 touchDown=0.119604 stepUp=0.119604 baseMid=0.219604 extra=0.0717625 finalMid=0.291367
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0 touchDown=0.105492 stepUp=0.105492 baseMid=0.205492 extra=0.0632953 finalMid=0.268787
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0 touchDown=0.076033 stepUp=0.076033 baseMid=0.176033 extra=0.0456198 finalMid=0.221653
+[ros2_control_node-3] [WARN] [1775744724.310195406] [controller_manager]: Overrun might occur, Total time : 1008.066 us (Expected < 1000.000 us) --> Read time : 4.314 us, Update time : 925.653 us, Write time : 78.099 us
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0 touchDown=0.0513355 stepUp=0.0513355 baseMid=0.151335 extra=0.0308013 finalMid=0.182137
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0 touchDown=0.0478389 stepUp=0.0478389 baseMid=0.147839 extra=0.0287034 finalMid=0.176542
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0 touchDown=0.0449433 stepUp=0.0449433 baseMid=0.144943 extra=0.026966 finalMid=0.171909
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0 touchDown=0.047419 stepUp=0.047419 baseMid=0.147419 extra=0.0284514 finalMid=0.17587
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0 touchDown=0.0465798 stepUp=0.0465798 baseMid=0.14658 extra=0.0279479 finalMid=0.174528
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=2 liftOff=0 touchDown=0.054115 stepUp=0.054115 baseMid=0.154115 extra=0.032469 finalMid=0.186584
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=2 liftOff=0 touchDown=0.0631515 stepUp=0.0631515 baseMid=0.163152 extra=0.0378909 finalMid=0.201042
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=2 liftOff=0 touchDown=0.0727685 stepUp=0.0727685 baseMid=0.172768 extra=0.0436611 finalMid=0.21643
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=2 liftOff=0 touchDown=0.0879385 stepUp=0.0879385 baseMid=0.187939 extra=0.0527631 finalMid=0.240702
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=2 liftOff=0 touchDown=0.0963134 stepUp=0.0963134 baseMid=0.196313 extra=0.057788 finalMid=0.254101
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=2 liftOff=0 touchDown=0.0919832 stepUp=0.0919832 baseMid=0.191983 extra=0.0551899 finalMid=0.247173
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=2 liftOff=0 touchDown=0.0542461 stepUp=0.0542461 baseMid=0.154246 extra=0.0325477 finalMid=0.186794
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=2 liftOff=0 touchDown=0.0475656 stepUp=0.0475656 baseMid=0.147566 extra=0.0285394 finalMid=0.176105
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=3 liftOff=0 touchDown=0.0637331 stepUp=0.0637331 baseMid=0.163733 extra=0.0382398 finalMid=0.201973
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=3 liftOff=0 touchDown=0.0577734 stepUp=0.0577734 baseMid=0.157773 extra=0.0346641 finalMid=0.192437
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=3 liftOff=0 touchDown=0.0567293 stepUp=0.0567293 baseMid=0.156729 extra=0.0340376 finalMid=0.190767
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=7 liftOff=0 touchDown=0.095 stepUp=0.095 baseMid=0.195 extra=0.057 finalMid=0.252
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=3 liftOff=0 touchDown=0.0591066 stepUp=0.0591066 baseMid=0.159107 extra=0.035464 finalMid=0.194571
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=7 liftOff=0 touchDown=0.095 stepUp=0.095 baseMid=0.195 extra=0.057 finalMid=0.252
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=3 liftOff=0 touchDown=0.0602281 stepUp=0.0602281 baseMid=0.160228 extra=0.0361369 finalMid=0.196365
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=5 liftOff=0.0602281 touchDown=0.095 stepUp=0.0347719 baseMid=0.195 extra=0.0208631 finalMid=0.215863
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=3 liftOff=0 touchDown=0.0607428 stepUp=0.0607428 baseMid=0.160743 extra=0.0364457 finalMid=0.197188
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=5 liftOff=0.0607428 touchDown=0.095 stepUp=0.0342572 baseMid=0.195 extra=0.0205543 finalMid=0.215554
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=5 liftOff=0 touchDown=0.095 stepUp=0.095 baseMid=0.195 extra=0.057 finalMid=0.252
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=2 liftOff=0 touchDown=0.0608932 stepUp=0.0608932 baseMid=0.160893 extra=0.0365359 finalMid=0.197429
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=4 liftOff=0.0608932 touchDown=0.095 stepUp=0.0341068 baseMid=0.195 extra=0.0204641 finalMid=0.215464
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=5 liftOff=0 touchDown=0.095 stepUp=0.095 baseMid=0.195 extra=0.057 finalMid=0.252
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=2 liftOff=0 touchDown=0.0611415 stepUp=0.0611415 baseMid=0.161141 extra=0.0366849 finalMid=0.197826
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=4 liftOff=0.0611415 touchDown=0.095 stepUp=0.0338585 baseMid=0.195 extra=0.0203151 finalMid=0.215315
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=5 liftOff=0 touchDown=0.095 stepUp=0.095 baseMid=0.195 extra=0.057 finalMid=0.252
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=2 liftOff=0 touchDown=0.0604819 stepUp=0.0604819 baseMid=0.160482 extra=0.0362891 finalMid=0.196771
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=4 liftOff=0.0604819 touchDown=0.095 stepUp=0.0345181 baseMid=0.195 extra=0.0207109 finalMid=0.215711
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=5 liftOff=0 touchDown=0.095 stepUp=0.095 baseMid=0.195 extra=0.057 finalMid=0.252
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=2 liftOff=0 touchDown=0.0612601 stepUp=0.0612601 baseMid=0.16126 extra=0.0367561 finalMid=0.198016
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=4 liftOff=0.0612601 touchDown=0.095 stepUp=0.0337399 baseMid=0.195 extra=0.0202439 finalMid=0.215244
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=5 liftOff=0 touchDown=0.095 stepUp=0.095 baseMid=0.195 extra=0.057 finalMid=0.252
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=2 liftOff=0 touchDown=0.0620865 stepUp=0.0620865 baseMid=0.162087 extra=0.0372519 finalMid=0.199338
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=4 liftOff=0.0620865 touchDown=0.095 stepUp=0.0329135 baseMid=0.195 extra=0.0197481 finalMid=0.214748
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0.0475656 touchDown=0.095 stepUp=0.0474344 baseMid=0.195 extra=0.0284606 finalMid=0.223461
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=2 liftOff=0 touchDown=0.0667136 stepUp=0.0667136 baseMid=0.166714 extra=0.0400281 finalMid=0.206742
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=4 liftOff=0.0667136 touchDown=0.095 stepUp=0.0282864 baseMid=0.195 extra=0.0169719 finalMid=0.211972
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0 touchDown=0.0633856 stepUp=0.0633856 baseMid=0.163386 extra=0.0380314 finalMid=0.201417
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=5 liftOff=0.0633856 touchDown=0.095 stepUp=0.0316144 baseMid=0.195 extra=0.0189686 finalMid=0.213969
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=4 liftOff=0.0667136 touchDown=0.095 stepUp=0.0282864 baseMid=0.195 extra=0.0169719 finalMid=0.211972
+[ros2_control_node-3] [WARN] [1775744725.078254729] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 1000 Hz. The loop took 1.270016 ms (missed cycles : 2).
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0 touchDown=0.0648649 stepUp=0.0648649 baseMid=0.164865 extra=0.038919 finalMid=0.203784
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=5 liftOff=0.0648649 touchDown=0.095 stepUp=0.0301351 baseMid=0.195 extra=0.018081 finalMid=0.213081
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=4 liftOff=0.0667136 touchDown=0.095 stepUp=0.0282864 baseMid=0.195 extra=0.0169719 finalMid=0.211972
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=5 liftOff=0.0652339 touchDown=0.095 stepUp=0.0297661 baseMid=0.195 extra=0.0178597 finalMid=0.21286
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=4 liftOff=0.0667136 touchDown=0.095 stepUp=0.0282864 baseMid=0.195 extra=0.0169719 finalMid=0.211972
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=5 liftOff=0.06344 touchDown=0.095 stepUp=0.03156 baseMid=0.195 extra=0.018936 finalMid=0.213936
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=4 liftOff=0.0667136 touchDown=0.095 stepUp=0.0282864 baseMid=0.195 extra=0.0169719 finalMid=0.211972
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=5 liftOff=0.0620001 touchDown=0.095 stepUp=0.0329999 baseMid=0.195 extra=0.0198 finalMid=0.2148
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=4 liftOff=0.0667136 touchDown=0.095 stepUp=0.0282864 baseMid=0.195 extra=0.0169719 finalMid=0.211972
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=5 liftOff=0.0623559 touchDown=0.095 stepUp=0.0326441 baseMid=0.195 extra=0.0195864 finalMid=0.214586
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=4 liftOff=0.0667136 touchDown=0.095 stepUp=0.0282864 baseMid=0.195 extra=0.0169719 finalMid=0.211972
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=4 liftOff=0.0625683 touchDown=0.095 stepUp=0.0324317 baseMid=0.195 extra=0.019459 finalMid=0.214459
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=3 liftOff=0.0667136 touchDown=0.095 stepUp=0.0282864 baseMid=0.195 extra=0.0169719 finalMid=0.211972
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=4 liftOff=0.0631233 touchDown=0.095 stepUp=0.0318767 baseMid=0.195 extra=0.019126 finalMid=0.214126
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=3 liftOff=0.0667136 touchDown=0.095 stepUp=0.0282864 baseMid=0.195 extra=0.0169719 finalMid=0.211972
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=4 liftOff=0.0635813 touchDown=0.095 stepUp=0.0314187 baseMid=0.195 extra=0.0188512 finalMid=0.213851
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=3 liftOff=0.0667136 touchDown=0.095 stepUp=0.0282864 baseMid=0.195 extra=0.0169719 finalMid=0.211972
+[ros2_control_node-3] [WARN] [1775744725.382111189] [controller_manager]: Overrun might occur, Total time : 1055.210 us (Expected < 1000.000 us) --> Read time : 16.428 us, Update time : 892.693 us, Write time : 146.089 us
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=4 liftOff=0.0636653 touchDown=0.095 stepUp=0.0313347 baseMid=0.195 extra=0.0188008 finalMid=0.213801
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=3 liftOff=0.0667136 touchDown=0.095 stepUp=0.0282864 baseMid=0.195 extra=0.0169719 finalMid=0.211972
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=4 liftOff=0.0655761 touchDown=0.095 stepUp=0.0294239 baseMid=0.195 extra=0.0176544 finalMid=0.212654
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=3 liftOff=0.0667136 touchDown=0.095 stepUp=0.0282864 baseMid=0.195 extra=0.0169719 finalMid=0.211972
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=4 liftOff=0.0655761 touchDown=0.095 stepUp=0.0294239 baseMid=0.195 extra=0.0176544 finalMid=0.212654
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=3 liftOff=0 touchDown=0.0927056 stepUp=0.0927056 baseMid=0.192706 extra=0.0556233 finalMid=0.248329
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=5 liftOff=0.0927056 touchDown=0.095 stepUp=0.00229443 baseMid=0.195 extra=0 finalMid=0.195
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=4 liftOff=0.0655761 touchDown=0.095 stepUp=0.0294239 baseMid=0.195 extra=0.0176544 finalMid=0.212654
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=3 liftOff=0 touchDown=0.0565269 stepUp=0.0565269 baseMid=0.156527 extra=0.0339161 finalMid=0.190443
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=5 liftOff=0.0565269 touchDown=0.095 stepUp=0.0384731 baseMid=0.195 extra=0.0230839 finalMid=0.218084
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=4 liftOff=0.0655761 touchDown=0.095 stepUp=0.0294239 baseMid=0.195 extra=0.0176544 finalMid=0.212654
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=3 liftOff=0 touchDown=0.0594437 stepUp=0.0594437 baseMid=0.159444 extra=0.0356662 finalMid=0.19511
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=5 liftOff=0.0594437 touchDown=0.095 stepUp=0.0355563 baseMid=0.195 extra=0.0213338 finalMid=0.216334
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=4 liftOff=0.0655761 touchDown=0.095 stepUp=0.0294239 baseMid=0.195 extra=0.0176544 finalMid=0.212654
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=3 liftOff=0 touchDown=0.0615733 stepUp=0.0615733 baseMid=0.161573 extra=0.036944 finalMid=0.198517
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=5 liftOff=0.0615733 touchDown=0.095 stepUp=0.0334267 baseMid=0.195 extra=0.020056 finalMid=0.215056
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=4 liftOff=0.0655761 touchDown=0.095 stepUp=0.0294239 baseMid=0.195 extra=0.0176544 finalMid=0.212654
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=3 liftOff=0 touchDown=0.0617775 stepUp=0.0617775 baseMid=0.161778 extra=0.0370665 finalMid=0.198844
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=5 liftOff=0.0617775 touchDown=0.095 stepUp=0.0332225 baseMid=0.195 extra=0.0199335 finalMid=0.214933
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0.0655761 touchDown=0.095 stepUp=0.0294239 baseMid=0.195 extra=0.0176544 finalMid=0.212654
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=2 liftOff=0 touchDown=0.0619002 stepUp=0.0619002 baseMid=0.1619 extra=0.0371401 finalMid=0.19904
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=4 liftOff=0.0619002 touchDown=0.095 stepUp=0.0330998 baseMid=0.195 extra=0.0198599 finalMid=0.21486
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0.0655761 touchDown=0.095 stepUp=0.0294239 baseMid=0.195 extra=0.0176544 finalMid=0.212654
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=2 liftOff=0 touchDown=0.0623391 stepUp=0.0623391 baseMid=0.162339 extra=0.0374035 finalMid=0.199743
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=4 liftOff=0.0623391 touchDown=0.095 stepUp=0.0326609 baseMid=0.195 extra=0.0195965 finalMid=0.214597
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0.0655761 touchDown=0.095 stepUp=0.0294239 baseMid=0.195 extra=0.0176544 finalMid=0.212654
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=2 liftOff=0 touchDown=0.0629885 stepUp=0.0629885 baseMid=0.162989 extra=0.0377931 finalMid=0.200782
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=4 liftOff=0.0629885 touchDown=0.095 stepUp=0.0320115 baseMid=0.195 extra=0.0192069 finalMid=0.214207
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0.0655761 touchDown=0.095 stepUp=0.0294239 baseMid=0.195 extra=0.0176544 finalMid=0.212654
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=2 liftOff=0 touchDown=0.0637902 stepUp=0.0637902 baseMid=0.16379 extra=0.0382741 finalMid=0.202064
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=4 liftOff=0.0637902 touchDown=0.095 stepUp=0.0312098 baseMid=0.195 extra=0.0187259 finalMid=0.213726
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0.0655761 touchDown=0.095 stepUp=0.0294239 baseMid=0.195 extra=0.0176544 finalMid=0.212654
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=2 liftOff=0 touchDown=0.0661101 stepUp=0.0661101 baseMid=0.16611 extra=0.039666 finalMid=0.205776
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=4 liftOff=0.0661101 touchDown=0.095 stepUp=0.0288899 baseMid=0.195 extra=0.017334 finalMid=0.212334
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0 touchDown=0.0820162 stepUp=0.0820162 baseMid=0.182016 extra=0.0492097 finalMid=0.231226
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=5 liftOff=0.0820162 touchDown=0.095 stepUp=0.0129838 baseMid=0.195 extra=0 finalMid=0.195
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=4 liftOff=0.0661101 touchDown=0.095 stepUp=0.0288899 baseMid=0.195 extra=0.017334 finalMid=0.212334
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0 touchDown=0.0633379 stepUp=0.0633379 baseMid=0.163338 extra=0.0380028 finalMid=0.201341
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=5 liftOff=0.0633379 touchDown=0.095 stepUp=0.0316621 baseMid=0.195 extra=0.0189972 finalMid=0.213997
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=4 liftOff=0.0661101 touchDown=0.095 stepUp=0.0288899 baseMid=0.195 extra=0.017334 finalMid=0.212334
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0 touchDown=0.0633306 stepUp=0.0633306 baseMid=0.163331 extra=0.0379983 finalMid=0.201329
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=5 liftOff=0.0633306 touchDown=0.095 stepUp=0.0316694 baseMid=0.195 extra=0.0190017 finalMid=0.214002
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=4 liftOff=0.0661101 touchDown=0.095 stepUp=0.0288899 baseMid=0.195 extra=0.017334 finalMid=0.212334
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0 touchDown=0.0622633 stepUp=0.0622633 baseMid=0.162263 extra=0.037358 finalMid=0.199621
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=5 liftOff=0.0622633 touchDown=0.095 stepUp=0.0327367 baseMid=0.195 extra=0.019642 finalMid=0.214642
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=4 liftOff=0.0661101 touchDown=0.095 stepUp=0.0288899 baseMid=0.195 extra=0.017334 finalMid=0.212334
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0 touchDown=0.060973 stepUp=0.060973 baseMid=0.160973 extra=0.0365838 finalMid=0.197557
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=5 liftOff=0.060973 touchDown=0.095 stepUp=0.034027 baseMid=0.195 extra=0.0204162 finalMid=0.215416
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=4 liftOff=0.0661101 touchDown=0.095 stepUp=0.0288899 baseMid=0.195 extra=0.017334 finalMid=0.212334
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0 touchDown=0.0613412 stepUp=0.0613412 baseMid=0.161341 extra=0.0368047 finalMid=0.198146
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=5 liftOff=0.0613412 touchDown=0.095 stepUp=0.0336588 baseMid=0.195 extra=0.0201953 finalMid=0.215195
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=4 liftOff=0.0661101 touchDown=0.095 stepUp=0.0288899 baseMid=0.195 extra=0.017334 finalMid=0.212334
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=2 liftOff=0 touchDown=0.0619076 stepUp=0.0619076 baseMid=0.161908 extra=0.0371445 finalMid=0.199052
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=4 liftOff=0.0619076 touchDown=0.095 stepUp=0.0330924 baseMid=0.195 extra=0.0198555 finalMid=0.214855
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=3 liftOff=0.0661101 touchDown=0.095 stepUp=0.0288899 baseMid=0.195 extra=0.017334 finalMid=0.212334
+[ros2_control_node-3] [WARN] [1775744726.082124390] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 1000 Hz. The loop took 1.139548 ms (missed cycles : 2).
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=2 liftOff=0 touchDown=0.0626997 stepUp=0.0626997 baseMid=0.1627 extra=0.0376198 finalMid=0.20032
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=4 liftOff=0.0626997 touchDown=0.095 stepUp=0.0323003 baseMid=0.195 extra=0.0193802 finalMid=0.21438
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=3 liftOff=0.0661101 touchDown=0.095 stepUp=0.0288899 baseMid=0.195 extra=0.017334 finalMid=0.212334
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=2 liftOff=0 touchDown=0.0633645 stepUp=0.0633645 baseMid=0.163364 extra=0.0380187 finalMid=0.201383
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=4 liftOff=0.0633645 touchDown=0.095 stepUp=0.0316355 baseMid=0.195 extra=0.0189813 finalMid=0.213981
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=3 liftOff=0.0661101 touchDown=0.095 stepUp=0.0288899 baseMid=0.195 extra=0.017334 finalMid=0.212334
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=2 liftOff=0 touchDown=0.0641072 stepUp=0.0641072 baseMid=0.164107 extra=0.0384643 finalMid=0.202572
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=4 liftOff=0.0641072 touchDown=0.095 stepUp=0.0308928 baseMid=0.195 extra=0.0185357 finalMid=0.213536
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=3 liftOff=0.0661101 touchDown=0.095 stepUp=0.0288899 baseMid=0.195 extra=0.017334 finalMid=0.212334
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=2 liftOff=0 touchDown=0.0660658 stepUp=0.0660658 baseMid=0.166066 extra=0.0396395 finalMid=0.205705
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=4 liftOff=0.0660658 touchDown=0.095 stepUp=0.0289342 baseMid=0.195 extra=0.0173605 finalMid=0.212361
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=3 liftOff=0.0661101 touchDown=0.095 stepUp=0.0288899 baseMid=0.195 extra=0.017334 finalMid=0.212334
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=4 liftOff=0.0660658 touchDown=0.095 stepUp=0.0289342 baseMid=0.195 extra=0.0173605 finalMid=0.212361
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=5 liftOff=0.0875283 touchDown=0.095 stepUp=0.00747166 baseMid=0.195 extra=0 finalMid=0.195
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=4 liftOff=0.0660658 touchDown=0.095 stepUp=0.0289342 baseMid=0.195 extra=0.0173605 finalMid=0.212361
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=5 liftOff=0.0600143 touchDown=0.095 stepUp=0.0349857 baseMid=0.195 extra=0.0209914 finalMid=0.215991
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=4 liftOff=0.0660658 touchDown=0.095 stepUp=0.0289342 baseMid=0.195 extra=0.0173605 finalMid=0.212361
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=5 liftOff=0.0617722 touchDown=0.095 stepUp=0.0332278 baseMid=0.195 extra=0.0199367 finalMid=0.214937
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=4 liftOff=0.0660658 touchDown=0.095 stepUp=0.0289342 baseMid=0.195 extra=0.0173605 finalMid=0.212361
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=5 liftOff=0.0606852 touchDown=0.095 stepUp=0.0343148 baseMid=0.195 extra=0.0205889 finalMid=0.215589
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0.0660658 touchDown=0.095 stepUp=0.0289342 baseMid=0.195 extra=0.0173605 finalMid=0.212361
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=4 liftOff=0.0617963 touchDown=0.095 stepUp=0.0332037 baseMid=0.195 extra=0.0199222 finalMid=0.214922
+[ros2_control_node-3] [WARN] [1775744726.496052199] [controller_manager]: Overrun might occur, Total time : 1002.144 us (Expected < 1000.000 us) --> Read time : 25.671 us, Update time : 835.663 us, Write time : 140.810 us
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0.0660658 touchDown=0.095 stepUp=0.0289342 baseMid=0.195 extra=0.0173605 finalMid=0.212361
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=4 liftOff=0.0622703 touchDown=0.095 stepUp=0.0327297 baseMid=0.195 extra=0.0196378 finalMid=0.214638
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0.0660658 touchDown=0.095 stepUp=0.0289342 baseMid=0.195 extra=0.0173605 finalMid=0.212361
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=4 liftOff=0.0632227 touchDown=0.095 stepUp=0.0317773 baseMid=0.195 extra=0.0190664 finalMid=0.214066
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0.0660658 touchDown=0.095 stepUp=0.0289342 baseMid=0.195 extra=0.0173605 finalMid=0.212361
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=2 liftOff=0 touchDown=0.0645671 stepUp=0.0645671 baseMid=0.164567 extra=0.0387403 finalMid=0.203307
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=4 liftOff=0.0645671 touchDown=0.095 stepUp=0.0304329 baseMid=0.195 extra=0.0182597 finalMid=0.21326
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=5 liftOff=0 touchDown=0.095 stepUp=0.095 baseMid=0.195 extra=0.057 finalMid=0.252
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=2 liftOff=0 touchDown=0.0654898 stepUp=0.0654898 baseMid=0.16549 extra=0.0392939 finalMid=0.204784
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=4 liftOff=0.0654898 touchDown=0.095 stepUp=0.0295102 baseMid=0.195 extra=0.0177061 finalMid=0.212706
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0 touchDown=0.0710803 stepUp=0.0710803 baseMid=0.17108 extra=0.0426482 finalMid=0.213729
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=5 liftOff=0.0710803 touchDown=0.095 stepUp=0.0239197 baseMid=0.195 extra=0.0143518 finalMid=0.209352
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=4 liftOff=0.0654898 touchDown=0.095 stepUp=0.0295102 baseMid=0.195 extra=0.0177061 finalMid=0.212706
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0 touchDown=0.0610783 stepUp=0.0610783 baseMid=0.161078 extra=0.036647 finalMid=0.197725
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=5 liftOff=0.0610783 touchDown=0.095 stepUp=0.0339217 baseMid=0.195 extra=0.020353 finalMid=0.215353
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=4 liftOff=0.0654898 touchDown=0.095 stepUp=0.0295102 baseMid=0.195 extra=0.0177061 finalMid=0.212706
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0 touchDown=0.0623962 stepUp=0.0623962 baseMid=0.162396 extra=0.0374377 finalMid=0.199834
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=5 liftOff=0.0623962 touchDown=0.095 stepUp=0.0326038 baseMid=0.195 extra=0.0195623 finalMid=0.214562
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=4 liftOff=0.0654898 touchDown=0.095 stepUp=0.0295102 baseMid=0.195 extra=0.0177061 finalMid=0.212706
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0 touchDown=0.0613886 stepUp=0.0613886 baseMid=0.161389 extra=0.0368331 finalMid=0.198222
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=5 liftOff=0.0613886 touchDown=0.095 stepUp=0.0336114 baseMid=0.195 extra=0.0201669 finalMid=0.215167
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=4 liftOff=0.0654898 touchDown=0.095 stepUp=0.0295102 baseMid=0.195 extra=0.0177061 finalMid=0.212706
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0 touchDown=0.0609864 stepUp=0.0609864 baseMid=0.160986 extra=0.0365918 finalMid=0.197578
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=5 liftOff=0.0609864 touchDown=0.095 stepUp=0.0340136 baseMid=0.195 extra=0.0204082 finalMid=0.215408
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=4 liftOff=0.0654898 touchDown=0.095 stepUp=0.0295102 baseMid=0.195 extra=0.0177061 finalMid=0.212706
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=2 liftOff=0 touchDown=0.0611878 stepUp=0.0611878 baseMid=0.161188 extra=0.0367127 finalMid=0.1979
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=4 liftOff=0.0611878 touchDown=0.095 stepUp=0.0338122 baseMid=0.195 extra=0.0202873 finalMid=0.215287
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=3 liftOff=0.0654898 touchDown=0.095 stepUp=0.0295102 baseMid=0.195 extra=0.0177061 finalMid=0.212706
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=2 liftOff=0 touchDown=0.061865 stepUp=0.061865 baseMid=0.161865 extra=0.037119 finalMid=0.198984
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=4 liftOff=0.061865 touchDown=0.095 stepUp=0.033135 baseMid=0.195 extra=0.019881 finalMid=0.214881
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=3 liftOff=0.0654898 touchDown=0.095 stepUp=0.0295102 baseMid=0.195 extra=0.0177061 finalMid=0.212706
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=2 liftOff=0 touchDown=0.0626524 stepUp=0.0626524 baseMid=0.162652 extra=0.0375914 finalMid=0.200244
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=4 liftOff=0.0626524 touchDown=0.095 stepUp=0.0323476 baseMid=0.195 extra=0.0194086 finalMid=0.214409
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=3 liftOff=0.0654898 touchDown=0.095 stepUp=0.0295102 baseMid=0.195 extra=0.0177061 finalMid=0.212706
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=2 liftOff=0 touchDown=0.0633631 stepUp=0.0633631 baseMid=0.163363 extra=0.0380179 finalMid=0.201381
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=4 liftOff=0.0633631 touchDown=0.095 stepUp=0.0316369 baseMid=0.195 extra=0.0189821 finalMid=0.213982
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=3 liftOff=0.0654898 touchDown=0.095 stepUp=0.0295102 baseMid=0.195 extra=0.0177061 finalMid=0.212706
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=2 liftOff=0 touchDown=0.0640877 stepUp=0.0640877 baseMid=0.164088 extra=0.0384526 finalMid=0.20254
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=4 liftOff=0.0640877 touchDown=0.095 stepUp=0.0309123 baseMid=0.195 extra=0.0185474 finalMid=0.213547
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=3 liftOff=0.0654898 touchDown=0.095 stepUp=0.0295102 baseMid=0.195 extra=0.0177061 finalMid=0.212706
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=2 liftOff=0 touchDown=0.0661563 stepUp=0.0661563 baseMid=0.166156 extra=0.0396938 finalMid=0.20585
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=4 liftOff=0.0661563 touchDown=0.095 stepUp=0.0288437 baseMid=0.195 extra=0.0173062 finalMid=0.212306
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=3 liftOff=0.0654898 touchDown=0.095 stepUp=0.0295102 baseMid=0.195 extra=0.0177061 finalMid=0.212706
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=6 liftOff=0 touchDown=0.095 stepUp=0.095 baseMid=0.195 extra=0.057 finalMid=0.252
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=5 liftOff=0.0814603 touchDown=0.095 stepUp=0.0135397 baseMid=0.195 extra=0 finalMid=0.195
+[ros2_control_node-3] [WARN] [1775744727.084093928] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 1000 Hz. The loop took 1.108662 ms (missed cycles : 2).
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=4 liftOff=0.0661563 touchDown=0.095 stepUp=0.0288437 baseMid=0.195 extra=0.0173062 finalMid=0.212306
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=5 liftOff=0.0611102 touchDown=0.095 stepUp=0.0338898 baseMid=0.195 extra=0.0203339 finalMid=0.215334
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=4 liftOff=0.0661563 touchDown=0.095 stepUp=0.0288437 baseMid=0.195 extra=0.0173062 finalMid=0.212306
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=5 liftOff=0.0622311 touchDown=0.095 stepUp=0.0327689 baseMid=0.195 extra=0.0196613 finalMid=0.214661
+[ros2_control_node-3] [INFO] [1775744727.167359773] [GaitManager]: Switch to gait: stance
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=5 liftOff=0.0606543 touchDown=0.095 stepUp=0.0343457 baseMid=0.195 extra=0.0206074 finalMid=0.215607
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=4 liftOff=0.0661563 touchDown=0.095 stepUp=0.0288437 baseMid=0.195 extra=0.0173062 finalMid=0.212306
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=5 liftOff=0.0616571 touchDown=0.095 stepUp=0.0333429 baseMid=0.195 extra=0.0200058 finalMid=0.215006
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0.0661563 touchDown=0.095 stepUp=0.0288437 baseMid=0.195 extra=0.0173062 finalMid=0.212306
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=4 liftOff=0.0623408 touchDown=0.095 stepUp=0.0326592 baseMid=0.195 extra=0.0195955 finalMid=0.214595
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=4 liftOff=0.0633039 touchDown=0.095 stepUp=0.0316961 baseMid=0.195 extra=0.0190177 finalMid=0.214018
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=2 liftOff=0 touchDown=0.0646508 stepUp=0.0646508 baseMid=0.164651 extra=0.0387905 finalMid=0.203441
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=2 liftOff=0 touchDown=0.0663016 stepUp=0.0663016 baseMid=0.166302 extra=0.0397809 finalMid=0.206082
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0 touchDown=0.0616897 stepUp=0.0616897 baseMid=0.16169 extra=0.0370138 finalMid=0.198703
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0 touchDown=0.0621811 stepUp=0.0621811 baseMid=0.162181 extra=0.0373087 finalMid=0.19949
+[ros2_control_node-3] [WARN] [1775744727.526350652] [controller_manager]: Overrun might occur, Total time : 1291.745 us (Expected < 1000.000 us) --> Read time : 12.770 us, Update time : 1203.962 us, Write time : 75.013 us
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0 touchDown=0.06251 stepUp=0.06251 baseMid=0.16251 extra=0.037506 finalMid=0.200016
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0 touchDown=0.0616159 stepUp=0.0616159 baseMid=0.161616 extra=0.0369695 finalMid=0.198585
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0 touchDown=0.0614356 stepUp=0.0614356 baseMid=0.161436 extra=0.0368614 finalMid=0.198297
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0 touchDown=0.061587 stepUp=0.061587 baseMid=0.161587 extra=0.0369522 finalMid=0.198539
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=2 liftOff=0 touchDown=0.0622117 stepUp=0.0622117 baseMid=0.162212 extra=0.037327 finalMid=0.199539
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=2 liftOff=0 touchDown=0.0629979 stepUp=0.0629979 baseMid=0.162998 extra=0.0377987 finalMid=0.200797
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=2 liftOff=0 touchDown=0.0637517 stepUp=0.0637517 baseMid=0.163752 extra=0.038251 finalMid=0.202003
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=2 liftOff=0 touchDown=0.0643836 stepUp=0.0643836 baseMid=0.164384 extra=0.0386302 finalMid=0.203014
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=2 liftOff=0 touchDown=0.0657437 stepUp=0.0657437 baseMid=0.165744 extra=0.0394462 finalMid=0.20519
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=2 liftOff=0 touchDown=0.0652696 stepUp=0.0652696 baseMid=0.16527 extra=0.0391617 finalMid=0.204431
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=3 liftOff=0 touchDown=0.0636566 stepUp=0.0636566 baseMid=0.163657 extra=0.0381939 finalMid=0.20185
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=3 liftOff=0 touchDown=0.0635909 stepUp=0.0635909 baseMid=0.163591 extra=0.0381546 finalMid=0.201746
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=3 liftOff=0 touchDown=0.062617 stepUp=0.062617 baseMid=0.162617 extra=0.0375702 finalMid=0.200187
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=3 liftOff=0 touchDown=0.0627614 stepUp=0.0627614 baseMid=0.162761 extra=0.0376569 finalMid=0.200418
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=3 liftOff=0 touchDown=0.063337 stepUp=0.063337 baseMid=0.163337 extra=0.0380022 finalMid=0.201339
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=2 liftOff=0 touchDown=0.0642548 stepUp=0.0642548 baseMid=0.164255 extra=0.0385529 finalMid=0.202808
+[ros2_control_node-3] [WARN] [1775744728.088089702] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 1000 Hz. The loop took 1.104852 ms (missed cycles : 2).
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=2 liftOff=0 touchDown=0.0650818 stepUp=0.0650818 baseMid=0.165082 extra=0.0390491 finalMid=0.204131
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=2 liftOff=0 touchDown=0.0662213 stepUp=0.0662213 baseMid=0.166221 extra=0.0397328 finalMid=0.205954
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0 touchDown=0.0611772 stepUp=0.0611772 baseMid=0.161177 extra=0.0367063 finalMid=0.197884
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=2 liftOff=0 touchDown=0.0669676 stepUp=0.0669676 baseMid=0.166968 extra=0.0401806 finalMid=0.207148
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0 touchDown=0.0657748 stepUp=0.0657748 baseMid=0.165775 extra=0.0394649 finalMid=0.20524
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=2 liftOff=0 touchDown=0.0733305 stepUp=0.0733305 baseMid=0.173331 extra=0.0439983 finalMid=0.217329
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0 touchDown=0.0651655 stepUp=0.0651655 baseMid=0.165165 extra=0.0390993 finalMid=0.204265
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=2 liftOff=0 touchDown=0.0731754 stepUp=0.0731754 baseMid=0.173175 extra=0.0439053 finalMid=0.217081
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0 touchDown=0.0649572 stepUp=0.0649572 baseMid=0.164957 extra=0.0389743 finalMid=0.203932
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=2 liftOff=0 touchDown=0.066647 stepUp=0.066647 baseMid=0.166647 extra=0.0399882 finalMid=0.206635
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0 touchDown=0.0650172 stepUp=0.0650172 baseMid=0.165017 extra=0.0390103 finalMid=0.204028
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=2 liftOff=0 touchDown=0.0643716 stepUp=0.0643716 baseMid=0.164372 extra=0.038623 finalMid=0.202995
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0 touchDown=0.0652209 stepUp=0.0652209 baseMid=0.165221 extra=0.0391325 finalMid=0.204353
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=2 liftOff=0 touchDown=0.06505 stepUp=0.06505 baseMid=0.16505 extra=0.03903 finalMid=0.20408
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0 touchDown=0.0653214 stepUp=0.0653214 baseMid=0.165321 extra=0.0391929 finalMid=0.204514
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=2 liftOff=0 touchDown=0.0653174 stepUp=0.0653174 baseMid=0.165317 extra=0.0391904 finalMid=0.204508
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=3 liftOff=0 touchDown=0.0653788 stepUp=0.0653788 baseMid=0.165379 extra=0.0392273 finalMid=0.204606
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=2 liftOff=0 touchDown=0.0654369 stepUp=0.0654369 baseMid=0.165437 extra=0.0392622 finalMid=0.204699
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=2 liftOff=0 touchDown=0.0654158 stepUp=0.0654158 baseMid=0.165416 extra=0.0392495 finalMid=0.204665
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=1 liftOff=0 touchDown=0.0654969 stepUp=0.0654969 baseMid=0.165497 extra=0.0392981 finalMid=0.204795
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=2 liftOff=0 touchDown=0.0654435 stepUp=0.0654435 baseMid=0.165443 extra=0.0392661 finalMid=0.20471
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=1 liftOff=0 touchDown=0.065527 stepUp=0.065527 baseMid=0.165527 extra=0.0393162 finalMid=0.204843
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=2 liftOff=0 touchDown=0.0655336 stepUp=0.0655336 baseMid=0.165534 extra=0.0393202 finalMid=0.204854
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=1 liftOff=0 touchDown=0.0656072 stepUp=0.0656072 baseMid=0.165607 extra=0.0393643 finalMid=0.204972
+[ros2_control_node-3] [WARN] [1775744728.550737438] [controller_manager]: Overrun might occur, Total time : 2685.135 us (Expected < 1000.000 us) --> Read time : 10.492 us, Update time : 2541.083 us, Write time : 133.560 us
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=2 liftOff=0 touchDown=0.0654954 stepUp=0.0654954 baseMid=0.165495 extra=0.0392972 finalMid=0.204793
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=1 liftOff=0 touchDown=0.0655551 stepUp=0.0655551 baseMid=0.165555 extra=0.039333 finalMid=0.204888
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=2 liftOff=0 touchDown=0.0655216 stepUp=0.0655216 baseMid=0.165522 extra=0.039313 finalMid=0.204835
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=1 liftOff=0 touchDown=0.065564 stepUp=0.065564 baseMid=0.165564 extra=0.0393384 finalMid=0.204902
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=2 liftOff=0 touchDown=0.0655373 stepUp=0.0655373 baseMid=0.165537 extra=0.0393224 finalMid=0.20486
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=1 liftOff=0 touchDown=0.0655703 stepUp=0.0655703 baseMid=0.16557 extra=0.0393422 finalMid=0.204912
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=2 liftOff=0 touchDown=0.0655472 stepUp=0.0655472 baseMid=0.165547 extra=0.0393283 finalMid=0.204876
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=1 liftOff=0 touchDown=0.0655833 stepUp=0.0655833 baseMid=0.165583 extra=0.03935 finalMid=0.204933
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=2 liftOff=0 touchDown=0.0655522 stepUp=0.0655522 baseMid=0.165552 extra=0.0393313 finalMid=0.204883
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=1 liftOff=0 touchDown=0.0655977 stepUp=0.0655977 baseMid=0.165598 extra=0.0393586 finalMid=0.204956
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=2 liftOff=0 touchDown=0.0655551 stepUp=0.0655551 baseMid=0.165555 extra=0.039333 finalMid=0.204888
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=1 liftOff=0 touchDown=0.0656108 stepUp=0.0656108 baseMid=0.165611 extra=0.0393665 finalMid=0.204977
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=2 liftOff=0 touchDown=0.0655577 stepUp=0.0655577 baseMid=0.165558 extra=0.0393346 finalMid=0.204892
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=1 phase=1 liftOff=0 touchDown=0.0656231 stepUp=0.0656231 baseMid=0.165623 extra=0.0393738 finalMid=0.204997
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=1 liftOff=0 touchDown=0.0655495 stepUp=0.0655495 baseMid=0.16555 extra=0.0393297 finalMid=0.204879
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=1 liftOff=0 touchDown=0.0655498 stepUp=0.0655498 baseMid=0.16555 extra=0.0393299 finalMid=0.20488
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=1 liftOff=0 touchDown=0.0655506 stepUp=0.0655506 baseMid=0.165551 extra=0.0393304 finalMid=0.204881
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=1 liftOff=0 touchDown=0.06555 stepUp=0.06555 baseMid=0.16555 extra=0.03933 finalMid=0.20488
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=1 liftOff=0 touchDown=0.0655484 stepUp=0.0655484 baseMid=0.165548 extra=0.039329 finalMid=0.204877
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=1 liftOff=0 touchDown=0.0655469 stepUp=0.0655469 baseMid=0.165547 extra=0.0393282 finalMid=0.204875
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=1 liftOff=0 touchDown=0.065545 stepUp=0.065545 baseMid=0.165545 extra=0.039327 finalMid=0.204872
+[ros2_control_node-3] [WARN] [1775744729.095195005] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 1000 Hz. The loop took 1.209814 ms (missed cycles : 2).
+[ros2_control_node-3] [HeightOnlySwingDebug] leg=0 phase=1 liftOff=0 touchDown=0.0655426 stepUp=0.0655426 baseMid=0.165543 extra=0.0393256 finalMid=0.204868
+[ros2_control_node-3] [WARN] [1775744729.558172663] [controller_manager]: Overrun might occur, Total time : 1108.257 us (Expected < 1000.000 us) --> Read time : 7.920 us, Update time : 935.589 us, Write time : 164.748 us
+[ros2_control_node-3] [WARN] [1775744730.098056712] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 1000 Hz. The loop took 1.071782 ms (missed cycles : 2).
+[ros2_control_node-3] [WARN] [1775744730.568054716] [controller_manager]: Overrun might occur, Total time : 1002.172 us (Expected < 1000.000 us) --> Read time : 11.830 us, Update time : 883.747 us, Write time : 106.595 us
+[ros2_control_node-3] [WARN] [1775744731.104839350] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 1000 Hz. The loop took 2.854464 ms (missed cycles : 3).
+[ros2_control_node-3] [WARN] [1775744731.588075330] [controller_manager]: Overrun might occur, Total time : 1022.100 us (Expected < 1000.000 us) --> Read time : 11.954 us, Update time : 848.150 us, Write time : 161.996 us
+[ros2_control_node-3] [WARN] [1775744732.113037439] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 1000 Hz. The loop took 1.051215 ms (missed cycles : 2).
+[ros2_control_node-3] [WARN] [1775744732.593137050] [controller_manager]: Overrun might occur, Total time : 1059.342 us (Expected < 1000.000 us) --> Read time : 25.938 us, Update time : 878.321 us, Write time : 155.083 us
+[ros2_control_node-3] [WARN] [1775744733.147040934] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 1000 Hz. The loop took 3.056079 ms (missed cycles : 4).
+[ros2_control_node-3] [WARN] [1775744733.608925413] [controller_manager]: Overrun might occur, Total time : 2879.810 us (Expected < 1000.000 us) --> Read time : 5.762 us, Update time : 2756.280 us, Write time : 117.768 us
+[ros2_control_node-3] [WARN] [1775744734.163126777] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 1000 Hz. The loop took 1.141871 ms (missed cycles : 2).
+[ros2_control_node-3] [WARN] [1775744734.612051168] [controller_manager]: Overrun might occur, Total time : 1003.421 us (Expected < 1000.000 us) --> Read time : 7.984 us, Update time : 845.885 us, Write time : 149.552 us
+[WARNING] [launch]: user interrupted with ctrl-c (SIGINT)
+[INFO] [fake_elevation_map_node-4]: sending signal 'SIGINT' to process[fake_elevation_map_node-4]
+[INFO] [ros2_control_node-3]: sending signal 'SIGINT' to process[ros2_control_node-3]
+[INFO] [robot_state_publisher-2]: sending signal 'SIGINT' to process[robot_state_publisher-2]
+[INFO] [rviz2-1]: sending signal 'SIGINT' to process[rviz2-1]
+[fake_elevation_map_node-4] [INFO] [1775744734.820812443] [rclcpp]: signal_handler(SIGINT/SIGTERM)
+[ros2_control_node-3] [INFO] [1775744734.820806547] [rclcpp]: signal_handler(SIGINT/SIGTERM)
+[ros2_control_node-3] [INFO] [1775744734.820885493] [controller_manager]: Shutdown request received....
+[ros2_control_node-3] [INFO] [1775744734.820918900] [controller_manager]: Shutting down all controllers in the controller manager.
+[ros2_control_node-3] [INFO] [1775744734.820947910] [controller_manager]: Deactivating controller 'imu_sensor_broadcaster'
+[ros2_control_node-3] [INFO] [1775744734.820989848] [controller_manager]: Shutting down controller 'imu_sensor_broadcaster'
+[ros2_control_node-3] [INFO] [1775744734.821136427] [controller_manager]: Deactivating controller 'ocs2_quadruped_controller_height_only_v1'
+[rviz2-1] [INFO] [1775744734.820808194] [rclcpp]: signal_handler(SIGINT/SIGTERM)
+[robot_state_publisher-2] [INFO] [1775744734.821003943] [rclcpp]: signal_handler(SIGINT/SIGTERM)
+[ros2_control_node-3] [INFO] [1775744734.821236077] [controller_manager]: Shutting down controller 'ocs2_quadruped_controller_height_only_v1'
+[ros2_control_node-3] [INFO] [1775744734.821303405] [controller_manager]: Deactivating controller 'joint_state_broadcaster'
+[ros2_control_node-3] [INFO] [1775744734.821341766] [controller_manager]: Shutting down controller 'joint_state_broadcaster'
+[ros2_control_node-3] [INFO] [1775744734.821387425] [resource_manager]: 'deactivate' hardware 'UnitreeSystem' 
+[ros2_control_node-3] [INFO] [1775744734.821414482] [resource_manager]: Successful 'deactivate' of hardware 'UnitreeSystem'
+[ros2_control_node-3] [INFO] [1775744734.821420900] [resource_manager]: 'shutdown' hardware 'UnitreeSystem' 
+[ros2_control_node-3] [INFO] [1775744734.821424737] [resource_manager]: Successful 'shutdown' of hardware 'UnitreeSystem'
+[ros2_control_node-3] [INFO] [1775744734.821494644] [controller_manager]: Shutting down the controller manager.
+[ros2_control_node-3] [ERROR] [1775744734.821583925] [controller_manager.pal_statistics]: Exception in publisher thread: context cannot be slept with because it's invalid!. Aborting!
+[ros2_control_node-3] [ERROR] [1775744734.821584257] [controller_manager.pal_statistics]: Exception in publisher thread: context cannot be slept with because it's invalid!. Aborting!
+[fake_elevation_map_node-4] [INFO] [1775744734.823970499] [rclcpp]: signal_handler(SIGINT/SIGTERM)
+[ros2_control_node-3] [INFO] [1775744734.824103296] [controller_manager.pal_statistics]: Async messages lost 0
+[ros2_control_node-3] [INFO] [1775744734.824115578] [controller_manager.pal_statistics]: publish_async_failures_ 4
+[robot_state_publisher-2] [INFO] [1775744734.825691543] [rclcpp]: signal_handler(SIGINT/SIGTERM)
+[rviz2-1] [INFO] [1775744734.826294317] [rclcpp]: signal_handler(SIGINT/SIGTERM)
+[ERROR] [ros2_control_node-3]: process has died [pid 36668, exit code -2, cmd '/opt/ros/jazzy/lib/controller_manager/ros2_control_node --ros-args --params-file /home/ho/ros2_ws/src/quadruped_ros2_control/evaluation/go2_terrain_eval/results/20260409_232453_height_only_box_h095_height_only_v1_perceptive_nominal_model2_h095_runtimeyaml_v1/robot_control_perceptive_height_only_v1.runtime.yaml -r ~/robot_description:=/robot_description'].
+[INFO] [robot_state_publisher-2]: process has finished cleanly [pid 36667]
+[INFO] [fake_elevation_map_node-4]: process has finished cleanly [pid 36669]
+[INFO] [rviz2-1]: process has finished cleanly [pid 36666]

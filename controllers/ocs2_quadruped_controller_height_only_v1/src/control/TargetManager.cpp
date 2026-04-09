@@ -55,6 +55,36 @@ namespace ocs2::legged_robot
         catch (...)
         {
         }
+        try
+        {
+            loadData::loadCppDataType(task_file, "manual_planar_terrain.box_center_x", box_center_x_);
+            loadData::loadCppDataType(task_file, "manual_planar_terrain.box_size_x", box_size_x_);
+            loadData::loadCppDataType(task_file, "manual_planar_terrain.perceptive_trigger_distance", step_up_assist_trigger_distance_);
+        }
+        catch (...)
+        {
+        }
+        try
+        {
+            loadData::loadCppDataType(task_file, "model_settings.stepUpAssistForwardVelocityBoost", step_up_assist_forward_velocity_boost_);
+        }
+        catch (...)
+        {
+        }
+        try
+        {
+            loadData::loadCppDataType(task_file, "model_settings.stepUpAssistTargetY", step_up_assist_target_y_);
+        }
+        catch (...)
+        {
+        }
+        try
+        {
+            loadData::loadCppDataType(task_file, "model_settings.stepUpAssistTargetYaw", step_up_assist_target_yaw_);
+        }
+        catch (...)
+        {
+        }
 
         twist_sub_ = node_->create_subscription<geometry_msgs::msg::Twist>(
             "/cmd_vel", 10, [this](const geometry_msgs::msg::Twist::SharedPtr msg)
@@ -123,6 +153,16 @@ namespace ocs2::legged_robot
         }
 
         const vector_t currentPose = observation.state.segment<6>(6);
+        const scalar_t boxMinX = box_center_x_ - 0.5 * box_size_x_;
+        const bool stepUpAssistActive =
+            box_size_x_ > 0.0 &&
+            step_up_assist_trigger_distance_ > 0.0 &&
+            currentPose(0) >= (boxMinX - step_up_assist_trigger_distance_) &&
+            currentPose(0) <= (boxMinX + 0.10);
+        if (stepUpAssistActive)
+        {
+            cmdGoal[0] += step_up_assist_forward_velocity_boost_;
+        }
         const Eigen::Matrix<scalar_t, 3, 1> zyx = currentPose.tail(3);
         vector_t cmd_vel_rot = getRotationMatrixFromZyxEulerAngles(zyx) * cmdGoal.head(3);
 
@@ -130,9 +170,9 @@ namespace ocs2::legged_robot
         {
             vector_t target(6);
             target(0) = currentPose(0) + cmd_vel_rot(0) * time_to_target_;
-            target(1) = currentPose(1) + cmd_vel_rot(1) * time_to_target_;
+            target(1) = stepUpAssistActive ? step_up_assist_target_y_ : currentPose(1) + cmd_vel_rot(1) * time_to_target_;
             target(2) = command_height_;
-            target(3) = currentPose(3) + cmdGoal(3) * time_to_target_;
+            target(3) = stepUpAssistActive ? step_up_assist_target_yaw_ : currentPose(3) + cmdGoal(3) * time_to_target_;
             target(4) = 0;
             target(5) = 0;
             return target;
