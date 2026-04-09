@@ -41,6 +41,9 @@ def launch_setup(context, *args, **kwargs):
         controller_param_file.write(
             "ocs2_quadruped_controller:\n"
             "  ros__parameters:\n"
+            "    estimator_type: ground_truth\n"
+            "    odom_name: odometer\n"
+            "    odom_interfaces: [position.x, position.y, position.z, velocity.x, velocity.y, velocity.z]\n"
             f"    enable_perceptive: {'true' if enable_perceptive else 'false'}\n"
             f"    enable_perceptive_reference_modification: {'true' if enable_perceptive_reference_modification else 'false'}\n"
             f"    enable_perceptive_foot_placement_constraint: {'true' if enable_perceptive_foot_placement_constraint else 'false'}\n"
@@ -143,9 +146,26 @@ def launch_setup(context, *args, **kwargs):
             {
                 "scene_xml": terrain_scene_file,
                 "terrain_topic": "/convex_plane_decomposition_ros/planar_terrain",
-                "frame_id": "map",
+                "frame_id": "odom",
                 "resolution": 0.03,
                 "publish_rate": 2.0,
+            }
+        ],
+    )
+
+    planar_terrain_visualizer = Node(
+        package=package_controller,
+        executable="planar_terrain_visualizer",
+        name="planar_terrain_visualizer",
+        output="screen",
+        parameters=[
+            {
+                "terrain_topic": "/convex_plane_decomposition_ros/planar_terrain",
+                "grid_map_topic": "/convex_plane_decomposition_ros/filtered_map",
+                "boundary_topic": "/convex_plane_decomposition_ros/boundaries",
+                "inset_topic": "/convex_plane_decomposition_ros/insets",
+                "republish_rate": 1.0,
+                "line_width": 0.01,
             }
         ],
     )
@@ -169,8 +189,10 @@ def launch_setup(context, *args, **kwargs):
         ),
     ]
 
-    if enable_perceptive and publish_static_terrain:
-        launch_nodes.append(static_terrain_publisher)
+    if enable_perceptive:
+        launch_nodes.append(planar_terrain_visualizer)
+        if publish_static_terrain:
+            launch_nodes.append(static_terrain_publisher)
 
     return launch_nodes
 

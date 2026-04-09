@@ -291,7 +291,7 @@ class StaticPlanarTerrainPublisher final : public rclcpp::Node {
         "scene_xml", "/home/tony/unitree_mujoco/unitree_robots/go2/basic_step.xml");
     const auto topic = this->declare_parameter<std::string>(
         "terrain_topic", "/convex_plane_decomposition_ros/planar_terrain");
-    const auto frameId = this->declare_parameter<std::string>("frame_id", "map");
+    const auto frameId = this->declare_parameter<std::string>("frame_id", "odom");
     const auto resolution = this->declare_parameter<double>("resolution", 0.03);
     const auto publishRate = this->declare_parameter<double>("publish_rate", 0.0);
 
