@@ -206,7 +206,55 @@ bool surfaceHeightAt(const BoxSurface& surface, double x, double y, double& z) {
   return true;
 }
 
-PlanarTerrain buildPlanarTerrain(const SceneDescription& scene, double resolution, const std::string& frameId) {
+void fillSmoothedLayer(grid_map::GridMap& map,
+                       const std::string& sourceLayer,
+                       const std::string& smoothLayer,
+                       double smoothingRadius) {
+  if (smoothingRadius <= 0.0) {
+    for (grid_map::GridMapIterator it(map); !it.isPastEnd(); ++it) {
+      map.at(smoothLayer, *it) = map.at(sourceLayer, *it);
+    }
+    return;
+  }
+
+  const double resolution = map.getResolution();
+  const int radiusCells = std::max(1, static_cast<int>(std::ceil(smoothingRadius / resolution)));
+  const double sigma = std::max(resolution, smoothingRadius * 0.5);
+  const double twoSigmaSquared = 2.0 * sigma * sigma;
+  const auto mapSize = map.getSize();
+
+  for (grid_map::GridMapIterator it(map); !it.isPastEnd(); ++it) {
+    const auto centerIndex = *it;
+    double weightedHeight = 0.0;
+    double totalWeight = 0.0;
+
+    for (int dx = -radiusCells; dx <= radiusCells; ++dx) {
+      for (int dy = -radiusCells; dy <= radiusCells; ++dy) {
+        grid_map::Index neighbor = centerIndex;
+        neighbor(0) += dx;
+        neighbor(1) += dy;
+        if (neighbor(0) < 0 || neighbor(1) < 0 || neighbor(0) >= mapSize(0) || neighbor(1) >= mapSize(1)) {
+          continue;
+        }
+
+        const double distanceSquared =
+            static_cast<double>(dx * dx + dy * dy) * resolution * resolution;
+        const double weight = std::exp(-distanceSquared / twoSigmaSquared);
+        weightedHeight += weight * static_cast<double>(map.at(sourceLayer, neighbor));
+        totalWeight += weight;
+      }
+    }
+
+    map.at(smoothLayer, *it) = totalWeight > 0.0
+                                   ? static_cast<float>(weightedHeight / totalWeight)
+                                   : map.at(sourceLayer, *it);
+  }
+}
+
+PlanarTerrain buildPlanarTerrain(const SceneDescription& scene,
+                                 double resolution,
+                                 const std::string& frameId,
+                                 double smoothingRadius) {
   double minX = std::numeric_limits<double>::infinity();
   double maxX = -std::numeric_limits<double>::infinity();
   double minY = std::numeric_limits<double>::infinity();
@@ -277,8 +325,9 @@ PlanarTerrain buildPlanarTerrain(const SceneDescription& scene, double resolutio
     }
 
     terrain.gridMap.at("elevation", *it) = static_cast<float>(height);
-    terrain.gridMap.at("smooth_planar", *it) = static_cast<float>(height);
   }
+
+  fillSmoothedLayer(terrain.gridMap, "elevation", "smooth_planar", smoothingRadius);
 
   return terrain;
 }
@@ -293,10 +342,11 @@ class StaticPlanarTerrainPublisher final : public rclcpp::Node {
         "terrain_topic", "/convex_plane_decomposition_ros/planar_terrain");
     const auto frameId = this->declare_parameter<std::string>("frame_id", "odom");
     const auto resolution = this->declare_parameter<double>("resolution", 0.03);
+    const auto smoothingRadius = this->declare_parameter<double>("smoothing_radius", 0.12);
     const auto publishRate = this->declare_parameter<double>("publish_rate", 0.0);
 
     const SceneDescription scene = loadSceneDescription(sceneFile);
-    terrain_ = buildPlanarTerrain(scene, resolution, frameId);
+    terrain_ = buildPlanarTerrain(scene, resolution, frameId, smoothingRadius);
     terrainMsg_ = convex_plane_decomposition::toMessage(terrain_);
 
     rclcpp::QoS qos(1);
@@ -314,8 +364,10 @@ class StaticPlanarTerrainPublisher final : public rclcpp::Node {
     }
 
     RCLCPP_INFO(this->get_logger(),
-                "Publishing static planar terrain from '%s' to '%s' with %zu planar regions (publish_rate=%.2f Hz).",
-                sceneFile.c_str(), topic.c_str(), terrain_.planarRegions.size(), publishRate);
+                "Publishing static planar terrain from '%s' to '%s' with %zu planar regions "
+                "(resolution=%.3f m, smoothing_radius=%.3f m, publish_rate=%.2f Hz).",
+                sceneFile.c_str(), topic.c_str(), terrain_.planarRegions.size(), resolution,
+                smoothingRadius, publishRate);
   }
 
  private:

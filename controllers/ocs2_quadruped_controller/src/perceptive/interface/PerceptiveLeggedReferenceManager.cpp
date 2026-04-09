@@ -4,6 +4,8 @@
 
 #include <utility>
 #include <limits>
+#include <algorithm>
+#include <cmath>
 #include <ocs2_core/misc/Lookup.h>
 #include <ocs2_centroidal_model/AccessHelperFunctions.h>
 #include "ocs2_quadruped_controller/perceptive/interface/PerceptiveLeggedReferenceManager.h"
@@ -25,6 +27,16 @@ namespace ocs2::legged_robot
             }
 
             return basePath;
+        }
+
+        scalar_t clampSymmetric(scalar_t value, scalar_t limit)
+        {
+            return std::clamp(value, -limit, limit);
+        }
+
+        scalar_t clampDelta(scalar_t previousValue, scalar_t candidateValue, scalar_t maxDelta)
+        {
+            return previousValue + std::clamp(candidateValue - previousValue, -maxDelta, maxDelta);
         }
     } // namespace
 
@@ -57,7 +69,16 @@ namespace ocs2::legged_robot
         if (enableReferenceModification_)
         {
             TargetTrajectories newTargetTrajectories;
-            int nodeNum = 11;
+            constexpr int nodeNum = 11;
+            constexpr scalar_t normalSamplingStep = 0.3;
+            constexpr scalar_t pitchBlend = 0.6;
+            constexpr scalar_t heightBlend = 0.5;
+            constexpr scalar_t maxAbsPitch = 0.25;
+            constexpr scalar_t maxPitchDeltaPerNode = 0.06;
+            constexpr scalar_t maxHeightDeltaPerNode = 0.03;
+            const vector_t initBasePose = centroidal_model::getBasePose(initState, info_);
+            scalar_t previousPitch = initBasePose(4);
+            scalar_t previousHeight = initBasePose(2);
             for (size_t i = 0; i < nodeNum; ++i)
             {
                 scalar_t time = initTime + static_cast<double>(i) * timeHorizon / (nodeNum - 1);
@@ -65,30 +86,56 @@ namespace ocs2::legged_robot
                 vector_t input = targetTrajectories.getDesiredInput(time);
 
                 const auto& map = convexRegionSelectorPtr_->getPlanarTerrainPtr()->gridMap;
-                vector_t pos = centroidal_model::getBasePose(state, info_).head(3);
+                auto basePose = centroidal_model::getBasePose(state, info_);
+                const scalar_t x = basePose(0);
+                const scalar_t y = basePose(1);
+                const scalar_t yaw = basePose(3);
+                const scalar_t rawPitch = basePose(4);
+                const scalar_t rawHeight = basePose(2);
 
-                // Base Orientation
-                scalar_t step = 0.3;
-                grid_map::Vector3 normalVector;
-                normalVector(0) = (map.atPosition("smooth_planar", pos + grid_map::Position(-step, 0)) -
-                        map.atPosition("smooth_planar", pos + grid_map::Position(step, 0))) /
-                    (2 * step);
-                normalVector(1) = (map.atPosition("smooth_planar", pos + grid_map::Position(0, -step)) -
-                        map.atPosition("smooth_planar", pos + grid_map::Position(0, step))) /
-                    (2 * step);
-                normalVector(2) = 1;
-                normalVector.normalize();
-                matrix3_t R;
-                scalar_t z = centroidal_model::getBasePose(state, info_)(3);
-                R << cos(z), -sin(z), 0, // clang-format off
-                 sin(z), cos(z), 0,
-                 0, 0, 1;  // clang-format on
-                vector_t v = R.transpose() * normalVector;
-                centroidal_model::getBasePose(state, info_)(4) = atan(v.x() / v.z());
+                scalar_t limitedPitch = rawPitch;
+                scalar_t limitedHeight = rawHeight;
 
-                // Base Z Position
-                centroidal_model::getBasePose(state, info_)(2) =
-                    map.atPosition("smooth_planar", pos) + comHeight_ / cos(centroidal_model::getBasePose(state, info_)(4));
+                try
+                {
+                    grid_map::Vector3 normalVector;
+                    normalVector(0) = (
+                        map.atPosition("smooth_planar", grid_map::Position(x - normalSamplingStep, y)) -
+                        map.atPosition("smooth_planar", grid_map::Position(x + normalSamplingStep, y))) /
+                        (2 * normalSamplingStep);
+                    normalVector(1) = (
+                        map.atPosition("smooth_planar", grid_map::Position(x, y - normalSamplingStep)) -
+                        map.atPosition("smooth_planar", grid_map::Position(x, y + normalSamplingStep))) /
+                        (2 * normalSamplingStep);
+                    normalVector(2) = 1;
+                    normalVector.normalize();
+
+                    matrix3_t R;
+                    R << cos(yaw), -sin(yaw), 0, // clang-format off
+                         sin(yaw), cos(yaw), 0,
+                         0, 0, 1;  // clang-format on
+                    const vector3_t normalInBase = R.transpose() * normalVector;
+                    const scalar_t terrainPitch = std::atan2(normalInBase.x(), normalInBase.z());
+                    limitedPitch = rawPitch + pitchBlend * (terrainPitch - rawPitch);
+                    limitedPitch = clampSymmetric(limitedPitch, maxAbsPitch);
+                    limitedPitch = clampDelta(previousPitch, limitedPitch, maxPitchDeltaPerNode);
+
+                    const scalar_t safeCosPitch = std::max<scalar_t>(0.9, std::cos(limitedPitch));
+                    const scalar_t terrainAwareHeight =
+                        map.atPosition("smooth_planar", grid_map::Position(x, y)) + comHeight_ / safeCosPitch;
+                    limitedHeight = rawHeight + heightBlend * (terrainAwareHeight - rawHeight);
+                    limitedHeight = clampDelta(previousHeight, limitedHeight, maxHeightDeltaPerNode);
+                }
+                catch (const std::exception&)
+                {
+                    limitedPitch = previousPitch;
+                    limitedHeight = previousHeight;
+                }
+
+                basePose(4) = limitedPitch;
+                basePose(2) = limitedHeight;
+                previousPitch = limitedPitch;
+                previousHeight = limitedHeight;
 
                 newTargetTrajectories.timeTrajectory.push_back(time);
                 newTargetTrajectories.stateTrajectory.push_back(state);

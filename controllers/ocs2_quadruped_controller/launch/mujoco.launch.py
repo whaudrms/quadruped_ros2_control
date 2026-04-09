@@ -33,6 +33,7 @@ def launch_setup(context, *args, **kwargs):
     enable_perceptive_foot_collision_constraint = context.launch_configurations['enable_perceptive_foot_collision_constraint'].lower() in ("true", "1", "yes", "on")
     enable_perceptive_body_collision_constraint = context.launch_configurations['enable_perceptive_body_collision_constraint'].lower() in ("true", "1", "yes", "on")
     publish_static_terrain = context.launch_configurations['publish_static_terrain'].lower() in ("true", "1", "yes", "on")
+    terrain_smoothing_radius = float(context.launch_configurations['terrain_smoothing_radius'])
     terrain_scene_file = resolve_scene_file(context.launch_configurations['terrain_scene_file'])
     pkg_path = os.path.join(get_package_share_directory(package_description))
 
@@ -148,6 +149,7 @@ def launch_setup(context, *args, **kwargs):
                 "terrain_topic": "/convex_plane_decomposition_ros/planar_terrain",
                 "frame_id": "odom",
                 "resolution": 0.03,
+                "smoothing_radius": terrain_smoothing_radius,
                 "publish_rate": 2.0,
             }
         ],
@@ -230,7 +232,7 @@ def generate_launch_description():
 
     enable_perceptive_foot_collision_constraint = DeclareLaunchArgument(
         'enable_perceptive_foot_collision_constraint',
-        default_value='true',
+        default_value='false',
         description='Enable perceptive foot collision soft constraints'
     )
 
@@ -238,6 +240,12 @@ def generate_launch_description():
         'enable_perceptive_body_collision_constraint',
         default_value='false',
         description='Enable perceptive body collision soft constraints'
+    )
+
+    terrain_smoothing_radius = DeclareLaunchArgument(
+        'terrain_smoothing_radius',
+        default_value='0.06',
+        description='Gaussian smoothing radius used to generate the smooth_planar layer in meters'
     )
 
     terrain_scene_file = DeclareLaunchArgument(
@@ -254,6 +262,7 @@ def generate_launch_description():
         enable_perceptive_foot_collision_constraint,
         enable_perceptive_body_collision_constraint,
         publish_static_terrain,
+        terrain_smoothing_radius,
         terrain_scene_file,
         OpaqueFunction(function=launch_setup),
     ])
