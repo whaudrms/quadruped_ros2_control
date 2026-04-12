@@ -23,8 +23,12 @@ namespace ocs2::legged_robot
           terrainDataMutexPtr_(terrainDataMutexPtr),
           sdfElevationLayer_(sdfElevationLayer)
     {
+        rclcpp::QoS qos(1);
+        qos.reliable();
+        qos.transient_local();
+
         subscription_ = node_->create_subscription<convex_plane_decomposition_msgs::msg::PlanarTerrain>(
-            mapTopic, 10, [this](const convex_plane_decomposition_msgs::msg::PlanarTerrain msg)
+            mapTopic, qos, [this](const convex_plane_decomposition_msgs::msg::PlanarTerrain msg)
             {
                 std::lock_guard lock(mutex_);
                 updated_ = true;

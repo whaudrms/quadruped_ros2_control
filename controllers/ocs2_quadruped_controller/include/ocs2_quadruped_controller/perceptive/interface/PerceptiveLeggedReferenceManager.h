@@ -63,6 +63,11 @@ namespace ocs2::legged_robot
 
         const CentroidalModelInfo info_;
         feet_array_t<vector3_t> lastLiftoffPos_;
+        contact_flag_t previousContactFlags_{};
+        feet_array_t<bool> hasLatchedContactPosition_{};
+        feet_array_t<bool> activeSwingHeightLatched_{};
+        feet_array_t<scalar_t> latchedSwingLiftOffHeights_{};
+        feet_array_t<scalar_t> latchedSwingTouchDownHeights_{};
 
         std::shared_ptr<ConvexRegionSelector> convexRegionSelectorPtr_;
         std::unique_ptr<EndEffectorKinematics<scalar_t>> endEffectorKinematicsPtr_;

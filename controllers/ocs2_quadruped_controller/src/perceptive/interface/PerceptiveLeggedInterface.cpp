@@ -66,7 +66,7 @@ namespace ocs2::legged_robot
             std::unique_ptr<PenaltyBase> collisionPenalty(
                 new RelaxedBarrierPenalty(RelaxedBarrierPenalty::Config(1e-2, 1e-3)));
 
-            // For foot placement
+            // For foot placement Soft Constraint
             if (enableFootPlacementConstraint_)
             {
                 std::unique_ptr<FootPlacementConstraint> footPlacementConstraint(
@@ -76,7 +76,7 @@ namespace ocs2::legged_robot
                     std::make_unique<StateSoftConstraint>(std::move(footPlacementConstraint), std::move(placementPenalty)));
             }
 
-            // For foot Collision
+            // For foot Collision Soft Constraint
             if (enableFootCollisionConstraint_)
             {
                 std::unique_ptr<FootCollisionConstraint> footCollisionConstraint(
@@ -88,7 +88,7 @@ namespace ocs2::legged_robot
             }
         }
 
-        // For collision avoidance
+        // For collision avoidance Soft Constraint
         scalar_t calfExcess = 0.02;
 
         std::vector<std::string> collisionLinks = {"FL_calf", "FR_calf", "RL_calf", "RR_calf"};
@@ -113,6 +113,7 @@ namespace ocs2::legged_robot
         }
     }
 
+    // SwingTrajectoryPlanner, ConvexRegionSelector, PerceptiveLeggedReferenceManager
     void PerceptiveLeggedInterface::setupReferenceManager(const std::string& taskFile, const std::string& /*urdfFile*/,
                                                           const std::string& referenceFile, bool verbose)
     {

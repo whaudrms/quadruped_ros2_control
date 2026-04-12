@@ -53,9 +53,11 @@ def launch_setup(context, *args, **kwargs):
         )
         controller_override_file = controller_param_file.name
 
+    # Generate Robot model 
     xacro_file = os.path.join(pkg_path, 'xacro', 'robot.xacro')
     robot_description = xacro.process_file(xacro_file).toxml()
-
+    
+    # Controller Config
     robot_controllers = PathJoinSubstitution(
         [
             FindPackageShare(package_description),
@@ -64,12 +66,13 @@ def launch_setup(context, *args, **kwargs):
         ]
     )
 
+    # RVIZ Config
     rviz_config_file = os.path.join(
         get_package_share_directory(package_controller),
         "config",
         "visualize_ocs2.rviz"
     )
-
+    
     rviz = Node(
         package='rviz2',
         executable='rviz2',
@@ -125,6 +128,7 @@ def launch_setup(context, *args, **kwargs):
         output="screen",
     )
 
+    # OCS2 controller
     ocs2_controller_spawner = Node(
         package="controller_manager",
         executable="spawner",
@@ -138,6 +142,7 @@ def launch_setup(context, *args, **kwargs):
         output="screen",
     )
 
+    # Terrain publisher
     static_terrain_publisher = Node(
         package=package_controller,
         executable="planar_terrain_publisher",
@@ -150,7 +155,7 @@ def launch_setup(context, *args, **kwargs):
                 "frame_id": "odom",
                 "resolution": 0.03,
                 "smoothing_radius": terrain_smoothing_radius,
-                "publish_rate": 2.0,
+                "publish_rate": 0.0,
             }
         ],
     )
@@ -191,6 +196,7 @@ def launch_setup(context, *args, **kwargs):
         ),
     ]
 
+    # Perceptive mode 분기점
     if enable_perceptive:
         launch_nodes.append(planar_terrain_visualizer)
         if publish_static_terrain:
@@ -243,7 +249,7 @@ def generate_launch_description():
     )
 
     terrain_smoothing_radius = DeclareLaunchArgument(
-        'terrain_smoothing_radius',
+        'terrain_smoothing_radius', 
         default_value='0.06',
         description='Gaussian smoothing radius used to generate the smooth_planar layer in meters'
     )

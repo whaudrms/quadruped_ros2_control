@@ -40,6 +40,7 @@ namespace ocs2::legged_robot
     {
         const auto param = cast<PerceptiveLeggedPrecomputation>(preComp).getFootPlacementConParameters()[
             contactPointIndex_];
+        // This constraint is constructed with a single-foot kinematics object.
         return param.a * endEffectorKinematicsPtr_->getPosition(state).front() + param.b;
     }
 
@@ -52,6 +53,7 @@ namespace ocs2::legged_robot
         const auto param = cast<PerceptiveLeggedPrecomputation>(preComp).getFootPlacementConParameters()[
             contactPointIndex_];
 
+        // This constraint is constructed with a single-foot kinematics object.
         const auto positionApprox = endEffectorKinematicsPtr_->getPositionLinearApproximation(state).front();
         approx.f = param.a * positionApprox.f + param.b;
         approx.dfdx = param.a * positionApprox.dfdx;

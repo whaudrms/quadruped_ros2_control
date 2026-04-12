@@ -38,6 +38,24 @@ namespace ocs2::legged_robot
         {
             return previousValue + std::clamp(candidateValue - previousValue, -maxDelta, maxDelta);
         }
+
+        std::pair<int, int> findActiveSwingBounds(size_t initIndex, const std::vector<bool>& contactFlagStocks)
+        {
+            int swingStartIndex = static_cast<int>(initIndex);
+            int swingFinalIndex = static_cast<int>(initIndex);
+
+            while (swingStartIndex > 0 && !contactFlagStocks[swingStartIndex - 1])
+            {
+                --swingStartIndex;
+            }
+            while (swingFinalIndex + 1 < static_cast<int>(contactFlagStocks.size()) &&
+                   !contactFlagStocks[swingFinalIndex + 1])
+            {
+                ++swingFinalIndex;
+            }
+
+            return {swingStartIndex, swingFinalIndex};
+        }
     } // namespace
 
     PerceptiveLeggedReferenceManager::PerceptiveLeggedReferenceManager(CentroidalModelInfo info,
@@ -55,6 +73,15 @@ namespace ocs2::legged_robot
           endEffectorKinematicsPtr_(endEffectorKinematics.clone()),
           comHeight_(comHeight)
     {
+        previousContactFlags_.fill(false);
+        hasLatchedContactPosition_.fill(false);
+        activeSwingHeightLatched_.fill(false);
+        latchedSwingLiftOffHeights_.fill(0.0);
+        latchedSwingTouchDownHeights_.fill(0.0);
+        for (auto& position : lastLiftoffPos_)
+        {
+            position.setZero();
+        }
     }
 
     void PerceptiveLeggedReferenceManager::modifyReferences(scalar_t initTime, scalar_t finalTime,
@@ -64,7 +91,9 @@ namespace ocs2::legged_robot
     {
         const auto timeHorizon = finalTime - initTime;
         modeSchedule = getGaitSchedule()->getModeSchedule(initTime - timeHorizon, finalTime + timeHorizon);
-        const auto rawTargetTrajectories = targetTrajectories;
+        
+        //copy raw target trajectories before modification
+        const auto rawTargetTrajectories = targetTrajectories; 
 
         if (enableReferenceModification_)
         {
@@ -178,15 +207,40 @@ namespace ocs2::legged_robot
 
         for (size_t leg = 0; leg < info_.numThreeDofContacts; leg++)
         {
-            size_t initIndex = lookup::findIndexInTimeArray(modeSchedule.eventTimes, initTime);
+            const size_t initIndex = lookup::findIndexInTimeArray(modeSchedule.eventTimes, initTime);
+            const bool currentContact = contactFlagStocks[leg][initIndex];
+            const bool previousContact = previousContactFlags_[leg];
 
             auto projections = convexRegionSelectorPtr_->getProjections(leg);
             modifyProjections(initTime, initState, leg, initIndex, contactFlagStocks[leg], projections);
 
             scalar_array_t liftOffHeights, touchDownHeights;
             std::tie(liftOffHeights, touchDownHeights) = getHeights(contactFlagStocks[leg], projections);
+
+            if (!currentContact)
+            {
+                if (!activeSwingHeightLatched_[leg] || previousContact)
+                {
+                    activeSwingHeightLatched_[leg] = true;
+                    latchedSwingLiftOffHeights_[leg] = liftOffHeights[initIndex];
+                    latchedSwingTouchDownHeights_[leg] = touchDownHeights[initIndex];
+                }
+
+                const auto [swingStartIndex, swingFinalIndex] = findActiveSwingBounds(initIndex, contactFlagStocks[leg]);
+                for (int i = swingStartIndex; i <= swingFinalIndex; ++i)
+                {
+                    liftOffHeights[i] = latchedSwingLiftOffHeights_[leg];
+                    touchDownHeights[i] = latchedSwingTouchDownHeights_[leg];
+                }
+            }
+            else if (!previousContact)
+            {
+                activeSwingHeightLatched_[leg] = false;
+            }
+
             liftOffHeightSequence[leg] = liftOffHeights;
             touchDownHeightSequence[leg] = touchDownHeights;
+            previousContactFlags_[leg] = currentContact;
         }
         swingTrajectoryPtr_->update(modeSchedule, liftOffHeightSequence, touchDownHeightSequence);
     }
@@ -198,11 +252,20 @@ namespace ocs2::legged_robot
                                                                  convex_plane_decomposition::PlanarTerrainProjection>&
                                                              projections)
     {
-        if (contactFlagStocks[initIndex])
+        const bool currentContact = contactFlagStocks[initIndex];
+        const bool enteringContact =
+            currentContact && (!hasLatchedContactPosition_[leg] || !previousContactFlags_[leg]);
+
+        if (enteringContact)
         {
             lastLiftoffPos_[leg] = endEffectorKinematicsPtr_->getPosition(initState)[leg];
             lastLiftoffPos_[leg].z() -= 0.02;
-            for (int i = initIndex; i < projections.size(); ++i)
+            hasLatchedContactPosition_[leg] = true;
+        }
+
+        if (currentContact && hasLatchedContactPosition_[leg])
+        {
+            for (int i = static_cast<int>(initIndex); i < static_cast<int>(projections.size()); ++i)
             {
                 if (!contactFlagStocks[i])
                 {
@@ -210,7 +273,7 @@ namespace ocs2::legged_robot
                 }
                 projections[i].positionInWorld = lastLiftoffPos_[leg];
             }
-            for (int i = initIndex; i >= 0; --i)
+            for (int i = static_cast<int>(initIndex); i >= 0; --i)
             {
                 if (!contactFlagStocks[i])
                 {
@@ -219,9 +282,9 @@ namespace ocs2::legged_robot
                 projections[i].positionInWorld = lastLiftoffPos_[leg];
             }
         }
-        if (initTime > convexRegionSelectorPtr_->getInitStandFinalTimes()[leg])
+        if (hasLatchedContactPosition_[leg] && initTime > convexRegionSelectorPtr_->getInitStandFinalTimes()[leg])
         {
-            for (int i = initIndex; i >= 0; --i)
+            for (int i = static_cast<int>(initIndex); i >= 0; --i)
             {
                 if (contactFlagStocks[i])
                 {

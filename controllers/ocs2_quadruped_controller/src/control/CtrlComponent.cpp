@@ -109,6 +109,7 @@ namespace ocs2::legged_robot
         return path;
     }
 
+    // Estimator types: "ground_truth", "linear_kalman", "from_odom_topic"
     void CtrlComponent::setupStateEstimate(const std::string& estimator_type)
     {
         estimator_type_ = estimator_type;
@@ -167,7 +168,11 @@ namespace ocs2::legged_robot
         {
             footPlacementVisualizationPtr_->update(observation_);
             sphereVisualizationPtr_->update(observation_);
+            
+            // Publish perceptive reference paths if there are subscribers
             publishPerceptiveReferencePaths();
+            
+            // Debug logging for perceptive foot placement
             logPerceptiveFootPlacementDebug();
         }
 
