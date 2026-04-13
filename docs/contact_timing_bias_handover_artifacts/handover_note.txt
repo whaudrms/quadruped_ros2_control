@@ -1,0 +1,27 @@
+Contact Timing Bias Handover Note
+
+- All summary tables in this package were rebuilt from raw run folders, not from aggregate.csv.
+- The current package is based on the validated outputs in:
+  - contact_timing_bias_runs_filtered.csv
+  - excluded_runs_log.csv
+  - contact_timing_bias_researcher_summary.csv
+  - contact_timing_bias_researcher_compact_summary.csv
+  - contact_timing_bias_validation_report.txt
+
+Filtering used:
+- short_duration
+- low_progress
+- startup_collapse
+
+Interpretation note:
+- filter pass does not mean success.
+- A pass run is a run that was not excluded by the current filtering rules.
+- success / task_completion_success remain separate result fields.
+
+Additional checks:
+- late_stabilization count = 0
+- end_only_stabilized count = 0
+
+Validated high-level observation:
+- As contact timing bias increases, performance degrades.
+- As terrain height increases, sensitivity increases.

@@ -29,14 +29,15 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "ocs2_quadruped_controller/interface/SwitchedModelReferenceManager.h"
 
-
 namespace ocs2::legged_robot {
     SwitchedModelReferenceManager::SwitchedModelReferenceManager(std::shared_ptr<GaitSchedule> gaitSchedulePtr,
                                                                  std::shared_ptr<SwingTrajectoryPlanner>
-                                                                 swingTrajectoryPtr)
+                                                                 swingTrajectoryPtr,
+                                                                 scalar_t terrainHeight)
         : ReferenceManager(TargetTrajectories(), ModeSchedule()),
           gaitSchedulePtr_(std::move(gaitSchedulePtr)),
-          swingTrajectoryPtr_(std::move(swingTrajectoryPtr)) {
+          swingTrajectoryPtr_(std::move(swingTrajectoryPtr)),
+          terrainHeight_(terrainHeight) {
     }
 
 
@@ -47,7 +48,7 @@ namespace ocs2::legged_robot {
 
 
     contact_flag_t SwitchedModelReferenceManager::getContactFlags(scalar_t time) const {
-        return modeNumber2StanceLeg(this->getModeSchedule().modeAtTime(time));
+        return modeNumber2StanceLeg(this->getModeSchedule().modeAtTime(time + contactTimingBias_));
     }
 
 
@@ -58,7 +59,6 @@ namespace ocs2::legged_robot {
         const auto timeHorizon = finalTime - initTime;
         modeSchedule = gaitSchedulePtr_->getModeSchedule(initTime - timeHorizon, finalTime + timeHorizon);
 
-        const scalar_t terrainHeight = 0.0;
-        swingTrajectoryPtr_->update(modeSchedule, terrainHeight);
+        swingTrajectoryPtr_->update(modeSchedule, terrainHeight_);
     }
 } // namespace ocs2::legged_robot

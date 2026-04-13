@@ -32,6 +32,7 @@ namespace ocs2::legged_robot
         node_->declare_parameter("task_file_override", std::string(""));
         node_->declare_parameter("reference_file_override", std::string(""));
         node_->declare_parameter("gait_file_override", std::string(""));
+        node_->declare_parameter("contact_timing_bias", 0.0);
 
         robot_pkg_ = node_->get_parameter("robot_pkg").as_string();
         joint_names_ = node_->get_parameter("joints").as_string_array();
@@ -40,8 +41,8 @@ namespace ocs2::legged_robot
         const auto task_file_override = node_->get_parameter("task_file_override").as_string();
         const auto reference_file_override = node_->get_parameter("reference_file_override").as_string();
         const auto gait_file_override = node_->get_parameter("gait_file_override").as_string();
-
-
+        const auto contact_timing_bias =
+            static_cast<scalar_t>(node_->get_parameter("contact_timing_bias").as_double());
         const std::string package_share_directory = ament_index_cpp::get_package_share_directory(robot_pkg_);
         urdf_file_ = package_share_directory + "/urdf/robot.urdf";
         task_file_ = package_share_directory + "/config/ocs2/task.info";
@@ -60,6 +61,12 @@ namespace ocs2::legged_robot
         loadData::loadCppDataType(task_file_, "legged_robot_interface.verbose", verbose_);
 
         setupLeggedInterface();
+        if (!enable_perceptive_)
+        {
+            legged_interface_->getSwitchedModelReferenceManagerPtr()->setContactTimingBias(contact_timing_bias);
+            RCLCPP_INFO(node_->get_logger(), "Contact timing bias: %.4f s",
+                        static_cast<double>(contact_timing_bias));
+        }
         setupMpc();
         setupMrt();
 

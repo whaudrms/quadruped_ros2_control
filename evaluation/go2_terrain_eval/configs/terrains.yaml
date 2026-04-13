@@ -7,6 +7,471 @@ terrains:
     perceptive_image: "/home/ho/ros2_ws/src/quadruped_ros2_control/controllers/ocs2_quadruped_controller/config/flat_terrain.png"
     terrain_height_scale: 0.02
 
+  ocs2_stepdown:
+    type: stepdown
+    description: "Raised start platform with lower ground ahead for OCS2-only d-sweep experiments"
+    scene_file: "/home/ho/unitree_mujoco/unitree_robots/go2/eval_stepdown_d_sweep.xml"
+    perceptive_supported: false
+    contact_timing_bias: 0.0
+    parameters:
+      platform_center: [0.10, 0.0, -0.025]
+      platform_size: [0.90, 1.60, 0.05]
+      step_height: 0.05
+      step_edge_x: 0.55
+
+  ocs2_stepdown_1cm:
+    type: stepdown
+    description: "1cm step-down with zero contact timing bias"
+    scene_file: "/home/ho/unitree_mujoco/unitree_robots/go2/eval_stepdown_1cm.xml"
+    perceptive_supported: false
+    contact_timing_bias: 0.0
+    parameters:
+      platform_center: [0.10, 0.0, -0.025]
+      platform_size: [0.90, 1.60, 0.05]
+      step_height: 0.01
+      step_edge_x: 0.55
+
+  ocs2_stepdown_1cm_ctp005:
+    type: stepdown
+    description: "1cm step-down with +0.05s contact timing bias in the solver"
+    scene_file: "/home/ho/unitree_mujoco/unitree_robots/go2/eval_stepdown_1cm.xml"
+    perceptive_supported: false
+    contact_timing_bias: 0.05
+    parameters:
+      platform_center: [0.10, 0.0, -0.025]
+      platform_size: [0.90, 1.60, 0.05]
+      step_height: 0.01
+      step_edge_x: 0.55
+      d_mismatch: 0.05
+
+  ocs2_stepdown_1cm_ctp007:
+    type: stepdown
+    description: "1cm step-down with +0.07s contact timing bias in the solver"
+    scene_file: "/home/ho/unitree_mujoco/unitree_robots/go2/eval_stepdown_1cm.xml"
+    perceptive_supported: false
+    contact_timing_bias: 0.07
+    parameters:
+      platform_center: [0.10, 0.0, -0.025]
+      platform_size: [0.90, 1.60, 0.05]
+      step_height: 0.01
+      step_edge_x: 0.55
+      d_mismatch: 0.07
+
+  ocs2_stepdown_1cm_ctp008:
+    type: stepdown
+    description: "1cm step-down with +0.08s contact timing bias in the solver"
+    scene_file: "/home/ho/unitree_mujoco/unitree_robots/go2/eval_stepdown_1cm.xml"
+    perceptive_supported: false
+    contact_timing_bias: 0.08
+    parameters:
+      platform_center: [0.10, 0.0, -0.025]
+      platform_size: [0.90, 1.60, 0.05]
+      step_height: 0.01
+      step_edge_x: 0.55
+      d_mismatch: 0.08
+
+  ocs2_stepdown_1cm_ctp009:
+    type: stepdown
+    description: "1cm step-down with +0.09s contact timing bias in the solver"
+    scene_file: "/home/ho/unitree_mujoco/unitree_robots/go2/eval_stepdown_1cm.xml"
+    perceptive_supported: false
+    contact_timing_bias: 0.09
+    parameters:
+      platform_center: [0.10, 0.0, -0.025]
+      platform_size: [0.90, 1.60, 0.05]
+      step_height: 0.01
+      step_edge_x: 0.55
+      d_mismatch: 0.09
+
+  ocs2_stepdown_1cm_ctp010:
+    type: stepdown
+    description: "1cm step-down with +0.10s contact timing bias in the solver"
+    scene_file: "/home/ho/unitree_mujoco/unitree_robots/go2/eval_stepdown_1cm.xml"
+    perceptive_supported: false
+    contact_timing_bias: 0.10
+    parameters:
+      platform_center: [0.10, 0.0, -0.025]
+      platform_size: [0.90, 1.60, 0.05]
+      step_height: 0.01
+      step_edge_x: 0.55
+      d_mismatch: 0.10
+
+  ocs2_stepdown_1cm_ctp012:
+    type: stepdown
+    description: "1cm step-down with +0.12s contact timing bias in the solver"
+    scene_file: "/home/ho/unitree_mujoco/unitree_robots/go2/eval_stepdown_1cm.xml"
+    perceptive_supported: false
+    contact_timing_bias: 0.12
+    parameters:
+      platform_center: [0.10, 0.0, -0.025]
+      platform_size: [0.90, 1.60, 0.05]
+      step_height: 0.01
+      step_edge_x: 0.55
+      d_mismatch: 0.12
+
+  ocs2_stepdown_1cm_ctp015:
+    type: stepdown
+    description: "1cm step-down with +0.15s contact timing bias in the solver"
+    scene_file: "/home/ho/unitree_mujoco/unitree_robots/go2/eval_stepdown_1cm.xml"
+    perceptive_supported: false
+    contact_timing_bias: 0.15
+    parameters:
+      platform_center: [0.10, 0.0, -0.025]
+      platform_size: [0.90, 1.60, 0.05]
+      step_height: 0.01
+      step_edge_x: 0.55
+      d_mismatch: 0.15
+
+  ocs2_stepdown_3cm:
+    type: stepdown
+    description: "3cm step-down with zero contact timing bias"
+    scene_file: "/home/ho/unitree_mujoco/unitree_robots/go2/eval_stepdown_3cm.xml"
+    perceptive_supported: false
+    contact_timing_bias: 0.0
+    parameters: &stepdown_3cm_params
+      platform_center: [0.10, 0.0, -0.025]
+      platform_size: [0.90, 1.60, 0.05]
+      step_height: 0.03
+      step_edge_x: 0.55
+  ocs2_stepdown_3cm_ctp005: {type: stepdown, description: "3cm step-down with +0.05s contact timing bias in the solver", scene_file: "/home/ho/unitree_mujoco/unitree_robots/go2/eval_stepdown_3cm.xml", perceptive_supported: false, contact_timing_bias: 0.05, parameters: {platform_center: [0.10, 0.0, -0.025], platform_size: [0.90, 1.60, 0.05], step_height: 0.03, step_edge_x: 0.55, d_mismatch: 0.05}}
+  ocs2_stepdown_3cm_ctp007: {type: stepdown, description: "3cm step-down with +0.07s contact timing bias in the solver", scene_file: "/home/ho/unitree_mujoco/unitree_robots/go2/eval_stepdown_3cm.xml", perceptive_supported: false, contact_timing_bias: 0.07, parameters: {platform_center: [0.10, 0.0, -0.025], platform_size: [0.90, 1.60, 0.05], step_height: 0.03, step_edge_x: 0.55, d_mismatch: 0.07}}
+  ocs2_stepdown_3cm_ctp008: {type: stepdown, description: "3cm step-down with +0.08s contact timing bias in the solver", scene_file: "/home/ho/unitree_mujoco/unitree_robots/go2/eval_stepdown_3cm.xml", perceptive_supported: false, contact_timing_bias: 0.08, parameters: {platform_center: [0.10, 0.0, -0.025], platform_size: [0.90, 1.60, 0.05], step_height: 0.03, step_edge_x: 0.55, d_mismatch: 0.08}}
+  ocs2_stepdown_3cm_ctp009: {type: stepdown, description: "3cm step-down with +0.09s contact timing bias in the solver", scene_file: "/home/ho/unitree_mujoco/unitree_robots/go2/eval_stepdown_3cm.xml", perceptive_supported: false, contact_timing_bias: 0.09, parameters: {platform_center: [0.10, 0.0, -0.025], platform_size: [0.90, 1.60, 0.05], step_height: 0.03, step_edge_x: 0.55, d_mismatch: 0.09}}
+  ocs2_stepdown_3cm_ctp010: {type: stepdown, description: "3cm step-down with +0.10s contact timing bias in the solver", scene_file: "/home/ho/unitree_mujoco/unitree_robots/go2/eval_stepdown_3cm.xml", perceptive_supported: false, contact_timing_bias: 0.10, parameters: {platform_center: [0.10, 0.0, -0.025], platform_size: [0.90, 1.60, 0.05], step_height: 0.03, step_edge_x: 0.55, d_mismatch: 0.10}}
+  ocs2_stepdown_3cm_ctp012: {type: stepdown, description: "3cm step-down with +0.12s contact timing bias in the solver", scene_file: "/home/ho/unitree_mujoco/unitree_robots/go2/eval_stepdown_3cm.xml", perceptive_supported: false, contact_timing_bias: 0.12, parameters: {platform_center: [0.10, 0.0, -0.025], platform_size: [0.90, 1.60, 0.05], step_height: 0.03, step_edge_x: 0.55, d_mismatch: 0.12}}
+  ocs2_stepdown_3cm_ctp015: {type: stepdown, description: "3cm step-down with +0.15s contact timing bias in the solver", scene_file: "/home/ho/unitree_mujoco/unitree_robots/go2/eval_stepdown_3cm.xml", perceptive_supported: false, contact_timing_bias: 0.15, parameters: {platform_center: [0.10, 0.0, -0.025], platform_size: [0.90, 1.60, 0.05], step_height: 0.03, step_edge_x: 0.55, d_mismatch: 0.15}}
+
+  ocs2_stepdown_7cm:
+    type: stepdown
+    description: "7cm step-down with zero contact timing bias"
+    scene_file: "/home/ho/unitree_mujoco/unitree_robots/go2/eval_stepdown_7cm.xml"
+    perceptive_supported: false
+    contact_timing_bias: 0.0
+    parameters:
+      platform_center: [0.10, 0.0, -0.025]
+      platform_size: [0.90, 1.60, 0.05]
+      step_height: 0.07
+      step_edge_x: 0.55
+  ocs2_stepdown_7cm_ctp005: {type: stepdown, description: "7cm step-down with +0.05s contact timing bias in the solver", scene_file: "/home/ho/unitree_mujoco/unitree_robots/go2/eval_stepdown_7cm.xml", perceptive_supported: false, contact_timing_bias: 0.05, parameters: {platform_center: [0.10, 0.0, -0.025], platform_size: [0.90, 1.60, 0.05], step_height: 0.07, step_edge_x: 0.55, d_mismatch: 0.05}}
+  ocs2_stepdown_7cm_ctp007: {type: stepdown, description: "7cm step-down with +0.07s contact timing bias in the solver", scene_file: "/home/ho/unitree_mujoco/unitree_robots/go2/eval_stepdown_7cm.xml", perceptive_supported: false, contact_timing_bias: 0.07, parameters: {platform_center: [0.10, 0.0, -0.025], platform_size: [0.90, 1.60, 0.05], step_height: 0.07, step_edge_x: 0.55, d_mismatch: 0.07}}
+  ocs2_stepdown_7cm_ctp008: {type: stepdown, description: "7cm step-down with +0.08s contact timing bias in the solver", scene_file: "/home/ho/unitree_mujoco/unitree_robots/go2/eval_stepdown_7cm.xml", perceptive_supported: false, contact_timing_bias: 0.08, parameters: {platform_center: [0.10, 0.0, -0.025], platform_size: [0.90, 1.60, 0.05], step_height: 0.07, step_edge_x: 0.55, d_mismatch: 0.08}}
+  ocs2_stepdown_7cm_ctp009: {type: stepdown, description: "7cm step-down with +0.09s contact timing bias in the solver", scene_file: "/home/ho/unitree_mujoco/unitree_robots/go2/eval_stepdown_7cm.xml", perceptive_supported: false, contact_timing_bias: 0.09, parameters: {platform_center: [0.10, 0.0, -0.025], platform_size: [0.90, 1.60, 0.05], step_height: 0.07, step_edge_x: 0.55, d_mismatch: 0.09}}
+  ocs2_stepdown_7cm_ctp010: {type: stepdown, description: "7cm step-down with +0.10s contact timing bias in the solver", scene_file: "/home/ho/unitree_mujoco/unitree_robots/go2/eval_stepdown_7cm.xml", perceptive_supported: false, contact_timing_bias: 0.10, parameters: {platform_center: [0.10, 0.0, -0.025], platform_size: [0.90, 1.60, 0.05], step_height: 0.07, step_edge_x: 0.55, d_mismatch: 0.10}}
+  ocs2_stepdown_7cm_ctp012: {type: stepdown, description: "7cm step-down with +0.12s contact timing bias in the solver", scene_file: "/home/ho/unitree_mujoco/unitree_robots/go2/eval_stepdown_7cm.xml", perceptive_supported: false, contact_timing_bias: 0.12, parameters: {platform_center: [0.10, 0.0, -0.025], platform_size: [0.90, 1.60, 0.05], step_height: 0.07, step_edge_x: 0.55, d_mismatch: 0.12}}
+  ocs2_stepdown_7cm_ctp015: {type: stepdown, description: "7cm step-down with +0.15s contact timing bias in the solver", scene_file: "/home/ho/unitree_mujoco/unitree_robots/go2/eval_stepdown_7cm.xml", perceptive_supported: false, contact_timing_bias: 0.15, parameters: {platform_center: [0.10, 0.0, -0.025], platform_size: [0.90, 1.60, 0.05], step_height: 0.07, step_edge_x: 0.55, d_mismatch: 0.15}}
+
+  ocs2_stepdown_9cm:
+    type: stepdown
+    description: "9cm step-down with zero contact timing bias"
+    scene_file: "/home/ho/unitree_mujoco/unitree_robots/go2/eval_stepdown_9cm.xml"
+    perceptive_supported: false
+    contact_timing_bias: 0.0
+    parameters:
+      platform_center: [0.10, 0.0, -0.025]
+      platform_size: [0.90, 1.60, 0.05]
+      step_height: 0.09
+      step_edge_x: 0.55
+  ocs2_stepdown_9cm_ctp005: {type: stepdown, description: "9cm step-down with +0.05s contact timing bias in the solver", scene_file: "/home/ho/unitree_mujoco/unitree_robots/go2/eval_stepdown_9cm.xml", perceptive_supported: false, contact_timing_bias: 0.05, parameters: {platform_center: [0.10, 0.0, -0.025], platform_size: [0.90, 1.60, 0.05], step_height: 0.09, step_edge_x: 0.55, d_mismatch: 0.05}}
+  ocs2_stepdown_9cm_ctp007: {type: stepdown, description: "9cm step-down with +0.07s contact timing bias in the solver", scene_file: "/home/ho/unitree_mujoco/unitree_robots/go2/eval_stepdown_9cm.xml", perceptive_supported: false, contact_timing_bias: 0.07, parameters: {platform_center: [0.10, 0.0, -0.025], platform_size: [0.90, 1.60, 0.05], step_height: 0.09, step_edge_x: 0.55, d_mismatch: 0.07}}
+  ocs2_stepdown_9cm_ctp008: {type: stepdown, description: "9cm step-down with +0.08s contact timing bias in the solver", scene_file: "/home/ho/unitree_mujoco/unitree_robots/go2/eval_stepdown_9cm.xml", perceptive_supported: false, contact_timing_bias: 0.08, parameters: {platform_center: [0.10, 0.0, -0.025], platform_size: [0.90, 1.60, 0.05], step_height: 0.09, step_edge_x: 0.55, d_mismatch: 0.08}}
+  ocs2_stepdown_9cm_ctp009: {type: stepdown, description: "9cm step-down with +0.09s contact timing bias in the solver", scene_file: "/home/ho/unitree_mujoco/unitree_robots/go2/eval_stepdown_9cm.xml", perceptive_supported: false, contact_timing_bias: 0.09, parameters: {platform_center: [0.10, 0.0, -0.025], platform_size: [0.90, 1.60, 0.05], step_height: 0.09, step_edge_x: 0.55, d_mismatch: 0.09}}
+  ocs2_stepdown_9cm_ctp010: {type: stepdown, description: "9cm step-down with +0.10s contact timing bias in the solver", scene_file: "/home/ho/unitree_mujoco/unitree_robots/go2/eval_stepdown_9cm.xml", perceptive_supported: false, contact_timing_bias: 0.10, parameters: {platform_center: [0.10, 0.0, -0.025], platform_size: [0.90, 1.60, 0.05], step_height: 0.09, step_edge_x: 0.55, d_mismatch: 0.10}}
+  ocs2_stepdown_9cm_ctp012: {type: stepdown, description: "9cm step-down with +0.12s contact timing bias in the solver", scene_file: "/home/ho/unitree_mujoco/unitree_robots/go2/eval_stepdown_9cm.xml", perceptive_supported: false, contact_timing_bias: 0.12, parameters: {platform_center: [0.10, 0.0, -0.025], platform_size: [0.90, 1.60, 0.05], step_height: 0.09, step_edge_x: 0.55, d_mismatch: 0.12}}
+  ocs2_stepdown_9cm_ctp015: {type: stepdown, description: "9cm step-down with +0.15s contact timing bias in the solver", scene_file: "/home/ho/unitree_mujoco/unitree_robots/go2/eval_stepdown_9cm.xml", perceptive_supported: false, contact_timing_bias: 0.15, parameters: {platform_center: [0.10, 0.0, -0.025], platform_size: [0.90, 1.60, 0.05], step_height: 0.09, step_edge_x: 0.55, d_mismatch: 0.15}}
+
+  ocs2_stepdown_ctp010:
+    type: stepdown
+    description: "5cm step-down with +0.10s contact timing bias in the solver"
+    scene_file: "/home/ho/unitree_mujoco/unitree_robots/go2/eval_stepdown_d_sweep.xml"
+    perceptive_supported: false
+    contact_timing_bias: 0.10
+    parameters:
+      platform_center: [0.10, 0.0, -0.025]
+      platform_size: [0.90, 1.60, 0.05]
+      step_height: 0.05
+      step_edge_x: 0.55
+      d_mismatch: 0.10
+
+  ocs2_stepdown_ctp015:
+    type: stepdown
+    description: "5cm step-down with +0.15s contact timing bias in the solver"
+    scene_file: "/home/ho/unitree_mujoco/unitree_robots/go2/eval_stepdown_d_sweep.xml"
+    perceptive_supported: false
+    contact_timing_bias: 0.15
+    parameters:
+      platform_center: [0.10, 0.0, -0.025]
+      platform_size: [0.90, 1.60, 0.05]
+      step_height: 0.05
+      step_edge_x: 0.55
+      d_mismatch: 0.15
+
+  ocs2_stepdown_ctp012:
+    type: stepdown
+    description: "5cm step-down with +0.12s contact timing bias in the solver"
+    scene_file: "/home/ho/unitree_mujoco/unitree_robots/go2/eval_stepdown_d_sweep.xml"
+    perceptive_supported: false
+    contact_timing_bias: 0.12
+    parameters:
+      platform_center: [0.10, 0.0, -0.025]
+      platform_size: [0.90, 1.60, 0.05]
+      step_height: 0.05
+      step_edge_x: 0.55
+      d_mismatch: 0.12
+
+  ocs2_stepdown_ctp005:
+    type: stepdown
+    description: "5cm step-down with +0.05s contact timing bias in the solver"
+    scene_file: "/home/ho/unitree_mujoco/unitree_robots/go2/eval_stepdown_d_sweep.xml"
+    perceptive_supported: false
+    contact_timing_bias: 0.05
+    parameters:
+      platform_center: [0.10, 0.0, -0.025]
+      platform_size: [0.90, 1.60, 0.05]
+      step_height: 0.05
+      step_edge_x: 0.55
+      d_mismatch: 0.05
+
+  ocs2_stepdown_ctp007:
+    type: stepdown
+    description: "5cm step-down with +0.07s contact timing bias in the solver"
+    scene_file: "/home/ho/unitree_mujoco/unitree_robots/go2/eval_stepdown_d_sweep.xml"
+    perceptive_supported: false
+    contact_timing_bias: 0.07
+    parameters:
+      platform_center: [0.10, 0.0, -0.025]
+      platform_size: [0.90, 1.60, 0.05]
+      step_height: 0.05
+      step_edge_x: 0.55
+      d_mismatch: 0.07
+
+  ocs2_stepdown_ctp008:
+    type: stepdown
+    description: "5cm step-down with +0.08s contact timing bias in the solver"
+    scene_file: "/home/ho/unitree_mujoco/unitree_robots/go2/eval_stepdown_d_sweep.xml"
+    perceptive_supported: false
+    contact_timing_bias: 0.08
+    parameters:
+      platform_center: [0.10, 0.0, -0.025]
+      platform_size: [0.90, 1.60, 0.05]
+      step_height: 0.05
+      step_edge_x: 0.55
+      d_mismatch: 0.08
+
+  ocs2_stepdown_ctp009:
+    type: stepdown
+    description: "5cm step-down with +0.09s contact timing bias in the solver"
+    scene_file: "/home/ho/unitree_mujoco/unitree_robots/go2/eval_stepdown_d_sweep.xml"
+    perceptive_supported: false
+    contact_timing_bias: 0.09
+    parameters:
+      platform_center: [0.10, 0.0, -0.025]
+      platform_size: [0.90, 1.60, 0.05]
+      step_height: 0.05
+      step_edge_x: 0.55
+      d_mismatch: 0.09
+
+  ocs2_stepdown_ctp100:
+    type: stepdown
+    description: "5cm step-down with +1.00s contact timing bias in the solver"
+    scene_file: "/home/ho/unitree_mujoco/unitree_robots/go2/eval_stepdown_d_sweep.xml"
+    perceptive_supported: false
+    contact_timing_bias: 1.00
+    parameters:
+      platform_center: [0.10, 0.0, -0.025]
+      platform_size: [0.90, 1.60, 0.05]
+      step_height: 0.05
+      step_edge_x: 0.55
+      d_mismatch: 1.00
+
+  ocs2_stepdown_ctp1000:
+    type: stepdown
+    description: "5cm step-down with +10.00s contact timing bias in the solver"
+    scene_file: "/home/ho/unitree_mujoco/unitree_robots/go2/eval_stepdown_d_sweep.xml"
+    perceptive_supported: false
+    contact_timing_bias: 10.00
+    parameters:
+      platform_center: [0.10, 0.0, -0.025]
+      platform_size: [0.90, 1.60, 0.05]
+      step_height: 0.05
+      step_edge_x: 0.55
+      d_mismatch: 10.00
+
+  ocs2_stepdown_d000:
+    type: stepdown
+    description: "OCS2-only baseline with 0cm terrain drop"
+    scene_file: "/home/ho/unitree_mujoco/unitree_robots/go2/eval_stepdown_d_000.xml"
+    perceptive_supported: false
+    nominal_terrain_height_override: 0.00
+    parameters:
+      platform_center: [0.10, 0.0, -0.025]
+      platform_size: [0.90, 1.60, 0.05]
+      step_height: 0.00
+      step_edge_x: 0.55
+      d_mismatch: 0.00
+
+  ocs2_stepdown_estp001:
+    type: stepdown
+    description: "Actual terrain fixed at 0cm, OCS2 believes ground is +1cm higher"
+    scene_file: "/home/ho/unitree_mujoco/unitree_robots/go2/eval_stepdown_d_000.xml"
+    perceptive_supported: false
+    nominal_terrain_height_override: 0.01
+    parameters:
+      platform_center: [0.10, 0.0, -0.025]
+      platform_size: [0.90, 1.60, 0.05]
+      step_height: 0.00
+      step_edge_x: 0.55
+      d_mismatch: 0.01
+
+  ocs2_stepdown_estp002:
+    type: stepdown
+    description: "Actual terrain fixed at 0cm, OCS2 believes ground is +2cm higher"
+    scene_file: "/home/ho/unitree_mujoco/unitree_robots/go2/eval_stepdown_d_000.xml"
+    perceptive_supported: false
+    nominal_terrain_height_override: 0.02
+    parameters:
+      platform_center: [0.10, 0.0, -0.025]
+      platform_size: [0.90, 1.60, 0.05]
+      step_height: 0.00
+      step_edge_x: 0.55
+      d_mismatch: 0.02
+
+  ocs2_stepdown_estp003:
+    type: stepdown
+    description: "Actual terrain fixed at 0cm, OCS2 believes ground is +3cm higher"
+    scene_file: "/home/ho/unitree_mujoco/unitree_robots/go2/eval_stepdown_d_000.xml"
+    perceptive_supported: false
+    nominal_terrain_height_override: 0.03
+    parameters:
+      platform_center: [0.10, 0.0, -0.025]
+      platform_size: [0.90, 1.60, 0.05]
+      step_height: 0.00
+      step_edge_x: 0.55
+      d_mismatch: 0.03
+
+  ocs2_stepdown_estp004:
+    type: stepdown
+    description: "Actual terrain fixed at 0cm, OCS2 believes ground is +4cm higher"
+    scene_file: "/home/ho/unitree_mujoco/unitree_robots/go2/eval_stepdown_d_000.xml"
+    perceptive_supported: false
+    nominal_terrain_height_override: 0.04
+    parameters:
+      platform_center: [0.10, 0.0, -0.025]
+      platform_size: [0.90, 1.60, 0.05]
+      step_height: 0.00
+      step_edge_x: 0.55
+      d_mismatch: 0.04
+
+  ocs2_stepdown_estp010:
+    type: stepdown
+    description: "Actual terrain fixed at 0cm, OCS2 believes ground is +10cm higher"
+    scene_file: "/home/ho/unitree_mujoco/unitree_robots/go2/eval_stepdown_d_000.xml"
+    perceptive_supported: false
+    nominal_terrain_height_override: 0.10
+    parameters:
+      platform_center: [0.10, 0.0, -0.025]
+      platform_size: [0.90, 1.60, 0.05]
+      step_height: 0.00
+      step_edge_x: 0.55
+      d_mismatch: 0.10
+
+  ocs2_stepdown_estp030:
+    type: stepdown
+    description: "Actual terrain fixed at 0cm, OCS2 believes ground is +30cm higher"
+    scene_file: "/home/ho/unitree_mujoco/unitree_robots/go2/eval_stepdown_d_000.xml"
+    perceptive_supported: false
+    nominal_terrain_height_override: 0.30
+    parameters:
+      platform_center: [0.10, 0.0, -0.025]
+      platform_size: [0.90, 1.60, 0.05]
+      step_height: 0.00
+      step_edge_x: 0.55
+      d_mismatch: 0.30
+
+  ocs2_stepdown_estp100:
+    type: stepdown
+    description: "Actual terrain fixed at 0cm, OCS2 believes ground is +100cm higher"
+    scene_file: "/home/ho/unitree_mujoco/unitree_robots/go2/eval_stepdown_d_000.xml"
+    perceptive_supported: false
+    nominal_terrain_height_override: 1.00
+    parameters:
+      platform_center: [0.10, 0.0, -0.025]
+      platform_size: [0.90, 1.60, 0.05]
+      step_height: 0.00
+      step_edge_x: 0.55
+      d_mismatch: 1.00
+
+  ocs2_stepdown_dm001:
+    type: stepdown
+    description: "OCS2-only step-down with actual drop 4cm (-1cm from nominal 5cm baseline)"
+    scene_file: "/home/ho/unitree_mujoco/unitree_robots/go2/eval_stepdown_d_m001.xml"
+    perceptive_supported: false
+    parameters:
+      platform_center: [0.10, 0.0, -0.025]
+      platform_size: [0.90, 1.60, 0.05]
+      step_height: 0.04
+      step_edge_x: 0.55
+      d_mismatch: -0.01
+
+  ocs2_stepdown_dp001:
+    type: stepdown
+    description: "OCS2-only step-down with actual drop 6cm (+1cm from nominal 5cm baseline)"
+    scene_file: "/home/ho/unitree_mujoco/unitree_robots/go2/eval_stepdown_d_p001.xml"
+    perceptive_supported: false
+    parameters:
+      platform_center: [0.10, 0.0, -0.025]
+      platform_size: [0.90, 1.60, 0.05]
+      step_height: 0.06
+      step_edge_x: 0.55
+      d_mismatch: 0.01
+
+  ocs2_stepdown_dm002:
+    type: stepdown
+    description: "OCS2-only step-down with actual drop 3cm (-2cm from nominal 5cm baseline)"
+    scene_file: "/home/ho/unitree_mujoco/unitree_robots/go2/eval_stepdown_d_m002.xml"
+    perceptive_supported: false
+    parameters:
+      platform_center: [0.10, 0.0, -0.025]
+      platform_size: [0.90, 1.60, 0.05]
+      step_height: 0.03
+      step_edge_x: 0.55
+      d_mismatch: -0.02
+
+  ocs2_stepdown_dp002:
+    type: stepdown
+    description: "OCS2-only step-down with actual drop 7cm (+2cm from nominal 5cm baseline)"
+    scene_file: "/home/ho/unitree_mujoco/unitree_robots/go2/eval_stepdown_d_p002.xml"
+    perceptive_supported: false
+    parameters:
+      platform_center: [0.10, 0.0, -0.025]
+      platform_size: [0.90, 1.60, 0.05]
+      step_height: 0.07
+      step_edge_x: 0.55
+      d_mismatch: 0.02
+
+  ocs2_stepdown_dm003:
+    type: stepdown
+    description: "OCS2-only step-down with actual drop 2cm (-3cm from nominal 5cm baseline)"
+    scene_file: "/home/ho/unitree_mujoco/unitree_robots/go2/eval_stepdown_d_m003.xml"
+    perceptive_supported: false
+    parameters:
+      platform_center: [0.10, 0.0, -0.025]
+      platform_size: [0.90, 1.60, 0.05]
+      step_height: 0.02
+      step_edge_x: 0.55
+      d_mismatch: -0.03
+
+  ocs2_stepdown_dp003:
+    type: stepdown
+    description: "OCS2-only step-down with actual drop 8cm (+3cm from nominal 5cm baseline)"
+    scene_file: "/home/ho/unitree_mujoco/unitree_robots/go2/eval_stepdown_d_p003.xml"
+    perceptive_supported: false
+    parameters:
+      platform_center: [0.10, 0.0, -0.025]
+      platform_size: [0.90, 1.60, 0.05]
+      step_height: 0.08
+      step_edge_x: 0.55
+      d_mismatch: 0.03
+
   box_obstacle:
     type: box
     description: "Single box obstacle ahead"

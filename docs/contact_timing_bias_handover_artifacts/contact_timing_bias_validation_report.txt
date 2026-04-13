@@ -1,0 +1,87 @@
+Contact Timing Bias Validation Report
+
+[Global consistency checks]
+filtered rows: 415
+excluded log rows: 127
+filtered rows with filter_pass=False: 127
+excluded log count matches filtered exclusions: True
+missing in excluded log: 0
+extra in excluded log: 0
+secondary_label=end_only_stabilized count: 0
+
+[Spot-check target combos]
+terrain=1.0cm, d=0.10s
+  raw count from filtered CSV: total=10, pass=6, excluded=4
+  raw run folders existing: 10
+  summary match: n_runs csv=6 vs actual=6 | success_rate csv=0.8333 vs actual=0.8333 | stable_rate csv=0.8333 vs actual=0.8333 | fail_rate csv=0.1667 vs actual=0.1667
+  compact match: n_runs=6, outcome_majority=stable, success_rate=0.8333
+  exclusion reasons: {'short_duration': 1, 'low_progress': 3}
+  pass examples:
+    - 20260411_010823_ocs2_stepdown_1cm_ctp010_height_only_nominal_v1_contactflagbias_batch_1cm_ocs2_stepdown_1cm_ctp010_r01 | pass=True | reason=- | success=False | task_success=False | duration=8.2218 | forward=1.0548 | min_base_z=0.2634 | ctrl_time=[4.7232, 13.0331]
+    - 20260411_010845_ocs2_stepdown_1cm_ctp010_height_only_nominal_v1_contactflagbias_batch_1cm_ocs2_stepdown_1cm_ctp010_r02 | pass=True | reason=- | success=True | task_success=True | duration=22.0029 | forward=3.6755 | min_base_z=0.1167 | ctrl_time=[5.1200, 27.2660]
+  excluded examples:
+    - 20260411_011107_ocs2_stepdown_1cm_ctp010_height_only_nominal_v1_contactflagbias_batch_1cm_ocs2_stepdown_1cm_ctp010_r06 | pass=False | reason=short_duration | success=False | task_success=False | duration=7.0209 | forward=0.7301 | min_base_z=0.2535 | ctrl_time=[5.1850, 12.2721]
+    - 20260411_011127_ocs2_stepdown_1cm_ctp010_height_only_nominal_v1_contactflagbias_batch_1cm_ocs2_stepdown_1cm_ctp010_r07 | pass=False | reason=low_progress | success=True | task_success=True | duration=22.0029 | forward=0.0280 | min_base_z=0.1165 | ctrl_time=[22.5640, 26.7580]
+
+terrain=3.0cm, d=0.12s
+  raw count from filtered CSV: total=10, pass=8, excluded=2
+  raw run folders existing: 10
+  summary match: n_runs csv=8 vs actual=8 | success_rate csv=0.375 vs actual=0.3750 | stable_rate csv=0.125 vs actual=0.1250 | fail_rate csv=0.625 vs actual=0.6250
+  compact match: n_runs=8, outcome_majority=fail, success_rate=0.375
+  exclusion reasons: {'short_duration': 2}
+  pass examples:
+    - 20260411_015634_ocs2_stepdown_3cm_ctp012_height_only_nominal_v1_contactflagbias_batch_3cm_ocs2_stepdown_3cm_ctp012_r01 | pass=True | reason=- | success=False | task_success=False | duration=15.2437 | forward=1.5378 | min_base_z=0.1167 | ctrl_time=[5.1150, 20.5280]
+    - 20260411_015721_ocs2_stepdown_3cm_ctp012_height_only_nominal_v1_contactflagbias_batch_3cm_ocs2_stepdown_3cm_ctp012_r03 | pass=True | reason=- | success=True | task_success=True | duration=22.0035 | forward=2.5571 | min_base_z=0.1166 | ctrl_time=[5.1580, 27.2291]
+  excluded examples:
+    - 20260411_015702_ocs2_stepdown_3cm_ctp012_height_only_nominal_v1_contactflagbias_batch_3cm_ocs2_stepdown_3cm_ctp012_r02 | pass=False | reason=short_duration | success=False | task_success=False | duration=6.2211 | forward=0.5070 | min_base_z=0.2531 | ctrl_time=[5.2080, 11.5170]
+    - 20260411_020016_ocs2_stepdown_3cm_ctp012_height_only_nominal_v1_contactflagbias_batch_3cm_ocs2_stepdown_3cm_ctp012_r09 | pass=False | reason=short_duration | success=False | task_success=False | duration=6.6208 | forward=0.6330 | min_base_z=0.2560 | ctrl_time=[4.4290, 11.1050]
+
+terrain=5.0cm, d=0.09s
+  raw count from filtered CSV: total=11, pass=10, excluded=1
+  raw run folders existing: 11
+  summary match: n_runs csv=10 vs actual=10 | success_rate csv=0.9 vs actual=0.9000 | stable_rate csv=0.9 vs actual=0.9000 | fail_rate csv=0.1 vs actual=0.1000
+  compact match: n_runs=10, outcome_majority=stable, success_rate=0.9
+  exclusion reasons: {'low_progress': 1}
+  pass examples:
+    - 20260410_230404_ocs2_stepdown_ctp009_height_only_nominal_v1_contactflagbias_p009_v1 | pass=True | reason=- | success=True | task_success=True | duration=22.0022 | forward=3.1488 | min_base_z=0.1166 | ctrl_time=[4.4741, 26.5230]
+    - 20260410_234239_ocs2_stepdown_ctp009_height_only_nominal_v1_contactflagbias_batch_5cm_ocs2_stepdown_ctp009_r02 | pass=True | reason=- | success=True | task_success=True | duration=22.0017 | forward=3.2500 | min_base_z=0.1179 | ctrl_time=[5.4010, 27.5240]
+  excluded examples:
+    - 20260410_234205_ocs2_stepdown_ctp009_height_only_nominal_v1_contactflagbias_batch_5cm_ocs2_stepdown_ctp009_r01 | pass=False | reason=low_progress | success=True | task_success=True | duration=22.0021 | forward=0.0199 | min_base_z=0.1166 | ctrl_time=[20.4080, 24.5479]
+
+terrain=5.0cm, d=0.10s
+  raw count from filtered CSV: total=12, pass=10, excluded=2
+  raw run folders existing: 12
+  summary match: n_runs csv=10 vs actual=10 | success_rate csv=0.7 vs actual=0.7000 | stable_rate csv=0.6 vs actual=0.6000 | fail_rate csv=0.3 vs actual=0.3000
+  compact match: n_runs=10, outcome_majority=stable, success_rate=0.7
+  exclusion reasons: {'short_duration': 2}
+  pass examples:
+    - 20260410_222622_ocs2_stepdown_ctp010_height_only_nominal_v1_contactflagbias_p010_v2 | pass=True | reason=- | success=True | task_success=True | duration=22.0026 | forward=3.3725 | min_base_z=0.1166 | ctrl_time=[4.7280, 26.7810]
+    - 20260410_224624_ocs2_stepdown_ctp010_height_only_nominal_v1_contactflagbias_p010_rerun_v3 | pass=True | reason=- | success=True | task_success=True | duration=22.0023 | forward=3.3240 | min_base_z=0.1166 | ctrl_time=[5.0680, 26.7930]
+  excluded examples:
+    - 20260410_234809_ocs2_stepdown_ctp010_height_only_nominal_v1_contactflagbias_batch_5cm_ocs2_stepdown_ctp010_r02 | pass=False | reason=short_duration | success=False | task_success=False | duration=7.8008 | forward=1.0492 | min_base_z=0.2649 | ctrl_time=[4.6372, 12.5540]
+    - 20260410_235140_ocs2_stepdown_ctp010_height_only_nominal_v1_contactflagbias_batch_5cm_ocs2_stepdown_ctp010_r09 | pass=False | reason=short_duration | success=False | task_success=False | duration=7.4410 | forward=0.9150 | min_base_z=0.2585 | ctrl_time=[4.9279, 12.3950]
+
+terrain=7.0cm, d=0.07s
+  raw count from filtered CSV: total=10, pass=10, excluded=0
+  raw run folders existing: 10
+  summary match: n_runs csv=10 vs actual=10 | success_rate csv=0.7 vs actual=0.7000 | stable_rate csv=0.6 vs actual=0.6000 | fail_rate csv=0.3 vs actual=0.3000
+  compact match: n_runs=10, outcome_majority=stable, success_rate=0.7
+  exclusion reasons: {}
+  pass examples:
+    - 20260411_231654_ocs2_stepdown_7cm_ctp007_height_only_nominal_v1_contactflagbias_batch_7cm_ocs2_stepdown_7cm_ctp007_r01 | pass=True | reason=- | success=True | task_success=True | duration=22.0027 | forward=2.9724 | min_base_z=0.1166 | ctrl_time=[4.1520, 26.2160]
+    - 20260411_231728_ocs2_stepdown_7cm_ctp007_height_only_nominal_v1_contactflagbias_batch_7cm_ocs2_stepdown_7cm_ctp007_r02 | pass=True | reason=- | success=True | task_success=True | duration=22.0028 | forward=3.0582 | min_base_z=0.1166 | ctrl_time=[5.2321, 27.3220]
+  excluded examples:
+    - none
+
+terrain=9.0cm, d=0.12s
+  raw count from filtered CSV: total=10, pass=1, excluded=9
+  raw run folders existing: 10
+  summary match: n_runs csv=1 vs actual=1 | success_rate csv=0.0 vs actual=0.0000 | stable_rate csv=0.0 vs actual=0.0000 | fail_rate csv=1.0 vs actual=1.0000
+  compact match: n_runs=1, outcome_majority=fail, success_rate=0.0
+  exclusion reasons: {'short_duration': 4, 'startup_collapse': 4, 'low_progress': 1}
+  pass examples:
+    - 20260412_002650_ocs2_stepdown_9cm_ctp012_height_only_nominal_v1_contactflagbias_batch_9cm_ocs2_stepdown_9cm_ctp012_r06 | pass=True | reason=- | success=False | task_success=False | duration=9.2810 | forward=1.6094 | min_base_z=0.0808 | ctrl_time=[4.5690, 13.9630]
+  excluded examples:
+    - 20260412_002507_ocs2_stepdown_9cm_ctp012_height_only_nominal_v1_contactflagbias_batch_9cm_ocs2_stepdown_9cm_ctp012_r01 | pass=False | reason=short_duration | success=False | task_success=False | duration=6.2406 | forward=0.5685 | min_base_z=0.2471 | ctrl_time=[5.4070, 11.7680]
+    - 20260412_002526_ocs2_stepdown_9cm_ctp012_height_only_nominal_v1_contactflagbias_batch_9cm_ocs2_stepdown_9cm_ctp012_r02 | pass=False | reason=startup_collapse | success=False | task_success=False | duration=10.0021 | forward=0.4958 | min_base_z=0.0799 | ctrl_time=[5.4330, 15.5150]
+

@@ -9,6 +9,7 @@
 #include <ocs2_core/misc/LoadData.h>
 #include <ocs2_quadruped_controller/wbc/WeightedWbc.h>
 #include <ocs2_sqp/SqpMpc.h>
+#include <filesystem>
 
 namespace ocs2::legged_robot
 {
@@ -20,8 +21,10 @@ namespace ocs2::legged_robot
     {
         node_->declare_parameter("default_kp", default_kp_);
         node_->declare_parameter("default_kd", default_kd_);
+        node_->declare_parameter("dataset_log_csv_path", std::string(""));
         default_kp_ = node_->get_parameter("default_kp").as_double();
         default_kd_ = node_->get_parameter("default_kd").as_double();
+        dataset_log_csv_path_ = node_->get_parameter("dataset_log_csv_path").as_string();
 
         // selfCollisionVisualization_.reset(new LeggedSelfCollisionVisualization(leggedInterface_->getPinocchioInterface(),
         //                                                                        leggedInterface_->getGeometryInterface(), pinocchioMapping, nh));
@@ -39,6 +42,7 @@ namespace ocs2::legged_robot
     void StateOCS2::enter()
     {
         ctrl_component_->init();
+        openDatasetLogIfNeeded();
     }
 
     void StateOCS2::run(const rclcpp::Time& /**time**/,
@@ -58,6 +62,7 @@ namespace ocs2::legged_robot
                                                             ctrl_component_->observation_.state,
                                                             optimized_state_,
                                                             optimized_input_, planned_mode);
+        appendDatasetRow(planned_mode);
 
         // Whole body control
         ctrl_component_->observation_.input = optimized_input_;
@@ -93,6 +98,11 @@ namespace ocs2::legged_robot
 
     void StateOCS2::exit()
     {
+        if (dataset_log_stream_.is_open())
+        {
+            dataset_log_stream_.flush();
+            dataset_log_stream_.close();
+        }
     }
 
     FSMStateName StateOCS2::checkChange()
@@ -111,5 +121,95 @@ namespace ocs2::legged_robot
         default:
             return FSMStateName::OCS2;
         }
+    }
+
+    void StateOCS2::openDatasetLogIfNeeded()
+    {
+        if (dataset_log_csv_path_.empty() || dataset_log_stream_.is_open())
+        {
+            return;
+        }
+        std::filesystem::path csvPath(dataset_log_csv_path_);
+        if (csvPath.has_parent_path())
+        {
+            std::filesystem::create_directories(csvPath.parent_path());
+        }
+        dataset_log_stream_.open(dataset_log_csv_path_, std::ios::out | std::ios::trunc);
+        dataset_log_header_written_ = false;
+    }
+
+    void StateOCS2::writeDatasetHeaderIfNeeded(size_t stateDim, size_t inputDim)
+    {
+        if (!dataset_log_stream_.is_open() || dataset_log_header_written_)
+        {
+            return;
+        }
+
+        dataset_log_stream_ << "time,obs_mode,planned_mode"
+                            << ",obs_contact_fl,obs_contact_fr,obs_contact_rl,obs_contact_rr"
+                            << ",plan_contact_fl,plan_contact_fr,plan_contact_rl,plan_contact_rr";
+
+        for (size_t i = 0; i < stateDim; ++i)
+        {
+            dataset_log_stream_ << ",obs_state_" << i;
+        }
+        for (size_t i = 0; i < inputDim; ++i)
+        {
+            dataset_log_stream_ << ",obs_input_" << i;
+        }
+        for (size_t i = 0; i < stateDim; ++i)
+        {
+            dataset_log_stream_ << ",opt_state_" << i;
+        }
+        for (size_t i = 0; i < inputDim; ++i)
+        {
+            dataset_log_stream_ << ",opt_input_" << i;
+        }
+        dataset_log_stream_ << '\n';
+        dataset_log_header_written_ = true;
+    }
+
+    void StateOCS2::appendDatasetRow(size_t plannedMode)
+    {
+        if (!dataset_log_stream_.is_open())
+        {
+            return;
+        }
+
+        const auto obsContacts = modeNumber2StanceLeg(ctrl_component_->observation_.mode);
+        const auto plannedContacts = modeNumber2StanceLeg(plannedMode);
+        const auto stateDim = static_cast<size_t>(ctrl_component_->observation_.state.size());
+        const auto inputDim = static_cast<size_t>(ctrl_component_->observation_.input.size());
+        writeDatasetHeaderIfNeeded(stateDim, inputDim);
+
+        dataset_log_stream_ << ctrl_component_->observation_.time
+                            << ',' << ctrl_component_->observation_.mode
+                            << ',' << plannedMode
+                            << ',' << static_cast<int>(obsContacts[0])
+                            << ',' << static_cast<int>(obsContacts[1])
+                            << ',' << static_cast<int>(obsContacts[2])
+                            << ',' << static_cast<int>(obsContacts[3])
+                            << ',' << static_cast<int>(plannedContacts[0])
+                            << ',' << static_cast<int>(plannedContacts[1])
+                            << ',' << static_cast<int>(plannedContacts[2])
+                            << ',' << static_cast<int>(plannedContacts[3]);
+
+        for (size_t i = 0; i < stateDim; ++i)
+        {
+            dataset_log_stream_ << ',' << ctrl_component_->observation_.state(static_cast<Eigen::Index>(i));
+        }
+        for (size_t i = 0; i < inputDim; ++i)
+        {
+            dataset_log_stream_ << ',' << ctrl_component_->observation_.input(static_cast<Eigen::Index>(i));
+        }
+        for (size_t i = 0; i < stateDim; ++i)
+        {
+            dataset_log_stream_ << ',' << optimized_state_(static_cast<Eigen::Index>(i));
+        }
+        for (size_t i = 0; i < inputDim; ++i)
+        {
+            dataset_log_stream_ << ',' << optimized_input_(static_cast<Eigen::Index>(i));
+        }
+        dataset_log_stream_ << '\n';
     }
 }

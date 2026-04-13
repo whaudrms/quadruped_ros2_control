@@ -203,7 +203,8 @@ namespace ocs2::legged_robot
                 loadSwingTrajectorySettings(taskFile, "swing_trajectory_config", verbose), 4);
         reference_manager_ptr_ =
             std::make_shared<SwitchedModelReferenceManager>(loadGaitSchedule(referenceFile, verbose),
-                                                            std::move(swingTrajectoryPlanner));
+                                                            std::move(swingTrajectoryPlanner),
+                                                            0.0);
     }
 
 

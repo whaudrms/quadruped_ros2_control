@@ -59,7 +59,7 @@ def launch_process(command: str, log_path: Path):
     return process
 
 
-def create_controller_yaml(base_yaml: Path, output_yaml: Path, *, task_file_override: str = "", reference_file_override: str = "", gait_file_override: str = ""):
+def create_controller_yaml(base_yaml: Path, output_yaml: Path, *, task_file_override: str = "", reference_file_override: str = "", gait_file_override: str = "", dataset_log_csv_path: str = "", nominal_terrain_height_override: float = 0.0, contact_timing_bias: float = 0.0):
     with open(base_yaml, "r", encoding="utf-8") as f:
         config = yaml.safe_load(f)
 
@@ -68,6 +68,9 @@ def create_controller_yaml(base_yaml: Path, output_yaml: Path, *, task_file_over
     params["task_file_override"] = task_file_override
     params["reference_file_override"] = reference_file_override
     params["gait_file_override"] = gait_file_override
+    params["dataset_log_csv_path"] = dataset_log_csv_path
+    params["nominal_terrain_height_override"] = float(nominal_terrain_height_override)
+    params["contact_timing_bias"] = float(contact_timing_bias)
 
     with open(output_yaml, "w", encoding="utf-8") as f:
         yaml.safe_dump(config, f, sort_keys=False)
@@ -261,11 +264,16 @@ def main():
         )
     elif args.mode == "height_only_nominal_v1":
         task_file_override = terrain.get("task_file_override", "")
+        nominal_terrain_height_override = terrain.get("nominal_terrain_height_override", 0.0)
+        contact_timing_bias = terrain.get("contact_timing_bias", 0.0)
         controller_yaml = run_dir / "robot_control_height_only_v1.runtime.yaml"
         create_controller_yaml(
             Path("/home/ho/ros2_ws/src/quadruped_ros2_control/descriptions/unitree/go2_description_height_only_v1/config/robot_control_height_only_v1.yaml"),
             controller_yaml,
             task_file_override=task_file_override,
+            dataset_log_csv_path=str(run_dir / "controller_state_input.csv"),
+            nominal_terrain_height_override=nominal_terrain_height_override,
+            contact_timing_bias=contact_timing_bias,
         )
         controller_cmd = (
             "source /opt/ros/jazzy/setup.bash && "

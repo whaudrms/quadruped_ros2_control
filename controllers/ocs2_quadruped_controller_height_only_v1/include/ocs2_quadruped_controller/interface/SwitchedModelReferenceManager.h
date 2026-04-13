@@ -44,7 +44,8 @@ namespace ocs2::legged_robot {
     class SwitchedModelReferenceManager : public ReferenceManager {
     public:
         SwitchedModelReferenceManager(std::shared_ptr<GaitSchedule> gaitSchedulePtr,
-                                      std::shared_ptr<SwingTrajectoryPlanner> swingTrajectoryPtr);
+                                      std::shared_ptr<SwingTrajectoryPlanner> swingTrajectoryPtr,
+                                      scalar_t terrainHeight = 0.0);
 
         ~SwitchedModelReferenceManager() override = default;
 
@@ -56,6 +57,14 @@ namespace ocs2::legged_robot {
 
         const std::shared_ptr<SwingTrajectoryPlanner> &getSwingTrajectoryPlanner() { return swingTrajectoryPtr_; }
 
+        void setTerrainHeightOverride(scalar_t terrainHeight) { terrainHeight_ = terrainHeight; }
+
+        scalar_t getTerrainHeightOverride() const { return terrainHeight_; }
+
+        void setContactTimingBias(scalar_t contactTimingBias) { contactTimingBias_ = contactTimingBias; }
+
+        scalar_t getContactTimingBias() const { return contactTimingBias_; }
+
     protected:
         void modifyReferences(scalar_t initTime, scalar_t finalTime, const vector_t &initState,
                               TargetTrajectories &targetTrajectories,
@@ -63,5 +72,7 @@ namespace ocs2::legged_robot {
 
         std::shared_ptr<GaitSchedule> gaitSchedulePtr_;
         std::shared_ptr<SwingTrajectoryPlanner> swingTrajectoryPtr_;
+        scalar_t terrainHeight_ = 0.0;
+        scalar_t contactTimingBias_ = 0.0;
     };
 }
