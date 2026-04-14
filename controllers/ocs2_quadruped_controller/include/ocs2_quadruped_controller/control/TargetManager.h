@@ -7,6 +7,7 @@
 
 
 #include <memory>
+#include <optional>
 #include <controller_common/CtrlInterfaces.h>
 #include <ocs2_mpc/SystemObservation.h>
 #include <ocs2_oc/synchronized_module/ReferenceManagerInterface.h>
@@ -30,6 +31,8 @@ namespace ocs2::legged_robot
 
     private:
         scalar_t resolveTargetBaseHeight(const vector_t& currentPose, const vector_t& targetPose);
+        bool shouldCommitToLowerStep(const vector_t& currentPose, const vector_t& targetPose,
+                                     scalar_t currentTerrainHeight) const;
 
         TargetTrajectories targetPoseToTargetTrajectories(const vector_t& targetPose,
                                                           const SystemObservation& observation,
@@ -63,6 +66,9 @@ namespace ocs2::legged_robot
         scalar_t time_to_target_{};
         scalar_t target_displacement_velocity_{};
         scalar_t target_rotation_velocity_{};
+        scalar_t down_step_height_threshold_{0.03};
+        scalar_t down_step_commit_distance_{0.08};
+        int down_step_preview_samples_{9};
     };
 }
 

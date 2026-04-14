@@ -8,6 +8,9 @@
 #include <ocs2_quadruped_controller/perceptive/interface/PerceptiveLeggedReferenceManager.h>
 #include <ocs2_robotic_tools/common/RotationTransforms.h>
 
+#include <algorithm>
+#include <cmath>
+#include <limits>
 #include <optional>
 #include <utility>
 
@@ -28,6 +31,12 @@ namespace ocs2::legged_robot
         loadData::loadCppDataType(task_file, "mpc.timeHorizon", time_to_target_);
         loadData::loadCppDataType(reference_file, "targetRotationVelocity", target_rotation_velocity_);
         loadData::loadCppDataType(reference_file, "targetDisplacementVelocity", target_displacement_velocity_);
+        node_->declare_parameter("perceptive_down_step_height_threshold", down_step_height_threshold_);
+        node_->declare_parameter("perceptive_down_step_commit_distance", down_step_commit_distance_);
+        node_->declare_parameter("perceptive_down_step_preview_samples", down_step_preview_samples_);
+        down_step_height_threshold_ = node_->get_parameter("perceptive_down_step_height_threshold").as_double();
+        down_step_commit_distance_ = node_->get_parameter("perceptive_down_step_commit_distance").as_double();
+        down_step_preview_samples_ = node_->get_parameter("perceptive_down_step_preview_samples").as_int();
 
         twist_sub_ = node_->create_subscription<geometry_msgs::msg::Twist>(
             "/cmd_vel", 10, [this](const geometry_msgs::msg::Twist::SharedPtr msg)
@@ -52,14 +61,66 @@ namespace ocs2::legged_robot
             return currentPose(2);
         }
 
-        if (const auto terrainHeight = convexRegionSelectorPtr->sampleTerrainHeight(targetPose(0), targetPose(1));
-            terrainHeight.has_value())
+        const auto currentTerrainHeight = convexRegionSelectorPtr->sampleTerrainHeight(currentPose(0), currentPose(1));
+        const auto targetTerrainHeight = convexRegionSelectorPtr->sampleTerrainHeight(targetPose(0), targetPose(1));
+        if (targetTerrainHeight.has_value())
         {
-            return *terrainHeight + command_height_;
+            if (currentTerrainHeight.has_value() &&
+                *targetTerrainHeight < *currentTerrainHeight - down_step_height_threshold_ &&
+                !shouldCommitToLowerStep(currentPose, targetPose, *currentTerrainHeight))
+            {
+                return *currentTerrainHeight + command_height_;
+            }
+
+            return *targetTerrainHeight + command_height_;
         }
 
         // Keep the current measured height until terrain data is available.
         return currentPose(2);
+    }
+
+    bool TargetManager::shouldCommitToLowerStep(const vector_t& currentPose, const vector_t& targetPose,
+                                                const scalar_t currentTerrainHeight) const
+    {
+        auto* perceptiveReferenceManager = dynamic_cast<PerceptiveLeggedReferenceManager*>(referenceManagerPtr_.get());
+        if (perceptiveReferenceManager == nullptr)
+        {
+            return true;
+        }
+
+        const auto& convexRegionSelectorPtr = perceptiveReferenceManager->getConvexRegionSelectorPtr();
+        if (!convexRegionSelectorPtr)
+        {
+            return true;
+        }
+
+        const scalar_t dx = targetPose(0) - currentPose(0);
+        const scalar_t dy = targetPose(1) - currentPose(1);
+        const scalar_t planarDistance = std::hypot(dx, dy);
+        if (planarDistance <= 1e-6)
+        {
+            return false;
+        }
+
+        const int sampleCount = std::max(1, down_step_preview_samples_);
+        for (int i = 1; i <= sampleCount; ++i)
+        {
+            const scalar_t alpha = static_cast<scalar_t>(i) / static_cast<scalar_t>(sampleCount);
+            const scalar_t x = currentPose(0) + alpha * dx;
+            const scalar_t y = currentPose(1) + alpha * dy;
+            const auto terrainHeight = convexRegionSelectorPtr->sampleTerrainHeight(x, y);
+            if (!terrainHeight.has_value())
+            {
+                continue;
+            }
+
+            if (*terrainHeight < currentTerrainHeight - down_step_height_threshold_)
+            {
+                return alpha * planarDistance <= down_step_commit_distance_;
+            }
+        }
+
+        return false;
     }
 
     void TargetManager::update(SystemObservation& observation)

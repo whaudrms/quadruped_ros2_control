@@ -105,6 +105,8 @@ namespace ocs2::legged_robot
             constexpr scalar_t maxAbsPitch = 0.25;
             constexpr scalar_t maxPitchDeltaPerNode = 0.06;
             constexpr scalar_t maxHeightDeltaPerNode = 0.03;
+            constexpr scalar_t downStepHeightThreshold = 0.03;
+            constexpr scalar_t downStepCommitDistance = 0.08;
             const vector_t initBasePose = centroidal_model::getBasePose(initState, info_);
             scalar_t previousPitch = initBasePose(4);
             scalar_t previousHeight = initBasePose(2);
@@ -152,8 +154,20 @@ namespace ocs2::legged_robot
                     const scalar_t safeCosPitch = std::max<scalar_t>(0.9, std::cos(limitedPitch));
                     const scalar_t terrainAwareHeight =
                         map.atPosition("smooth_planar", grid_map::Position(x, y)) + comHeight_ / safeCosPitch;
-                    limitedHeight = rawHeight + heightBlend * (terrainAwareHeight - rawHeight);
-                    limitedHeight = clampDelta(previousHeight, limitedHeight, maxHeightDeltaPerNode);
+                    const scalar_t planarDistanceFromInit =
+                        (basePose.head<2>() - initBasePose.head<2>()).norm();
+                    const bool descendingToLowerTerrain =
+                        terrainAwareHeight < rawHeight - downStepHeightThreshold;
+                    if (descendingToLowerTerrain && planarDistanceFromInit > downStepCommitDistance)
+                    {
+                        limitedPitch = rawPitch;
+                        limitedHeight = rawHeight;
+                    }
+                    else
+                    {
+                        limitedHeight = rawHeight + heightBlend * (terrainAwareHeight - rawHeight);
+                        limitedHeight = clampDelta(previousHeight, limitedHeight, maxHeightDeltaPerNode);
+                    }
                 }
                 catch (const std::exception&)
                 {
@@ -174,7 +188,7 @@ namespace ocs2::legged_robot
         }
 
         // Footstep
-        convexRegionSelectorPtr_->update(modeSchedule, initTime, initState, targetTrajectories);
+        convexRegionSelectorPtr_->update(modeSchedule, initTime, initState, rawTargetTrajectories);
 
         // Swing trajectory
         updateSwingTrajectoryPlanner(initTime, initState, modeSchedule);

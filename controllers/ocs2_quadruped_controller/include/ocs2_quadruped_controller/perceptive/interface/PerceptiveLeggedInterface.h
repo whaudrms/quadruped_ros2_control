@@ -21,12 +21,14 @@ namespace ocs2::legged_robot
         void setPerceptiveDebugOptions(bool enableReferenceModification,
                                        bool enableFootPlacementConstraint,
                                        bool enableFootCollisionConstraint,
-                                       bool enableBodyCollisionConstraint)
+                                       bool enableBodyCollisionConstraint,
+                                       scalar_t footPlacementBoundaryMargin)
         {
             enableReferenceModification_ = enableReferenceModification;
             enableFootPlacementConstraint_ = enableFootPlacementConstraint;
             enableFootCollisionConstraint_ = enableFootCollisionConstraint;
             enableBodyCollisionConstraint_ = enableBodyCollisionConstraint;
+            footPlacementBoundaryMargin_ = footPlacementBoundaryMargin;
         }
 
         void setupOptimalControlProblem(const std::string& taskFile,
@@ -70,6 +72,7 @@ namespace ocs2::legged_robot
         bool enableFootPlacementConstraint_ = true;
         bool enableFootCollisionConstraint_ = true;
         bool enableBodyCollisionConstraint_ = false;
+        scalar_t footPlacementBoundaryMargin_ = 0.05;
 
         std::shared_ptr<convex_plane_decomposition::PlanarTerrain> planarTerrainPtr_;
         std::shared_ptr<grid_map::SignedDistanceField> signedDistanceFieldPtr_;

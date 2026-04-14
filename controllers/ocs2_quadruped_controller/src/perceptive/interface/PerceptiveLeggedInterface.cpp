@@ -145,6 +145,7 @@ namespace ocs2::legged_robot
         problem_ptr_->preComputationPtr = std::make_unique<PerceptiveLeggedPrecomputation>(
             *pinocchio_interface_ptr_, centroidal_model_info_, *reference_manager_ptr_->getSwingTrajectoryPlanner(),
             model_settings_,
-            *dynamic_cast<PerceptiveLeggedReferenceManager&>(*reference_manager_ptr_).getConvexRegionSelectorPtr());
+            *dynamic_cast<PerceptiveLeggedReferenceManager&>(*reference_manager_ptr_).getConvexRegionSelectorPtr(),
+            footPlacementBoundaryMargin_);
     }
 } // namespace legged

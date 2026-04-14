@@ -32,6 +32,8 @@ def launch_setup(context, *args, **kwargs):
     enable_perceptive_foot_placement_constraint = context.launch_configurations['enable_perceptive_foot_placement_constraint'].lower() in ("true", "1", "yes", "on")
     enable_perceptive_foot_collision_constraint = context.launch_configurations['enable_perceptive_foot_collision_constraint'].lower() in ("true", "1", "yes", "on")
     enable_perceptive_body_collision_constraint = context.launch_configurations['enable_perceptive_body_collision_constraint'].lower() in ("true", "1", "yes", "on")
+    perceptive_foot_placement_boundary_margin = float(
+        context.launch_configurations['perceptive_foot_placement_boundary_margin'])
     publish_static_terrain = context.launch_configurations['publish_static_terrain'].lower() in ("true", "1", "yes", "on")
     terrain_smoothing_radius = float(context.launch_configurations['terrain_smoothing_radius'])
     terrain_scene_file = resolve_scene_file(context.launch_configurations['terrain_scene_file'])
@@ -50,6 +52,7 @@ def launch_setup(context, *args, **kwargs):
             f"    enable_perceptive_foot_placement_constraint: {'true' if enable_perceptive_foot_placement_constraint else 'false'}\n"
             f"    enable_perceptive_foot_collision_constraint: {'true' if enable_perceptive_foot_collision_constraint else 'false'}\n"
             f"    enable_perceptive_body_collision_constraint: {'true' if enable_perceptive_body_collision_constraint else 'false'}\n"
+            f"    perceptive_foot_placement_boundary_margin: {perceptive_foot_placement_boundary_margin}\n"
         )
         controller_override_file = controller_param_file.name
 
@@ -238,7 +241,7 @@ def generate_launch_description():
 
     enable_perceptive_foot_collision_constraint = DeclareLaunchArgument(
         'enable_perceptive_foot_collision_constraint',
-        default_value='false',
+        default_value='true',
         description='Enable perceptive foot collision soft constraints'
     )
 
@@ -246,6 +249,12 @@ def generate_launch_description():
         'enable_perceptive_body_collision_constraint',
         default_value='false',
         description='Enable perceptive body collision soft constraints'
+    )
+
+    perceptive_foot_placement_boundary_margin = DeclareLaunchArgument(
+        'perceptive_foot_placement_boundary_margin',
+        default_value='0.05',
+        description='Inward shrink margin in meters applied to the foot placement admissible polygon'
     )
 
     terrain_smoothing_radius = DeclareLaunchArgument(
@@ -267,6 +276,7 @@ def generate_launch_description():
         enable_perceptive_foot_placement_constraint,
         enable_perceptive_foot_collision_constraint,
         enable_perceptive_body_collision_constraint,
+        perceptive_foot_placement_boundary_margin,
         publish_static_terrain,
         terrain_smoothing_radius,
         terrain_scene_file,

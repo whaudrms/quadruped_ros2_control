@@ -76,6 +76,7 @@ namespace ocs2::legged_robot
         bool enable_perceptive_foot_placement_constraint_ = true;
         bool enable_perceptive_foot_collision_constraint_ = true;
         bool enable_perceptive_body_collision_constraint_ = false;
+        scalar_t perceptive_foot_placement_boundary_margin_ = 0.05;
         std::string estimator_type_;
         scalar_t perceptive_com_height_ = 0.0;
         CtrlInterfaces& ctrl_interfaces_;

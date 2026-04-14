@@ -4,16 +4,20 @@
 
 #include "ocs2_quadruped_controller/perceptive/interface/PerceptiveLeggedPrecomputation.h"
 
+#include <cmath>
+
 namespace ocs2::legged_robot
 {
     PerceptiveLeggedPrecomputation::PerceptiveLeggedPrecomputation(PinocchioInterface pinocchioInterface,
                                                                    const CentroidalModelInfo& info,
                                                                    const SwingTrajectoryPlanner& swingTrajectoryPlanner,
                                                                    ModelSettings settings,
-                                                                   const ConvexRegionSelector& convexRegionSelector)
+                                                                   const ConvexRegionSelector& convexRegionSelector,
+                                                                   scalar_t footPlacementBoundaryMargin)
         : LeggedRobotPreComputation(std::move(pinocchioInterface), info, swingTrajectoryPlanner, std::move(settings)),
           convexRegionSelectorPtr_(&convexRegionSelector),
-          numVertices_(convexRegionSelector.getNumVertices())
+          numVertices_(convexRegionSelector.getNumVertices()),
+          footPlacementBoundaryMargin_(footPlacementBoundaryMargin)
     {
         footPlacementConParameters_.resize(info.numThreeDofContacts);
         for (auto& parameter : footPlacementConParameters_)
@@ -26,6 +30,7 @@ namespace ocs2::legged_robot
         : LeggedRobotPreComputation(rhs),
           convexRegionSelectorPtr_(rhs.convexRegionSelectorPtr_),
           numVertices_(rhs.numVertices_),
+          footPlacementBoundaryMargin_(rhs.footPlacementBoundaryMargin_),
           footPlacementConParameters_(rhs.footPlacementConParameters_)
     {
     }
@@ -67,12 +72,23 @@ namespace ocs2::legged_robot
                     footPlacementConParameters_[i] = params;
                     continue;
                 }
+
+                matrix_t activePolytopeA = polytopeA;
+                vector_t activePolytopeB = polytopeB;
+                const Eigen::Matrix<scalar_t, 2, 1> interiorPoint(
+                    projection.positionInTerrainFrame.x(), projection.positionInTerrainFrame.y());
+                if (!tryShrinkPolygonConstraint(polytopeA, polytopeB, interiorPoint, activePolytopeA, activePolytopeB))
+                {
+                    activePolytopeA = polytopeA;
+                    activePolytopeB = polytopeB;
+                }
+
                 matrix_t p = (matrix_t(2, 3) << // clang-format off
                         1, 0, 0,
                         0, 1, 0).finished();  // clang-format on
-                params.a = polytopeA * p * projection.regionPtr->transformPlaneToWorld.inverse().linear();
-                params.b = polytopeB + polytopeA * projection.regionPtr->transformPlaneToWorld.inverse().translation().
-                                                              head(2);
+                params.a = activePolytopeA * p * projection.regionPtr->transformPlaneToWorld.inverse().linear();
+                params.b = activePolytopeB + activePolytopeA *
+                                              projection.regionPtr->transformPlaneToWorld.inverse().translation().head(2);
 
                 footPlacementConParameters_[i] = params;
             }
@@ -120,5 +136,31 @@ namespace ocs2::legged_robot
         }
 
         return {polytopeA, polytopeB};
+    }
+
+    bool PerceptiveLeggedPrecomputation::tryShrinkPolygonConstraint(const matrix_t& polytopeA, const vector_t& polytopeB,
+                                                                    const Eigen::Matrix<scalar_t, 2, 1>& interiorPoint, matrix_t& shrunkA,
+                                                                    vector_t& shrunkB) const
+    {
+        shrunkA = polytopeA;
+        shrunkB = polytopeB;
+
+        if (footPlacementBoundaryMargin_ <= 0.0)
+        {
+            return true;
+        }
+
+        for (Eigen::Index row = 0; row < polytopeA.rows(); ++row)
+        {
+            const scalar_t normalNorm = polytopeA.row(row).norm();
+            if (normalNorm <= 1e-9)
+            {
+                return false;
+            }
+            shrunkB(row) -= footPlacementBoundaryMargin_ * normalNorm;
+        }
+
+        const vector_t slack = shrunkA * interiorPoint + shrunkB;
+        return (slack.array() > 1e-6).all();
     }
 } // namespace legged

@@ -29,7 +29,7 @@ namespace ocs2::legged_robot
                              const EndEffectorKinematics<scalar_t>& endEffectorKinematics, size_t numVertices);
 
         void update(const ModeSchedule& modeSchedule, scalar_t initTime, const vector_t& initState,
-                    TargetTrajectories& targetTrajectories);
+                    const TargetTrajectories& targetTrajectories);
 
         convex_plane_decomposition::PlanarTerrainProjection getProjection(size_t leg, scalar_t time) const;
 
@@ -58,7 +58,7 @@ namespace ocs2::legged_robot
         static std::pair<int, int> findIndex(size_t index, const std::vector<bool>& contactFlagStock);
 
         vector3_t getNominalFoothold(size_t leg, scalar_t time, const vector_t& initState,
-                                     TargetTrajectories& targetTrajectories);
+                                     const TargetTrajectories& targetTrajectories);
 
         feet_array_t<std::vector<convex_plane_decomposition::PlanarTerrainProjection>> feetProjections_;
         feet_array_t<std::vector<convex_plane_decomposition::CgalPolygon2d>> convexPolygons_;

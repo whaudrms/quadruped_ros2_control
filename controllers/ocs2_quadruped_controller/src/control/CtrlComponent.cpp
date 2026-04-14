@@ -36,6 +36,8 @@ namespace ocs2::legged_robot
         node_->declare_parameter("enable_perceptive_foot_placement_constraint", enable_perceptive_foot_placement_constraint_);
         node_->declare_parameter("enable_perceptive_foot_collision_constraint", enable_perceptive_foot_collision_constraint_);
         node_->declare_parameter("enable_perceptive_body_collision_constraint", enable_perceptive_body_collision_constraint_);
+        node_->declare_parameter("perceptive_foot_placement_boundary_margin",
+                                 perceptive_foot_placement_boundary_margin_);
 
         robot_pkg_ = node_->get_parameter("robot_pkg").as_string();
         joint_names_ = node_->get_parameter("joints").as_string_array();
@@ -49,6 +51,8 @@ namespace ocs2::legged_robot
             node_->get_parameter("enable_perceptive_foot_collision_constraint").as_bool();
         enable_perceptive_body_collision_constraint_ =
             node_->get_parameter("enable_perceptive_body_collision_constraint").as_bool();
+        perceptive_foot_placement_boundary_margin_ =
+            node_->get_parameter("perceptive_foot_placement_boundary_margin").as_double();
 
 
         const std::string package_share_directory = ament_index_cpp::get_package_share_directory(robot_pkg_);
@@ -255,7 +259,8 @@ namespace ocs2::legged_robot
                 enable_perceptive_reference_modification_,
                 enable_perceptive_foot_placement_constraint_,
                 enable_perceptive_foot_collision_constraint_,
-                enable_perceptive_body_collision_constraint_);
+                enable_perceptive_body_collision_constraint_,
+                perceptive_foot_placement_boundary_margin_);
         }
         else
         {

@@ -47,7 +47,7 @@ namespace ocs2::legged_robot
     }
 
     void ConvexRegionSelector::update(const ModeSchedule& modeSchedule, scalar_t initTime, const vector_t& initState,
-                                      TargetTrajectories& targetTrajectories)
+                                      const TargetTrajectories& targetTrajectories)
     {
         if (terrainDataMutexPtr_)
         {
@@ -102,11 +102,13 @@ namespace ocs2::legged_robot
                     const int standFinalIndex = finalIndices[leg][i];
                     const scalar_t standStartTime = eventTimes[standStartIndex];
                     const scalar_t standFinalTime = eventTimes[standFinalIndex];
-                    const scalar_t standMiddleTime = standStartTime + (standFinalTime - standStartTime) / 2;
+                    const scalar_t stanceDuration = standFinalTime - standStartTime;
+                    const scalar_t standSelectionTime =
+                        std::min(standFinalTime, standStartTime + std::min<scalar_t>(0.05, 0.15 * stanceDuration));
 
-                    if (!numerics::almost_eq(standMiddleTime, lastStandMiddleTime))
+                    if (!numerics::almost_eq(standSelectionTime, lastStandMiddleTime))
                     {
-                        vector3_t footPos = getNominalFoothold(leg, standMiddleTime, initState, targetTrajectories);
+                        vector3_t footPos = getNominalFoothold(leg, standSelectionTime, initState, targetTrajectories);
                         auto penaltyFunction = [](const vector3_t& /*projectedPoint*/) { return 0.0; };
                         const auto projection = getBestPlanarRegionAtPositionInWorld(
                             footPos, planarTerrain_.planarRegions, penaltyFunction);
@@ -118,8 +120,8 @@ namespace ocs2::legged_robot
                         feetProjections_[leg][i] = projection;
                         convexPolygons_[leg][i] = convexRegion;
                         nominalFootholds_[leg][i] = footPos;
-                        middleTimes_[leg].push_back(standMiddleTime);
-                        lastStandMiddleTime = standMiddleTime;
+                        middleTimes_[leg].push_back(standSelectionTime);
+                        lastStandMiddleTime = standSelectionTime;
                     }
                     else
                     {
@@ -196,7 +198,7 @@ namespace ocs2::legged_robot
     }
 
     vector3_t ConvexRegionSelector::getNominalFoothold(size_t leg, scalar_t time, const vector_t& initState,
-                                                       TargetTrajectories& targetTrajectories)
+                                                       const TargetTrajectories& targetTrajectories)
     {
         scalar_t height = 0.4;
 
