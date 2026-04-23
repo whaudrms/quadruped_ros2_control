@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.8)
 project(hardware_unitree_mujoco)
+set(HOME_DIR $ENV{HOME})
 
 if (CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     add_compile_options(-Wall -Wextra -Wpedantic)
@@ -18,6 +19,8 @@ set(THIS_PACKAGE_INCLUDE_DEPENDS
 # find dependencies
 find_package(ament_cmake REQUIRED)
 find_package(backward_ros REQUIRED)
+#list(APPEND CMAKE_PREFIX_PATH "/opt/unitree_robotics/lib/cmake")
+list(APPEND CMAKE_PREFIX_PATH "${HOME_DIR}/GO2_ws/unitree_sdk2/install/lib/cmake/unitree_sdk2")
 find_package(unitree_sdk2 REQUIRED)
 
 foreach (Dependency IN ITEMS ${THIS_PACKAGE_INCLUDE_DEPENDS})
@@ -40,6 +43,14 @@ target_include_directories(${PROJECT_NAME} PUBLIC
         PRIVATE src
 )
 target_link_libraries(${PROJECT_NAME} unitree_sdk2)
+set_target_properties(${PROJECT_NAME} PROPERTIES
+        INSTALL_RPATH "${HOME_DIR}/GO2_ws/unitree_sdk2/install/lib"
+        BUILD_WITH_INSTALL_RPATH TRUE
+)
+# DT_RPATH is searched BEFORE LD_LIBRARY_PATH; DT_RUNPATH is searched AFTER.
+# Force old-style DT_RPATH so unitree_sdk2's bundled CycloneDDS 0.10.2 wins over
+# the system ros-humble-cyclonedds 0.10.5 at runtime (ABI mismatch would crash).
+target_link_options(${PROJECT_NAME} PRIVATE "-Wl,--disable-new-dtags")
 ament_target_dependencies(
         ${PROJECT_NAME}
         ${THIS_PACKAGE_INCLUDE_DEPENDS}
