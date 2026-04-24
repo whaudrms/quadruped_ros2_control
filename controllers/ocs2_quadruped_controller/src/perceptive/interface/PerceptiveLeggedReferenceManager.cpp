@@ -39,6 +39,90 @@ namespace ocs2::legged_robot
             return previousValue + std::clamp(candidateValue - previousValue, -maxDelta, maxDelta);
         }
 
+        struct SupportHeightProfile
+        {
+            bool hasSupport = false;
+            bool hasFrontSupport = false;
+            bool hasRearSupport = false;
+            scalar_t meanHeight = std::numeric_limits<scalar_t>::quiet_NaN();
+            scalar_t frontHeight = std::numeric_limits<scalar_t>::quiet_NaN();
+            scalar_t rearHeight = std::numeric_limits<scalar_t>::quiet_NaN();
+            scalar_t anchorHeight = std::numeric_limits<scalar_t>::quiet_NaN();
+        };
+
+        SupportHeightProfile getSupportHeightProfile(const ConvexRegionSelector& convexRegionSelector,
+                                                     const contact_flag_t& contactFlags, scalar_t time)
+        {
+            SupportHeightProfile profile;
+            scalar_t supportHeightSum = 0.0;
+            scalar_t frontHeightSum = 0.0;
+            scalar_t rearHeightSum = 0.0;
+            size_t supportCount = 0;
+            size_t frontCount = 0;
+            size_t rearCount = 0;
+
+            for (size_t leg = 0; leg < contactFlags.size(); ++leg)
+            {
+                if (!contactFlags[leg])
+                {
+                    continue;
+                }
+
+                const auto projection = convexRegionSelector.getProjection(leg, time);
+                if (projection.regionPtr == nullptr)
+                {
+                    continue;
+                }
+
+                const scalar_t height = projection.positionInWorld.z();
+                supportHeightSum += height;
+                ++supportCount;
+
+                if (leg < 2)
+                {
+                    frontHeightSum += height;
+                    ++frontCount;
+                }
+                else
+                {
+                    rearHeightSum += height;
+                    ++rearCount;
+                }
+            }
+
+            if (supportCount == 0)
+            {
+                return profile;
+            }
+
+            profile.hasSupport = true;
+            profile.meanHeight = supportHeightSum / static_cast<scalar_t>(supportCount);
+
+            if (frontCount > 0)
+            {
+                profile.hasFrontSupport = true;
+                profile.frontHeight = frontHeightSum / static_cast<scalar_t>(frontCount);
+            }
+
+            if (rearCount > 0)
+            {
+                profile.hasRearSupport = true;
+                profile.rearHeight = rearHeightSum / static_cast<scalar_t>(rearCount);
+            }
+
+            if (profile.hasFrontSupport && profile.hasRearSupport)
+            {
+                // Keep the body anchored to the higher support surface while the robot is split across a step.
+                profile.anchorHeight = std::max(profile.frontHeight, profile.rearHeight);
+            }
+            else
+            {
+                profile.anchorHeight = profile.meanHeight;
+            }
+
+            return profile;
+        }
+
         std::pair<int, int> findActiveSwingBounds(size_t initIndex, const std::vector<bool>& contactFlagStocks)
         {
             int swingStartIndex = static_cast<int>(initIndex);
@@ -91,9 +175,15 @@ namespace ocs2::legged_robot
     {
         const auto timeHorizon = finalTime - initTime;
         modeSchedule = getGaitSchedule()->getModeSchedule(initTime - timeHorizon, finalTime + timeHorizon);
-        
+
         //copy raw target trajectories before modification
-        const auto rawTargetTrajectories = targetTrajectories; 
+        const auto rawTargetTrajectories = targetTrajectories;
+
+        // Footstep projections stay based on the raw foothold plan. The body reference then reads those
+        // projections to avoid dropping toward the lower terrain layer while support feet are still split
+        // across two different step heights.
+        convexRegionSelectorPtr_->update(modeSchedule, initTime, initState, rawTargetTrajectories);
+        const auto contactFlagStocks = convexRegionSelectorPtr_->extractContactFlags(modeSchedule.modeSequence);
 
         if (enableReferenceModification_)
         {
@@ -123,6 +213,16 @@ namespace ocs2::legged_robot
                 const scalar_t yaw = basePose(3);
                 const scalar_t rawPitch = basePose(4);
                 const scalar_t rawHeight = basePose(2);
+                const size_t phaseIndex = static_cast<size_t>(std::min<int>(
+                    lookup::findIndexInTimeArray(modeSchedule.eventTimes, time),
+                    static_cast<int>(modeSchedule.modeSequence.size() - 1)));
+                contact_flag_t contactFlags{};
+                for (size_t leg = 0; leg < info_.numThreeDofContacts; ++leg)
+                {
+                    contactFlags[leg] = contactFlagStocks[leg][phaseIndex];
+                }
+                const auto supportProfile =
+                    getSupportHeightProfile(*convexRegionSelectorPtr_, contactFlags, time);
 
                 scalar_t limitedPitch = rawPitch;
                 scalar_t limitedHeight = rawHeight;
@@ -152,8 +252,14 @@ namespace ocs2::legged_robot
                     limitedPitch = clampDelta(previousPitch, limitedPitch, maxPitchDeltaPerNode);
 
                     const scalar_t safeCosPitch = std::max<scalar_t>(0.9, std::cos(limitedPitch));
+                    scalar_t terrainReferenceHeight =
+                        map.atPosition("smooth_planar", grid_map::Position(x, y));
+                    if (supportProfile.hasSupport)
+                    {
+                        terrainReferenceHeight = std::max(terrainReferenceHeight, supportProfile.anchorHeight);
+                    }
                     const scalar_t terrainAwareHeight =
-                        map.atPosition("smooth_planar", grid_map::Position(x, y)) + comHeight_ / safeCosPitch;
+                        terrainReferenceHeight + comHeight_ / safeCosPitch;
                     const scalar_t planarDistanceFromInit =
                         (basePose.head<2>() - initBasePose.head<2>()).norm();
                     const bool descendingToLowerTerrain =
@@ -186,9 +292,6 @@ namespace ocs2::legged_robot
             }
             targetTrajectories = newTargetTrajectories;
         }
-
-        // Footstep
-        convexRegionSelectorPtr_->update(modeSchedule, initTime, initState, rawTargetTrajectories);
 
         // Swing trajectory
         updateSwingTrajectoryPlanner(initTime, initState, modeSchedule);
@@ -273,7 +376,7 @@ namespace ocs2::legged_robot
         if (enteringContact)
         {
             lastLiftoffPos_[leg] = endEffectorKinematicsPtr_->getPosition(initState)[leg];
-            lastLiftoffPos_[leg].z() -= 0.02;
+            lastLiftoffPos_[leg].z() -= 0.05;
             hasLatchedContactPosition_[leg] = true;
         }
 
