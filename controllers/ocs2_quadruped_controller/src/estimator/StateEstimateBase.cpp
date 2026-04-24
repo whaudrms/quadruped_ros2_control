@@ -20,7 +20,8 @@ namespace ocs2::legged_robot
           info_(std::move(info)),
           rbd_state_(vector_t::Zero(2 * info_.generalizedCoordinatesNum)), node_(std::move(node))
     {
-        node_->declare_parameter("feet_force_threshold", feet_force_threshold_);
+        if (!node_->has_parameter("feet_force_threshold"))
+            node_->declare_parameter("feet_force_threshold", feet_force_threshold_);
         feet_force_threshold_ = node_->get_parameter("feet_force_threshold").as_double();
     }
 

@@ -336,8 +336,12 @@ class StaticPlanarTerrainPublisher final : public rclcpp::Node {
  public:
   StaticPlanarTerrainPublisher()
       : Node("planar_terrain_publisher") {
-    const auto sceneFile = this->declare_parameter<std::string>(
-        "scene_xml", "/home/tony/unitree_mujoco/unitree_robots/go2/basic_step.xml");
+    const auto sceneFile = this->declare_parameter<std::string>("scene_xml", "");
+    if (sceneFile.empty()) {
+      RCLCPP_FATAL(this->get_logger(),
+                   "scene_xml parameter is required (absolute path to MuJoCo scene XML)");
+      throw std::runtime_error("scene_xml parameter is required");
+    }
     const auto topic = this->declare_parameter<std::string>(
         "terrain_topic", "/convex_plane_decomposition_ros/planar_terrain");
     const auto frameId = this->declare_parameter<std::string>("frame_id", "odom");

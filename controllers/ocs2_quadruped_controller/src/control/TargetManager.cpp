@@ -31,9 +31,12 @@ namespace ocs2::legged_robot
         loadData::loadCppDataType(task_file, "mpc.timeHorizon", time_to_target_);
         loadData::loadCppDataType(reference_file, "targetRotationVelocity", target_rotation_velocity_);
         loadData::loadCppDataType(reference_file, "targetDisplacementVelocity", target_displacement_velocity_);
-        node_->declare_parameter("perceptive_down_step_height_threshold", down_step_height_threshold_);
-        node_->declare_parameter("perceptive_down_step_commit_distance", down_step_commit_distance_);
-        node_->declare_parameter("perceptive_down_step_preview_samples", down_step_preview_samples_);
+        if (!node_->has_parameter("perceptive_down_step_height_threshold"))
+            node_->declare_parameter("perceptive_down_step_height_threshold", down_step_height_threshold_);
+        if (!node_->has_parameter("perceptive_down_step_commit_distance"))
+            node_->declare_parameter("perceptive_down_step_commit_distance", down_step_commit_distance_);
+        if (!node_->has_parameter("perceptive_down_step_preview_samples"))
+            node_->declare_parameter("perceptive_down_step_preview_samples", down_step_preview_samples_);
         down_step_height_threshold_ = node_->get_parameter("perceptive_down_step_height_threshold").as_double();
         down_step_commit_distance_ = node_->get_parameter("perceptive_down_step_commit_distance").as_double();
         down_step_preview_samples_ = node_->get_parameter("perceptive_down_step_preview_samples").as_int();

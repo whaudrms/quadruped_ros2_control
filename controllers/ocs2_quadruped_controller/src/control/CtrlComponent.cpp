@@ -29,15 +29,24 @@ namespace ocs2::legged_robot
     CtrlComponent::CtrlComponent(const std::shared_ptr<rclcpp_lifecycle::LifecycleNode>& node,
                                  CtrlInterfaces& ctrl_interfaces) : node_(node), ctrl_interfaces_(ctrl_interfaces)
     {
-        node_->declare_parameter("robot_pkg", robot_pkg_);
-        node_->declare_parameter("feet", feet_names_);
-        node_->declare_parameter("enable_perceptive", enable_perceptive_);
-        node_->declare_parameter("enable_perceptive_reference_modification", enable_perceptive_reference_modification_);
-        node_->declare_parameter("enable_perceptive_foot_placement_constraint", enable_perceptive_foot_placement_constraint_);
-        node_->declare_parameter("enable_perceptive_foot_collision_constraint", enable_perceptive_foot_collision_constraint_);
-        node_->declare_parameter("enable_perceptive_body_collision_constraint", enable_perceptive_body_collision_constraint_);
-        node_->declare_parameter("perceptive_foot_placement_boundary_margin",
-                                 perceptive_foot_placement_boundary_margin_);
+        // Humble throws ParameterAlreadyDeclaredException when controller_manager has
+        // already declared parameters via --params-file. Guard each declare with has_parameter.
+        if (!node_->has_parameter("robot_pkg"))
+            node_->declare_parameter("robot_pkg", robot_pkg_);
+        if (!node_->has_parameter("feet"))
+            node_->declare_parameter("feet", feet_names_);
+        if (!node_->has_parameter("enable_perceptive"))
+            node_->declare_parameter("enable_perceptive", enable_perceptive_);
+        if (!node_->has_parameter("enable_perceptive_reference_modification"))
+            node_->declare_parameter("enable_perceptive_reference_modification", enable_perceptive_reference_modification_);
+        if (!node_->has_parameter("enable_perceptive_foot_placement_constraint"))
+            node_->declare_parameter("enable_perceptive_foot_placement_constraint", enable_perceptive_foot_placement_constraint_);
+        if (!node_->has_parameter("enable_perceptive_foot_collision_constraint"))
+            node_->declare_parameter("enable_perceptive_foot_collision_constraint", enable_perceptive_foot_collision_constraint_);
+        if (!node_->has_parameter("enable_perceptive_body_collision_constraint"))
+            node_->declare_parameter("enable_perceptive_body_collision_constraint", enable_perceptive_body_collision_constraint_);
+        if (!node_->has_parameter("perceptive_foot_placement_boundary_margin"))
+            node_->declare_parameter("perceptive_foot_placement_boundary_margin", perceptive_foot_placement_boundary_margin_);
 
         robot_pkg_ = node_->get_parameter("robot_pkg").as_string();
         joint_names_ = node_->get_parameter("joints").as_string_array();
