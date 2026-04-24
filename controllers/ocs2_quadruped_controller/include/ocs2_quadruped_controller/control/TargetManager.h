@@ -7,12 +7,13 @@
 
 
 #include <memory>
+#include <optional>
 #include <controller_common/CtrlInterfaces.h>
 #include <ocs2_mpc/SystemObservation.h>
 #include <ocs2_oc/synchronized_module/ReferenceManagerInterface.h>
 #include <geometry_msgs/msg/twist.hpp>
 #include <rclcpp_lifecycle/lifecycle_node.hpp>
-#include <realtime_tools/realtime_tools/realtime_buffer.hpp>
+#include <realtime_tools/realtime_buffer.hpp>
 
 namespace ocs2::legged_robot
 {
@@ -20,7 +21,7 @@ namespace ocs2::legged_robot
     {
     public:
         TargetManager(CtrlInterfaces& ctrl_component,
-                      rclcpp_lifecycle::LifecycleNode::SharedPtr node,
+                      rclcpp_lifecycle::LifecycleNode::SharedPtr  node,
                       const std::shared_ptr<ReferenceManagerInterface>& referenceManagerPtr,
                       const std::string& task_file,
                       const std::string& reference_file);
@@ -30,6 +31,10 @@ namespace ocs2::legged_robot
         void update(SystemObservation& observation);
 
     private:
+        scalar_t resolveTargetBaseHeight(const vector_t& currentPose, const vector_t& targetPose);
+        bool shouldCommitToLowerStep(const vector_t& currentPose, const vector_t& targetPose,
+                                     scalar_t currentTerrainHeight) const;
+
         TargetTrajectories targetPoseToTargetTrajectories(const vector_t& targetPose,
                                                           const SystemObservation& observation,
                                                           const scalar_t& targetReachingTime)
@@ -39,9 +44,6 @@ namespace ocs2::legged_robot
 
             // desired state trajectory
             vector_t currentPose = observation.state.segment<6>(6);
-            currentPose(2) = command_height_;
-            currentPose(4) = 0;
-            currentPose(5) = 0;
             vector_array_t stateTrajectory(2, vector_t::Zero(observation.state.size()));
             stateTrajectory[0] << vector_t::Zero(6), currentPose, default_joint_state_;
             stateTrajectory[1] << vector_t::Zero(6), targetPose, default_joint_state_;
@@ -65,6 +67,9 @@ namespace ocs2::legged_robot
         scalar_t time_to_target_{};
         scalar_t target_displacement_velocity_{};
         scalar_t target_rotation_velocity_{};
+        scalar_t down_step_height_threshold_{0.03};
+        scalar_t down_step_commit_distance_{0.08};
+        int down_step_preview_samples_{9};
     };
 }
 

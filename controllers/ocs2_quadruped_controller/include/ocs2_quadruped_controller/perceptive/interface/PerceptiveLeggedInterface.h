@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <mutex>
+
 #include <convex_plane_decomposition/PlanarRegion.h>
 #include <ocs2_quadruped_controller/interface/LeggedInterface.h>
 #include <ocs2_sphere_approximation/PinocchioSphereInterface.h>
@@ -16,6 +18,19 @@ namespace ocs2::legged_robot
     public:
         using LeggedInterface::LeggedInterface;
 
+        void setPerceptiveDebugOptions(bool enableReferenceModification,
+                                       bool enableFootPlacementConstraint,
+                                       bool enableFootCollisionConstraint,
+                                       bool enableBodyCollisionConstraint,
+                                       scalar_t footPlacementBoundaryMargin)
+        {
+            enableReferenceModification_ = enableReferenceModification;
+            enableFootPlacementConstraint_ = enableFootPlacementConstraint;
+            enableFootCollisionConstraint_ = enableFootCollisionConstraint;
+            enableBodyCollisionConstraint_ = enableBodyCollisionConstraint;
+            footPlacementBoundaryMargin_ = footPlacementBoundaryMargin;
+        }
+
         void setupOptimalControlProblem(const std::string& taskFile,
                                         const std::string& urdfFile,
                                         const std::string& referenceFile,
@@ -27,7 +42,7 @@ namespace ocs2::legged_robot
 
         void setupPreComputation(const std::string& taskFile, const std::string& urdfFile,
                                  const std::string& referenceFile,
-                                 bool verbose);
+                                 bool verbose) override;
 
         std::shared_ptr<grid_map::SignedDistanceField> getSignedDistanceFieldPtr() const
         {
@@ -39,6 +54,11 @@ namespace ocs2::legged_robot
             return planarTerrainPtr_;
         }
 
+        std::shared_ptr<std::mutex> getTerrainDataMutexPtr() const
+        {
+            return terrainDataMutex_;
+        }
+
         std::shared_ptr<PinocchioSphereInterface> getPinocchioSphereInterfacePtr() const
         {
             return pinocchioSphereInterfacePtr_;
@@ -48,9 +68,15 @@ namespace ocs2::legged_robot
 
     protected:
         size_t numVertices_ = 16;
+        bool enableReferenceModification_ = true;
+        bool enableFootPlacementConstraint_ = true;
+        bool enableFootCollisionConstraint_ = true;
+        bool enableBodyCollisionConstraint_ = false;
+        scalar_t footPlacementBoundaryMargin_ = 0.05;
 
         std::shared_ptr<convex_plane_decomposition::PlanarTerrain> planarTerrainPtr_;
         std::shared_ptr<grid_map::SignedDistanceField> signedDistanceFieldPtr_;
+        std::shared_ptr<std::mutex> terrainDataMutex_;
         std::shared_ptr<PinocchioSphereInterface> pinocchioSphereInterfacePtr_;
     };
 } // namespace ocs2::legged_robot

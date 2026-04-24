@@ -9,8 +9,11 @@ set(CMAKE_BUILD_TYPE Release)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 set(CONTROLLER_INCLUDE_DEPENDS
+        rclcpp
+        rclcpp_lifecycle
         pluginlib
         rcpputils
+        realtime_tools
         controller_interface
         controller_common
 
@@ -24,6 +27,8 @@ set(CONTROLLER_INCLUDE_DEPENDS
 
         convex_plane_decomposition_msgs
         convex_plane_decomposition_ros
+        grid_map_ros
+        grid_map_msgs
         grid_map_sdf
         ocs2_sphere_approximation
 )
@@ -86,17 +91,45 @@ ament_target_dependencies(${PROJECT_NAME}
 )
 pluginlib_export_plugin_description_file(controller_interface ocs2_quadruped_controller.xml)
 
+add_executable(planar_terrain_publisher
+        src/perceptive/publisher/StaticPlanarTerrainPublisher.cpp
+)
+target_include_directories(planar_terrain_publisher
+        PUBLIC
+        "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
+        "$<INSTALL_INTERFACE:include/${PROJECT_NAME}>"
+        PRIVATE
+        src
+)
+ament_target_dependencies(planar_terrain_publisher
+        ${CONTROLLER_INCLUDE_DEPENDS}
+)
+
+add_executable(planar_terrain_visualizer
+        src/perceptive/publisher/PlanarTerrainVisualizer.cpp
+)
+target_include_directories(planar_terrain_visualizer
+        PUBLIC
+        "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
+        "$<INSTALL_INTERFACE:include/${PROJECT_NAME}>"
+        PRIVATE
+        src
+)
+ament_target_dependencies(planar_terrain_visualizer
+        ${CONTROLLER_INCLUDE_DEPENDS}
+)
+
 install(
         DIRECTORY include/
         DESTINATION include/${PROJECT_NAME}
 )
 
 install(
-        TARGETS ${PROJECT_NAME}
+        TARGETS ${PROJECT_NAME} planar_terrain_publisher planar_terrain_visualizer
         EXPORT export_${PROJECT_NAME}
         ARCHIVE DESTINATION lib/${PROJECT_NAME}
         LIBRARY DESTINATION lib/${PROJECT_NAME}
-        RUNTIME DESTINATION bin
+        RUNTIME DESTINATION lib/${PROJECT_NAME}
 )
 
 install(

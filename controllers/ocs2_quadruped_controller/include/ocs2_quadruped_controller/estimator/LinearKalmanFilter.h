@@ -6,6 +6,9 @@
 
 #include "StateEstimateBase.h"
 
+#include <functional>
+#include <optional>
+
 #include <ocs2_centroidal_model/CentroidalModelPinocchioMapping.h>
 #include <ocs2_pinocchio_interface/PinocchioEndEffectorKinematics.h>
 
@@ -23,6 +26,9 @@ namespace ocs2::legged_robot {
 
         void loadSettings(const std::string &task_file, bool verbose);
 
+        void setTerrainHeightProvider(std::function<std::optional<scalar_t>(scalar_t, scalar_t)> terrainHeightProvider,
+                                      scalar_t nominalBaseHeight);
+
     protected:
         nav_msgs::msg::Odometry getOdomMsg();
 
@@ -39,6 +45,8 @@ namespace ocs2::legged_robot {
         scalar_t footSensorNoisePosition_ = 0.005;
         scalar_t footSensorNoiseVelocity_ = 0.1;
         scalar_t footHeightSensorNoise_ = 0.01;
+        scalar_t nominal_base_height_ = 0.0;
+        std::function<std::optional<scalar_t>(scalar_t, scalar_t)> terrain_height_provider_;
 
     private:
         size_t numContacts_, dimContacts_, numState_, numObserve_;

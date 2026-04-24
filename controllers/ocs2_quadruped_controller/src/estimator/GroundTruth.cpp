@@ -18,6 +18,7 @@ namespace ocs2::legged_robot
     vector_t GroundTruth::update(const rclcpp::Time& time, const rclcpp::Duration& period)
     {
         updateJointStates();
+        updateContact();
         updateImu();
 
         position_ = {

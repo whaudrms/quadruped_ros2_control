@@ -144,6 +144,12 @@ namespace ocs2::legged_robot {
         matrix_t pt = p_.transpose();
         p_ = (p_ + pt) / 2.0;
 
+        if (terrain_height_provider_) {
+            if (const auto terrainHeight = terrain_height_provider_(xHat_(0), xHat_(1)); terrainHeight.has_value()) {
+                xHat_(2) = *terrainHeight + nominal_base_height_;
+            }
+        }
+
         //  if (p_.block(0, 0, 2, 2).determinant() > 0.000001) {
         //    p_.block(0, 2, 2, 16).setZero();
         //    p_.block(2, 0, 16, 2).setZero();
@@ -159,6 +165,13 @@ namespace ocs2::legged_robot {
         publishMsgs(odom);
 
         return rbd_state_;
+    }
+
+    void KalmanFilterEstimate::setTerrainHeightProvider(
+        std::function<std::optional<scalar_t>(scalar_t, scalar_t)> terrainHeightProvider,
+        scalar_t nominalBaseHeight) {
+        terrain_height_provider_ = std::move(terrainHeightProvider);
+        nominal_base_height_ = nominalBaseHeight;
     }
 
     nav_msgs::msg::Odometry KalmanFilterEstimate::getOdomMsg() {

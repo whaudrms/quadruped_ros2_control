@@ -15,14 +15,20 @@ namespace ocs2::legged_robot
                                                  & planarTerrainPtr,
                                                  const std::shared_ptr<grid_map::SignedDistanceField>&
                                                  signedDistanceFieldPtr,
+                                                 const std::shared_ptr<std::mutex>& terrainDataMutexPtr,
                                                  const std::string& mapTopic, const std::string& sdfElevationLayer)
         : node_(node),
           planarTerrainPtr_(planarTerrainPtr),
           sdfPtr_(signedDistanceFieldPtr),
+          terrainDataMutexPtr_(terrainDataMutexPtr),
           sdfElevationLayer_(sdfElevationLayer)
     {
+        rclcpp::QoS qos(1);
+        qos.reliable();
+        qos.transient_local();
+
         subscription_ = node_->create_subscription<convex_plane_decomposition_msgs::msg::PlanarTerrain>(
-            mapTopic, 10, [this](const convex_plane_decomposition_msgs::msg::PlanarTerrain msg)
+            mapTopic, qos, [this](const convex_plane_decomposition_msgs::msg::PlanarTerrain msg)
             {
                 std::lock_guard lock(mutex_);
                 updated_ = true;
@@ -39,9 +45,6 @@ namespace ocs2::legged_robot
                     ;
                     elevationData = elevationData.unaryExpr([=](float v) { return std::isfinite(v) ? v : inpaint; });
                 }
-                constexpr float heightMargin{0.1};
-                const float maxValue{elevationData.maxCoeffOfFinites() + 3 * heightMargin};
-                sdfPtr_->calculateSignedDistanceField(planarTerrain_.gridMap, sdfElevationLayer_, maxValue);
             });
     }
 
@@ -51,9 +54,30 @@ namespace ocs2::legged_robot
     {
         if (updated_)
         {
-            std::lock_guard lock(mutex_);
-            updated_ = false;
-            *planarTerrainPtr_ = planarTerrain_;
+            convex_plane_decomposition::PlanarTerrain latestTerrain;
+            {
+                std::lock_guard lock(mutex_);
+                updated_ = false;
+                latestTerrain = planarTerrain_;
+            }
+
+            if (terrainDataMutexPtr_)
+            {
+                std::lock_guard terrainLock(*terrainDataMutexPtr_);
+                *planarTerrainPtr_ = latestTerrain;
+                auto& elevationData = planarTerrainPtr_->gridMap.get(sdfElevationLayer_);
+                constexpr float heightMargin{0.1};
+                const float maxValue{elevationData.maxCoeffOfFinites() + 3 * heightMargin};
+                sdfPtr_->calculateSignedDistanceField(planarTerrainPtr_->gridMap, sdfElevationLayer_, maxValue);
+            }
+            else
+            {
+                *planarTerrainPtr_ = latestTerrain;
+                auto& elevationData = planarTerrainPtr_->gridMap.get(sdfElevationLayer_);
+                constexpr float heightMargin{0.1};
+                const float maxValue{elevationData.maxCoeffOfFinites() + 3 * heightMargin};
+                sdfPtr_->calculateSignedDistanceField(planarTerrainPtr_->gridMap, sdfElevationLayer_, maxValue);
+            }
         }
     }
 } // namespace legged

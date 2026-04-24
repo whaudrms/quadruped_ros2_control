@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <utility>
+
 #include <ocs2_quadruped_controller/interface/LeggedRobotPreComputation.h>
 
 #include <convex_plane_decomposition/PlanarRegion.h>
@@ -20,7 +22,8 @@ namespace ocs2::legged_robot
     public:
         PerceptiveLeggedPrecomputation(PinocchioInterface pinocchioInterface, const CentroidalModelInfo& info,
                                        const SwingTrajectoryPlanner& swingTrajectoryPlanner, ModelSettings settings,
-                                       const ConvexRegionSelector& convexRegionSelector);
+                                       const ConvexRegionSelector& convexRegionSelector,
+                                       scalar_t footPlacementBoundaryMargin);
         ~PerceptiveLeggedPrecomputation() override = default;
 
         PerceptiveLeggedPrecomputation* clone() const override { return new PerceptiveLeggedPrecomputation(*this); }
@@ -35,10 +38,17 @@ namespace ocs2::legged_robot
         PerceptiveLeggedPrecomputation(const PerceptiveLeggedPrecomputation& rhs);
 
     private:
+        FootPlacementConstraint::Parameter makeSafeFootPlacementConstraintParameter() const;
+
         std::pair<matrix_t, vector_t> getPolygonConstraint(
             const convex_plane_decomposition::CgalPolygon2d& polygon) const;
+        bool tryShrinkPolygonConstraint(const matrix_t& polytopeA, const vector_t& polytopeB,
+                                        const Eigen::Matrix<scalar_t, 2, 1>& interiorPoint,
+                                        matrix_t& shrunkA, vector_t& shrunkB) const;
 
         const ConvexRegionSelector* convexRegionSelectorPtr_;
+        size_t numVertices_;
+        scalar_t footPlacementBoundaryMargin_{0.05};
 
         std::vector<FootPlacementConstraint::Parameter> footPlacementConParameters_;
     };

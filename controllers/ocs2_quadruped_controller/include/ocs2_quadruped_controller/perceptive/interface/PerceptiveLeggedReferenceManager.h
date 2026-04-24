@@ -5,6 +5,7 @@
 #pragma once
 
 #include <memory>
+#include <mutex>
 
 #include "ocs2_quadruped_controller/perceptive/interface/ConvexRegionSelector.h"
 
@@ -15,6 +16,16 @@ namespace ocs2::legged_robot
     class PerceptiveLeggedReferenceManager : public SwitchedModelReferenceManager
     {
     public:
+        struct FootPlacementDebugInfo
+        {
+            scalar_t time = 0.0;
+            contact_flag_t contactFlags{};
+            contact_flag_t footPlacementFlags{};
+            std::array<size_t, 4> polygonVertexCounts{};
+            feet_array_t<scalar_t> projectionHeights{};
+            feet_array_t<scalar_t> initStandFinalTimes{};
+        };
+
         PerceptiveLeggedReferenceManager(CentroidalModelInfo info, std::shared_ptr<GaitSchedule> gaitSchedulePtr,
                                          std::shared_ptr<SwingTrajectoryPlanner> swingTrajectoryPtr,
                                          std::shared_ptr<ConvexRegionSelector> convexRegionSelectorPtr,
@@ -24,6 +35,14 @@ namespace ocs2::legged_robot
         const std::shared_ptr<ConvexRegionSelector>& getConvexRegionSelectorPtr() { return convexRegionSelectorPtr_; }
 
         contact_flag_t getFootPlacementFlags(scalar_t time) const;
+
+        void setEnableReferenceModification(bool enable) { enableReferenceModification_ = enable; }
+
+        bool getLatestReferencePaths(
+            std::vector<vector3_t, Eigen::aligned_allocator<vector3_t>>& rawBasePath,
+            std::vector<vector3_t, Eigen::aligned_allocator<vector3_t>>& terrainAwareBasePath) const;
+
+        bool getLatestFootPlacementDebugInfo(FootPlacementDebugInfo& debugInfo) const;
 
     protected:
         void modifyReferences(scalar_t initTime, scalar_t finalTime, const vector_t& initState,
@@ -44,10 +63,22 @@ namespace ocs2::legged_robot
 
         const CentroidalModelInfo info_;
         feet_array_t<vector3_t> lastLiftoffPos_;
+        contact_flag_t previousContactFlags_{};
+        feet_array_t<bool> hasLatchedContactPosition_{};
+        feet_array_t<bool> activeSwingHeightLatched_{};
+        feet_array_t<scalar_t> latchedSwingLiftOffHeights_{};
+        feet_array_t<scalar_t> latchedSwingTouchDownHeights_{};
 
         std::shared_ptr<ConvexRegionSelector> convexRegionSelectorPtr_;
         std::unique_ptr<EndEffectorKinematics<scalar_t>> endEffectorKinematicsPtr_;
 
         scalar_t comHeight_;
+        bool enableReferenceModification_ = true;
+
+        mutable std::mutex latestReferenceTrajectoriesMutex_;
+        std::vector<vector3_t, Eigen::aligned_allocator<vector3_t>> latestRawBasePath_;
+        std::vector<vector3_t, Eigen::aligned_allocator<vector3_t>> latestTerrainAwareBasePath_;
+        FootPlacementDebugInfo latestFootPlacementDebugInfo_;
+        bool hasLatestReferenceTrajectories_ = false;
     };
 } // namespace legged

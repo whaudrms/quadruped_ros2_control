@@ -70,6 +70,10 @@ namespace ocs2::legged_robot
                                            const std::string& referenceFile,
                                            bool verbose);
 
+        virtual void setupPreComputation(const std::string& taskFile, const std::string& urdfFile,
+                                         const std::string& referenceFile,
+                                         bool verbose);
+
         std::shared_ptr<GaitSchedule> loadGaitSchedule(const std::string& file, bool verbose) const;
 
         std::unique_ptr<StateInputCost> getBaseTrackingCost(const std::string& taskFile,
@@ -97,7 +101,6 @@ namespace ocs2::legged_robot
 
         std::unique_ptr<StateCost> getSelfCollisionConstraint(const PinocchioInterface& pinocchioInterface,
                                                               const std::string& taskFile,
-                                                              const std::string& urdf_file,
                                                               const std::string& prefix, bool verbose);
 
         ModelSettings model_settings_;
