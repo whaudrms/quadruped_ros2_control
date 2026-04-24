@@ -11,7 +11,20 @@ from launch_ros.substitutions import FindPackageShare
 from launch.substitutions import PathJoinSubstitution
 
 package_controller = "ocs2_quadruped_controller"
-scene_root_dir = "/home/tony/unitree_mujoco/unitree_robots/go2"
+
+
+def detect_scene_root_dir() -> str:
+    candidates = (
+        os.path.expanduser("~/unitree_mujoco_dev/unitree_robots/go2"),
+        os.path.expanduser("~/unitree_mujoco/unitree_robots/go2"),
+    )
+    for candidate in candidates:
+        if os.path.isdir(candidate):
+            return candidate
+    return candidates[0]
+
+
+scene_root_dir = detect_scene_root_dir()
 
 
 def resolve_scene_file(scene_name: str) -> str:
