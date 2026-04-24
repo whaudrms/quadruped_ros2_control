@@ -376,7 +376,7 @@ namespace ocs2::legged_robot
         if (enteringContact)
         {
             lastLiftoffPos_[leg] = endEffectorKinematicsPtr_->getPosition(initState)[leg];
-            lastLiftoffPos_[leg].z() -= 0.05;
+            lastLiftoffPos_[leg].z() -= 0.08;
             hasLatchedContactPosition_[leg] = true;
         }
 
