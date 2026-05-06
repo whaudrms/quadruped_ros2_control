@@ -68,7 +68,7 @@ namespace ocs2::legged_robot
         scalar_t target_displacement_velocity_{};
         scalar_t target_rotation_velocity_{};
         scalar_t down_step_height_threshold_{0.03};
-        scalar_t down_step_commit_distance_{0.5};
+        scalar_t down_step_commit_distance_{0.08};
         int down_step_preview_samples_{9};
     };
 }

@@ -56,13 +56,13 @@ rollout
 
 mpc
 {
-  timeHorizon                     4.0  ; [s] — Stage 8: extended from 2.0 so refined plan stays valid through 4-12s daemon solve latency
+  timeHorizon                     2.0  ; [s] — replan branch: original reactive baseline value
   solutionTimeWindow              -1   ; maximum [s]
   coldStart                       false
 
   debugPrint                      false
 
-  mpcDesiredFrequency             5    ; [Hz] — 200ms cycle to fit warm-start IPOPT refiner (Stage 8)
+  mpcDesiredFrequency             50   ; [Hz] — replan branch: high-rate replanning for reactive baseline
   mrtDesiredFrequency             1000 ; [Hz] Useless
 }
 
