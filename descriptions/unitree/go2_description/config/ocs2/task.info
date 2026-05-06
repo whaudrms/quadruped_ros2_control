@@ -27,7 +27,7 @@ swing_trajectory_config
 sqp
 {
   nThreads                              3
-  dt                                    0.015
+  dt                                    0.02
   sqpIteration                          1
   deltaTol                              1e-4
   g_max                                 1e-2
@@ -56,13 +56,13 @@ rollout
 
 mpc
 {
-  timeHorizon                     1.0  ; [s]
+  timeHorizon                     4.0  ; [s] — Stage 8: extended from 2.0 so refined plan stays valid through 4-12s daemon solve latency
   solutionTimeWindow              -1   ; maximum [s]
   coldStart                       false
 
   debugPrint                      false
 
-  mpcDesiredFrequency             100  ; [Hz]
+  mpcDesiredFrequency             5    ; [Hz] — 200ms cycle to fit warm-start IPOPT refiner (Stage 8)
   mrtDesiredFrequency             1000 ; [Hz] Useless
 }
 

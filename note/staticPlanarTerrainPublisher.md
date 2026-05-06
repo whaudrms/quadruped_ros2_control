@@ -10,14 +10,23 @@
 
 ## 실행 인자 (ROS parameter)
 
-| 파라미터 | 기본값 | 설명 |
+실제 파라미터 이름 및 C++ 내 기본값 (`StaticPlanarTerrainPublisher.cpp` 생성자):
+
+| 파라미터 | 기본값 (C++) | 설명 |
 |---|---|---|
-| `scene_file` | (required) | MuJoCo `.xml` 파일 경로 |
-| `topic` | `/convex_plane_decomposition_ros/planar_terrain` | 발행 토픽 |
+| `scene_xml` | **(required, 빈 문자열이면 runtime_error throw)** | MuJoCo `.xml` 파일 절대 경로. 원본 dev 브랜치는 `/home/tony/unitree_mujoco/unitree_robots/go2/basic_step.xml` 하드코드였으나 포팅 시 필수 파라미터로 변경 |
+| `terrain_topic` | `/convex_plane_decomposition_ros/planar_terrain` | 발행 토픽 |
 | `frame_id` | `odom` | grid map/region frame |
 | `resolution` | `0.03 m` | grid map 해상도 |
-| `smoothing_radius` | `0.12 m` | Gaussian smooth 반경 |
-| `publish_rate` | `0.0 Hz` | `>0` 이면 주기적으로 재발행, 아니면 최초 한 번만 |
+| `smoothing_radius` | `0.12 m` | Gaussian smooth 반경 (참고: `mujoco.launch.py`는 `terrain_smoothing_radius` 인자로 이 값을 `0.06`으로 덮어써서 전달) |
+| `publish_rate` | `0.0 Hz` | `>0` 이면 주기적으로 재발행, 아니면 transient_local로 최초 한 번만 |
+
+런치 파일 경유 시:
+- `publish_static_terrain:=true` 로 publisher 띄우고
+- `terrain_scene_file:=<name>` 으로 파일명 지정 (`scene_root_dir` 기준, `.xml` 자동 부착)
+- 결과적으로 `scene_xml` 파라미터는 `~/GO2_ws/unitree_mujoco/unitree_robots/go2/<name>.xml` 절대경로가 됨
+
+단독 실행(`ros2 run ocs2_quadruped_controller planar_terrain_publisher` 또는 `--ros-args -p` 로 직접 지정) 시에는 위 C++ 기본값이 적용되므로, tony 경로로 fallback되어 파일을 못 찾는 오류가 난다. 필요하면 C++ 내 기본값을 로컬 경로로 교체하거나 항상 `-p scene_xml:=...` 로 명시하는 게 안전.
 
 ## 파이프라인
 

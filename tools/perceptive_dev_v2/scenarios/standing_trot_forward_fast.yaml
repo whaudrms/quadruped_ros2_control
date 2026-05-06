@@ -1,0 +1,75 @@
+name: standing_trot_forward_fast_dev_v2
+publish_rate_hz: 50.0
+timeout_sec: 9.0
+monitoring_start_sec: 2.5
+initial_window_sec: 1.0
+mujoco_startup_wait_sec: 2.5
+controller_startup_wait_sec: 20.0
+fall_detection:
+  min_base_z: 0.03
+  max_base_z_drop: 0.08
+  max_abs_roll_deg: 60.0
+  max_abs_pitch_deg: 60.0
+# Stage 8 — fast-startup variant.
+# Sufficient stand_only (3.5s) so StateStandToOcs2 reaches percent_>=1.5 and
+# accepts cmd=4. Forward starts at scenario t=4.5s. With basic_step_short.xml
+# box1 halfsize=0.3 and real fwd velocity ~0.085 m/s, base_x reaches 0.3m at
+# t≈8s, descent completes ~9s. timeout=9s captures the descent moment.
+# MPC horizon 4s starting at OCS2 entry (t≈4s) covers [4, 8] — descent at 8s
+# is at horizon end. Tight but workable.
+steps:
+  - name: stand_only
+    duration: 3.5
+    control_input:
+      command: 2
+      lx: 0.0
+      ly: 0.0
+      rx: 0.0
+      ry: 0.0
+    twist:
+      linear: {x: 0.0, y: 0.0, z: 0.0}
+      angular: {x: 0.0, y: 0.0, z: 0.0}
+  - name: enter_ocs2
+    duration: 0.5
+    control_input:
+      command: 4
+      lx: 0.0
+      ly: 0.0
+      rx: 0.0
+      ry: 0.0
+    twist:
+      linear: {x: 0.0, y: 0.0, z: 0.0}
+      angular: {x: 0.0, y: 0.0, z: 0.0}
+  - name: stabilize_gait
+    duration: 0.5
+    control_input:
+      command: 0
+      lx: 0.0
+      ly: 0.0
+      rx: 0.0
+      ry: 0.0
+    twist:
+      linear: {x: 0.0, y: 0.0, z: 0.0}
+      angular: {x: 0.0, y: 0.0, z: 0.0}
+  - name: forward
+    duration: 4.0
+    control_input:
+      command: 0
+      lx: 0.0
+      ly: 0.0
+      rx: 0.0
+      ry: 0.0
+    twist:
+      linear: {x: 0.3, y: 0.0, z: 0.0}
+      angular: {x: 0.0, y: 0.0, z: 0.0}
+  - name: stop
+    duration: 0.5
+    control_input:
+      command: 0
+      lx: 0.0
+      ly: 0.0
+      rx: 0.0
+      ry: 0.0
+    twist:
+      linear: {x: 0.0, y: 0.0, z: 0.0}
+      angular: {x: 0.0, y: 0.0, z: 0.0}

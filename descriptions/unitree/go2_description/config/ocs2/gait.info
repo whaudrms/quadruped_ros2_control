@@ -12,6 +12,7 @@ list
   [9] lindyhop
   [10] skipping
   [11] pawup
+  [12] pronk
 }
 
 stance
@@ -252,4 +253,26 @@ pawup
      [0]     0.0
      [1]     2.0
    }
+}
+
+; All-four simultaneous jump (classic pronk). Tuned for FAR jumps:
+; stance 0.25 s (force build-up), flight 0.35 s (longer airtime → greater horizontal travel).
+; Period 0.6 s → ~1.67 Hz. Flight fraction 58 %.
+; Physics: airtime t_fly=0.35 s requires vertical takeoff v0 ≈ g·t_fly/2 ≈ 1.72 m/s.
+; Higher t_fly needs stronger push-off; if MPC QP saturates, reduce flight time.
+; Pair with high forward velocity (ly 0.5~0.7, or twist.linear.x 0.4~0.6 m/s) for max distance.
+; Usage: command = gait_index + 2 = 12 + 2 = 14.
+pronk
+{
+  modeSequence
+  {
+    [0]    STANCE
+    [1]    FLY
+  }
+  switchingTimes
+  {
+    [0]    0.0
+    [1]    0.25
+    [2]    0.6
+  }
 }

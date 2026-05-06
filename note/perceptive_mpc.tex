@@ -1,0 +1,968 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{bm}
+\usepackage{geometry}
+\usepackage{booktabs}
+\usepackage{algorithm}
+\usepackage{algorithmic}
+\usepackage{hyperref}
+
+\geometry{margin=2.5cm}
+
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\norm}[1]{\left\| #1 \right\|}
+\newcommand{\wnorm}[2]{\left\| #1 \right\|_{#2}^2}
+\newcommand{\diag}{\operatorname{diag}}
+\newcommand{\clip}{\operatorname{clip}}
+\newcommand{\proj}{\operatorname{proj}}
+
+\title{Perceptive OCS2 Legged Robot MPC: \\Terrain-Aware Reference and Constraint Formulation}
+\author{Note based on analysis of perceptive OCS2 notes}
+\date{\today}
+
+\begin{document}
+\maketitle
+\tableofcontents
+\newpage
+
+%=============================================================================
+
+\section{Overview}
+%=============================================================================
+
+The perceptive extension adds terrain awareness above the baseline OCS2 centroidal MPC. It does \emph{not} change the centroidal dynamics model, MPC decision variables, SQP solver, or downstream WBC. Instead, it modifies:
+\begin{itemize}
+	\item the \textbf{reference trajectory}: base pitch, base height, and swing-foot lift-off / touch-down heights become terrain-aware;
+	\item the \textbf{MPC OCP}: additional state soft constraints are added for foot placement, swing-foot collision, and body collision;
+	\item the \textbf{precomputation}: terrain-derived convex polygons and SDF information are converted into fast constraint data for each MPC node.
+\end{itemize}
+
+Thus the control hierarchy is:
+\begin{equation}
+	\boxed{
+		\text{Perceptive layer}
+		\;\longrightarrow\;
+		\text{Centroidal MPC}
+		\;\longrightarrow\;
+		\text{Whole-Body Control}
+		\;\longrightarrow\;
+		\text{Motors}
+	}
+\end{equation}
+
+The perceptive layer decides how terrain should enter the MPC problem. The centroidal MPC still solves a switched-system OCP. The WBC still receives only the evaluated centroidal policy $(\bm{x}^*,\bm{u}^*,\sigma^*)$ and converts it into torques.
+
+\begin{center}
+	\begin{tabular}{lll}
+		\toprule
+		\textbf{Layer} & \textbf{Role} & \textbf{Perceptive change} \\
+		\midrule
+		Perceptive & Terrain reference and constraints & New top layer \\
+		MPC & SRBD horizon optimization & References and soft costs \\
+		WBC & Instantaneous inverse-dynamics QP & None \\
+		\bottomrule
+	\end{tabular}
+\end{center}
+
+%=============================================================================
+
+\section{Terrain Representation}
+%=============================================================================
+
+\subsection{Planar Terrain}
+
+The terrain is represented by a \texttt{PlanarTerrain} object:
+\begin{equation}
+	\mathcal{T}
+	=
+	\left(
+		\{\mathcal{R}_1,\ldots,\mathcal{R}_{N_r}\},
+		\mathcal{G}
+	\right),
+\end{equation}
+where $\mathcal{R}_k$ are planar regions and $\mathcal{G}$ is a grid map with at least two layers:
+\begin{equation}
+	\mathcal{G}
+	=
+	\{\texttt{elevation},\;\texttt{smooth\_planar}\}.
+\end{equation}
+
+Each planar region has:
+\begin{itemize}
+	\item a rigid transform from plane frame to world frame,
+	      \begin{equation}
+		      {}^W\bm{T}_{P,k}
+		      =
+		      \begin{bmatrix}
+			      \bm{R}_k & \bm{t}_k\\
+			      \bm{0}^{\top} & 1
+		      \end{bmatrix},
+	      \end{equation}
+	\item an outer boundary polygon in the local plane frame,
+	\item an inset boundary polygon used as a safer foot-placement region.
+\end{itemize}
+
+\subsection{Signed Distance Field}
+
+The terrain grid map is also converted into a signed distance field (SDF):
+\begin{equation}
+	d_{\text{SDF}}:\R^3\rightarrow\R.
+\end{equation}
+The sign convention is:
+\begin{equation}
+	d_{\text{SDF}}(\bm{p})
+	\begin{cases}
+		>0 & \text{outside obstacle / in free space},\\
+		=0 & \text{on obstacle surface},\\
+		<0 & \text{inside obstacle}.
+	\end{cases}
+\end{equation}
+
+When terrain is updated, the SDF is recomputed from the \texttt{elevation} layer up to:
+\begin{equation}
+	h_{\max}^{\text{SDF}}
+	=
+	\max_{\bm{r}\in\mathcal{G}} h_{\text{elevation}}(\bm{r})
+	+
+	3\cdot 0.1.
+\end{equation}
+The $0.3$ m margin keeps the distance field valid above the highest terrain surface.
+
+%=============================================================================
+
+\section{Terrain Data Pipeline}
+%=============================================================================
+
+\subsection{Static Terrain Publisher}
+
+For simulation, a standalone ROS node parses a MuJoCo scene XML and converts box top faces into planar regions. For a box with center $\bm{c}$, rotation $\bm{R}$, and MuJoCo half-size $(s_x,s_y,s_z)$, the top face center is:
+\begin{equation}
+	\bm{c}_{top}
+	=
+	\bm{c}
+	+
+	\bm{R}
+	\begin{bmatrix}
+		0\\0\\s_z
+	\end{bmatrix}.
+\end{equation}
+The planar region is the rectangle:
+\begin{equation}
+	\mathcal{B}
+	=
+	[-s_x,s_x]\times[-s_y,s_y]
+\end{equation}
+in the local plane frame. The region is published as a \texttt{PlanarTerrain} message with reliable, transient-local QoS, so a controller that starts later can still receive the latest terrain.
+
+\subsection{Terrain Receiver}
+
+The controller owns shared pointers:
+\begin{equation}
+	\mathcal{T}_{ptr},\qquad d_{\text{SDF},ptr},\qquad \mathcal{M}_{terrain},
+\end{equation}
+where $\mathcal{M}_{terrain}$ is a mutex. A \texttt{PlanarTerrainReceiver} subscribes to:
+\begin{equation}
+	\texttt{/convex\_plane\_decomposition\_ros/planar\_terrain}
+\end{equation}
+and applies received terrain only in the MPC solver synchronization hook:
+\begin{equation}
+	\texttt{preSolverRun}(t_0,t_f,\bm{x}_0,\text{referenceManager}).
+\end{equation}
+
+The update is:
+\begin{algorithm}
+	\caption{Terrain Receiver Update}
+	\begin{algorithmic}[1]
+		\STATE Receive latest \texttt{PlanarTerrain} message in ROS callback
+		\STATE Convert message to internal terrain object
+		\STATE Replace NaNs in elevation by the minimum finite elevation
+		\STATE At \texttt{preSolverRun}, lock terrain mutex
+		\STATE Copy latest terrain into $\mathcal{T}_{ptr}$
+		\STATE Recompute $d_{\text{SDF},ptr}$ from the elevation layer
+	\end{algorithmic}
+\end{algorithm}
+
+The NaN inpainting step is:
+\begin{equation}
+	h(\bm{r})
+	\leftarrow
+	\begin{cases}
+		h(\bm{r}) & \text{if } h(\bm{r}) \text{ is finite},\\
+		\min\{h(\bm{s}) \mid h(\bm{s}) \text{ is finite}\} & \text{otherwise}.
+	\end{cases}
+\end{equation}
+
+This synchronization point is important: all reference updates, convex region selection, and SDF constraints inside one MPC solve see a consistent terrain snapshot.
+
+%=============================================================================
+
+\section{Perceptive Interface}
+%=============================================================================
+
+\subsection{Relation to the Baseline Interface}
+
+\texttt{PerceptiveLeggedInterface} inherits from the baseline \texttt{LeggedInterface}. It first builds the flat-ground OCP:
+\begin{equation}
+	\mathcal{P}_{base}
+	=
+	\operatorname{setupOCP}_{\text{LeggedInterface}}(\texttt{taskFile},\texttt{urdfFile},\texttt{referenceFile}),
+\end{equation}
+then adds terrain-aware soft constraints:
+\begin{equation}
+	\mathcal{P}_{perc}
+	=
+	\mathcal{P}_{base}
+	+
+	\mathcal{C}_{footPlace}
+	+
+	\mathcal{C}_{footCollision}
+	+
+	\mathcal{C}_{bodyCollision}.
+\end{equation}
+
+The nominal flat terrain used during initialization is a $5\times5$ m plane:
+\begin{equation}
+	W=H=5.0,\qquad r_{\text{grid}}=0.03\text{ m}.
+\end{equation}
+This makes the controller self-contained before the first terrain message arrives.
+
+\subsection{Feature Flags}
+
+The perceptive components are controlled by independent flags:
+\begin{center}
+	\begin{tabular}{ll}
+		\toprule
+		\textbf{Flag} & \textbf{Effect} \\
+		\midrule
+		\texttt{enable\_perceptive} & Use \texttt{PerceptiveLeggedInterface} \\
+		\texttt{enable\_perceptive\_reference\_modification} & Modify base pitch and height \\
+		\texttt{enable\_perceptive\_foot\_placement\_constraint} & Add stance foot polygon constraints \\
+		\texttt{enable\_perceptive\_foot\_collision\_constraint} & Add swing foot SDF constraints \\
+		\texttt{enable\_perceptive\_body\_collision\_constraint} & Add body sphere SDF constraints \\
+		\texttt{perceptive\_foot\_placement\_boundary\_margin} & Shrink foot placement polygon \\
+		\bottomrule
+	\end{tabular}
+\end{center}
+
+If only \texttt{enable\_perceptive=true} is set and all sub-features are false, the controller uses the perceptive interface but behaves close to the baseline flat-ground MPC.
+
+%=============================================================================
+
+\section{Terrain-Aware Reference Modification}
+\label{sec:reference_modification}
+%=============================================================================
+
+The baseline \texttt{SwitchedModelReferenceManager} assumes zero terrain height. The perceptive version overrides:
+\begin{equation}
+	\texttt{modifyReferences}(t_0,t_f,\bm{x}_0,\tau_{\text{target}},\mathcal{M})
+\end{equation}
+to produce terrain-aware base and swing references.
+
+\subsection{Terrain Normal and Pitch}
+
+The reference manager samples $N=11$ nodes over the MPC horizon. At each node, it reads the smoothed terrain height:
+\begin{equation}
+	h_s(x,y)
+	=
+	\texttt{smooth\_planar}(x,y).
+\end{equation}
+
+The terrain normal is approximated by finite differences with step $\Delta=0.3$ m:
+\begin{align}
+	n_x &=
+	\frac{h_s(x-\Delta,y)-h_s(x+\Delta,y)}{2\Delta},\\
+	n_y &=
+	\frac{h_s(x,y-\Delta)-h_s(x,y+\Delta)}{2\Delta},\\
+	n_z &= 1.
+\end{align}
+After normalization:
+\begin{equation}
+	\bm{n}
+	=
+	\frac{1}{\sqrt{n_x^2+n_y^2+n_z^2}}
+	\begin{bmatrix}
+		n_x\\n_y\\n_z
+	\end{bmatrix}.
+\end{equation}
+
+Let $\psi$ be the reference yaw. The normal is expressed in the yaw-aligned body frame:
+\begin{equation}
+	\bm{v}
+	=
+	\bm{R}_z(\psi)^{\top}\bm{n}.
+\end{equation}
+The terrain-induced pitch is:
+\begin{equation}
+	\theta_{\text{terrain}}
+	=
+	\arctan\left(\frac{v_x}{v_z}\right).
+\end{equation}
+
+\subsection{Pitch Blending and Clamping}
+
+Let $\theta_{\text{raw}}$ be the original target pitch. The perceptive pitch is blended:
+\begin{equation}
+	\theta'
+	=
+	\theta_{\text{raw}}
+	+
+	\alpha_{\theta}
+	(\theta_{\text{terrain}}-\theta_{\text{raw}}),
+	\qquad
+	\alpha_{\theta}=0.6.
+\end{equation}
+It is then clamped:
+\begin{equation}
+	|\theta'|\leq \theta_{\max},
+	\qquad
+	\theta_{\max}=0.25\text{ rad},
+\end{equation}
+and the node-to-node change is limited:
+\begin{equation}
+	|\theta'_k-\theta'_{k-1}|
+	\leq
+	0.06\text{ rad}.
+\end{equation}
+
+\subsection{Base Height Modification}
+
+The terrain-aware base height is:
+\begin{equation}
+	z_{\text{terrain}}
+	=
+	h_s(x,y)
+	+
+	\frac{h_{\text{com}}}{\max(0.9,\cos\theta')}.
+\end{equation}
+It is blended with the raw target height:
+\begin{equation}
+	z'
+	=
+	z_{\text{raw}}
+	+
+	\alpha_z(z_{\text{terrain}}-z_{\text{raw}}),
+	\qquad
+	\alpha_z=0.5.
+\end{equation}
+The node-to-node change is limited:
+\begin{equation}
+	|z'_k-z'_{k-1}|
+	\leq
+	0.03\text{ m}.
+\end{equation}
+
+\paragraph{Step-down guard.}
+If the terrain-aware height would drop sharply near the current base position, the raw height is temporarily kept. A descending step is detected when:
+\begin{equation}
+	z_{\text{terrain}} < z_{\text{raw}} - 0.03.
+\end{equation}
+The drop is committed only after the horizontal distance from the initial position exceeds:
+\begin{equation}
+	d_{\text{commit}} = 0.08\text{ m}.
+\end{equation}
+This prevents the reference COM height from falling immediately at the edge of a descending step.
+
+\subsection{Reference Modification Summary}
+
+At a reference node, the raw target state:
+\begin{equation}
+	\bm{x}^{ref}_{raw}
+	=
+	\begin{bmatrix}
+		\dot{\bm{p}}_{\text{com}}^{ref}\\
+		\bm{\omega}^{ref}\\
+		x^{ref}\\y^{ref}\\z^{ref}_{raw}\\
+		\phi^{ref}\\\theta^{ref}_{raw}\\\psi^{ref}\\
+		\bm{q}_j^{ref}
+	\end{bmatrix}
+\end{equation}
+is replaced by:
+\begin{equation}
+	\bm{x}^{ref}_{perc}
+	=
+	\begin{bmatrix}
+		\dot{\bm{p}}_{\text{com}}^{ref}\\
+		\bm{\omega}^{ref}\\
+		x^{ref}\\y^{ref}\\z'\\
+		\phi^{ref}\\\theta'\\\psi^{ref}\\
+		\bm{q}_j^{ref}
+	\end{bmatrix}.
+\end{equation}
+
+%=============================================================================
+
+\section{Convex Region Selection}
+\label{sec:convex_region_selection}
+%=============================================================================
+
+The foot placement constraint requires a convex polygon for each stance foot at each relevant phase of the mode schedule. The \texttt{ConvexRegionSelector} builds these polygons from the current terrain snapshot.
+
+\subsection{Stance Phase Selection}
+
+For each leg $i$, the mode schedule gives a sequence of contact flags:
+\begin{equation}
+	c_i^0,c_i^1,\ldots,c_i^{K-1}.
+\end{equation}
+For every stance phase block, the selector finds:
+\begin{equation}
+	k_{start},\quad k_{final}
+\end{equation}
+such that the leg is continuously in stance over the block. The representative stance time is chosen near the beginning of the stance:
+\begin{equation}
+	t_{sel}
+	=
+	\min\left(
+		t_{final},
+		t_{start}
+		+
+		\min(0.05,\;0.15(t_{final}-t_{start}))
+	\right).
+\end{equation}
+
+The early stance time is used because the foot placement should be decided near touch-down, not near the end of stance.
+
+\subsection{Nominal Foothold}
+
+At $t_{sel}$, the selector computes a desired foot position from the target trajectory:
+\begin{equation}
+	\bm{p}_{ee,i}^{des}(t_{sel})
+	=
+	\operatorname{FK}_i(\bm{x}^{ref}(t_{sel})).
+\end{equation}
+
+The target base pitch is used to offset the foothold. With empirical height $h=0.4$ m:
+\begin{equation}
+	\Delta x
+	=
+	\tan(-\theta)h,
+	\qquad
+	\bm{o}
+	=
+	\begin{bmatrix}
+		\Delta x\cos(-\theta)\\
+		0\\
+		\Delta x\sin(-\theta)
+	\end{bmatrix}.
+\end{equation}
+The nominal foothold is:
+\begin{equation}
+	\boxed{
+		\bm{p}_{nom,i}
+		=
+		\bm{p}_{ee,i}^{des}
+		-
+		\bm{R}_z(\psi)^{\top}\bm{o}
+	}
+\end{equation}
+
+This is the point that the selector projects onto a planar terrain region.
+
+\subsection{Projection and Polygon Growing}
+
+The nominal foothold is projected to the best planar region:
+\begin{equation}
+	\Pi_i
+	=
+	\proj_{\mathcal{R}_k}(\bm{p}_{nom,i}),
+\end{equation}
+which returns:
+\begin{equation}
+	\Pi_i
+	=
+	\left(
+		\mathcal{R}_k,\;
+		{}^W\bm{p}_{proj,i},\;
+		{}^P\bm{p}_{proj,i}
+	\right).
+\end{equation}
+
+Around the projected point, a convex polygon is grown inside the region's inset boundary:
+\begin{equation}
+	\mathcal{P}_i
+	=
+	\operatorname{growConvexPolygon}
+	\left(
+		\text{insetBoundary}(\mathcal{R}_k),
+		{}^P\bm{p}_{proj,i},
+		n_v
+	\right),
+\end{equation}
+where $n_v$ is the desired number of polygon vertices.
+
+The selector stores phase-indexed buffers:
+\begin{equation}
+	\left\{
+		\Pi_i^k,\;
+		\mathcal{P}_i^k,\;
+		\bm{p}_{nom,i}^k
+	\right\}_{k=0}^{K-1}.
+\end{equation}
+
+%=============================================================================
+
+\section{Foot Placement Half-Space Precomputation}
+\label{sec:foot_placement_precomp}
+%=============================================================================
+
+The MPC constraint itself should be fast to evaluate. Therefore, the polygon is converted into linear half-space parameters during precomputation.
+
+\subsection{Polygon to 2D Half-Spaces}
+
+Let the polygon vertices in plane coordinates be:
+\begin{equation}
+	\bm{p}_0,\bm{p}_1,\ldots,\bm{p}_{n_v-1},
+	\qquad
+	\bm{p}_k =
+	\begin{bmatrix}
+		x_k\\y_k
+	\end{bmatrix}.
+\end{equation}
+For edge $(\bm{p}_a,\bm{p}_b)$, an unnormalized line inequality is:
+\begin{equation}
+	\bm{a}_{ab}^{\top}\bm{p}+b_{ab}\geq 0,
+\end{equation}
+where:
+\begin{equation}
+	\bm{a}_{ab}^{\top}
+	=
+	\begin{bmatrix}
+		y_b-y_a & x_a-x_b
+	\end{bmatrix},
+	\qquad
+	b_{ab}
+	=
+	y_a x_b - x_a y_b.
+\end{equation}
+The sign is chosen by testing another polygon vertex. If the interior point gives a negative value, the row is multiplied by $-1$.
+
+Stacking all edges:
+\begin{equation}
+	\boxed{
+		\bm{A}_{poly}\bm{p}_{2d}+\bm{b}_{poly}\geq \bm{0}
+		\iff
+		\bm{p}_{2d}\in\mathcal{P}
+	}
+\end{equation}
+
+\subsection{Boundary Margin}
+
+The polygon can be shrunk by a margin $m$:
+\begin{equation}
+	\tilde{b}_k
+	=
+	b_k
+	-
+	m\norm{\bm{a}_k}.
+\end{equation}
+If the projected foothold remains strictly inside the shrunken polygon, the shrunken constraint is used. Otherwise, the original polygon is kept. This prevents an overly large margin from eliminating the feasible region.
+
+\subsection{Plane Frame to World Frame}
+
+The 2D plane coordinate of a world foot point $\bm{p}_{ee}$ is:
+\begin{equation}
+	\bm{p}_{2d}
+	=
+	\bm{P}
+	\bm{R}^{-1}
+	(\bm{p}_{ee}-\bm{t}),
+	\qquad
+	\bm{P}
+	=
+	\begin{bmatrix}
+		1&0&0\\
+		0&1&0
+	\end{bmatrix}.
+\end{equation}
+Here $(\bm{R},\bm{t})$ is the plane-to-world transform of the selected planar region.
+
+Substituting into the polygon inequality:
+\begin{equation}
+	\bm{A}_{poly}\bm{P}\bm{R}^{-1}\bm{p}_{ee}
+	+
+	\left(
+		\bm{b}_{poly}
+		-
+		\bm{A}_{poly}\bm{P}\bm{R}^{-1}\bm{t}
+	\right)
+	\geq
+	\bm{0}.
+\end{equation}
+Therefore:
+\begin{equation}
+	\boxed{
+		\bm{A}_{world}
+		=
+		\bm{A}_{poly}\bm{P}\bm{R}^{-1},
+		\qquad
+		\bm{b}_{world}
+		=
+		\bm{b}_{poly}
+		-
+		\bm{A}_{poly}\bm{P}\bm{R}^{-1}\bm{t}
+	}
+\end{equation}
+
+The precomputation stores $(\bm{A}_{world},\bm{b}_{world})$ for each foot. If no valid polygon exists, it stores the safe fallback:
+\begin{equation}
+	\bm{A}_{safe}=\bm{0},
+	\qquad
+	\bm{b}_{safe}=\bm{1},
+\end{equation}
+so the constraint is automatically satisfied.
+
+%=============================================================================
+
+\section{Swing Height Modification}
+%=============================================================================
+
+The baseline swing trajectory planner assumes terrain height $0$. The perceptive reference manager injects terrain-dependent lift-off and touch-down heights.
+
+For leg $i$, let the mode schedule contact flags be $c_i^k$. Let $z_i^k$ be the projection height stored by the convex region selector at phase $k$. For swing phases:
+\begin{equation}
+	h_{lift}^k
+	=
+	\begin{cases}
+		z_i^{k-1} & \text{if } \neg c_i^k \land c_i^{k-1},\\
+		h_{lift}^{k-1} & \text{if } \neg c_i^k \land \neg c_i^{k-1},
+	\end{cases}
+\end{equation}
+and:
+\begin{equation}
+	h_{touch}^k
+	=
+	\begin{cases}
+		z_i^{k+1} & \text{if } \neg c_i^k \land c_i^{k+1},\\
+		h_{touch}^{k+1} & \text{if } \neg c_i^k \land \neg c_i^{k+1}.
+	\end{cases}
+\end{equation}
+
+During an active swing, these heights are latched:
+\begin{equation}
+	(h_{lift}^k,h_{touch}^k)
+	\leftarrow
+	(\bar{h}_{lift},\bar{h}_{touch})
+\end{equation}
+for all phases in the active swing interval. This prevents the swing trajectory from jumping if the terrain projection changes while the foot is in the air.
+
+For a currently stance leg, the reference manager also latches the actual stance foot position:
+\begin{equation}
+	\bm{p}_{last}
+	=
+	\bm{p}_{ee}(\bm{x}_{init})
+	+
+	\begin{bmatrix}
+		0\\0\\-0.02
+	\end{bmatrix},
+\end{equation}
+and overwrites the stance block projection height with this value. This keeps swing lift-off and touch-down heights connected to the actual foot location.
+
+%=============================================================================
+
+\section{Perceptive Soft Constraints in the MPC OCP}
+\label{sec:perceptive_constraints}
+%=============================================================================
+
+The perceptive constraints are added as \textbf{state soft constraints}. They do not change the SRBD dynamics or the MPC input vector.
+
+\subsection{Relaxed Barrier Penalty}
+
+For an inequality:
+\begin{equation}
+	h(\bm{x})\geq 0,
+\end{equation}
+the OCS2 soft constraint adds a relaxed barrier penalty:
+\begin{equation}
+	p(h)
+	=
+	\begin{cases}
+		-\mu\ln(h) & h>\delta,\\[4pt]
+		\mu\left[
+			\frac{1}{2}
+			\left(
+				\frac{h-2\delta}{\delta}
+			\right)^2
+			-
+			\ln\delta
+		\right] & h\leq\delta.
+	\end{cases}
+\end{equation}
+
+For vector-valued constraints, the total penalty is the sum over components.
+
+\subsection{Foot Placement Constraint}
+
+For stance foot $i$, the foot must remain inside the selected convex polygon:
+\begin{equation}
+	\boxed{
+		\bm{h}_{fp,i}(\bm{x})
+		=
+		\bm{A}_i
+		\bm{p}_{ee,i}(\bm{x})
+		+
+		\bm{b}_i
+		\geq
+		\bm{0}
+	}
+\end{equation}
+where $(\bm{A}_i,\bm{b}_i)$ are provided by perceptive precomputation.
+
+The constraint is active only when:
+\begin{equation}
+	a_{fp,i}(t)
+	=
+	c_i(t)
+	\land
+	(t\geq t_{initStandFinal,i}).
+\end{equation}
+This avoids applying the constraint to the initial stance before the robot has had a chance to move toward planned footholds.
+
+The linearization used by SQP is:
+\begin{equation}
+	\frac{\partial \bm{h}_{fp,i}}{\partial \bm{x}}
+	=
+	\bm{A}_i
+	\frac{\partial \bm{p}_{ee,i}}{\partial \bm{x}}.
+\end{equation}
+The barrier parameters are:
+\begin{equation}
+	(\mu,\delta)=(10^{-2},10^{-4}).
+\end{equation}
+
+\subsection{Swing Foot Collision Constraint}
+
+For swing foot $i$, the end-effector must stay above the SDF clearance:
+\begin{equation}
+	\boxed{
+		h_{fc,i}(\bm{x})
+		=
+		d_{\text{SDF}}
+		(\bm{p}_{ee,i}(\bm{x}))
+		-
+		d_{clr}
+		\geq
+		0
+	}
+\end{equation}
+with:
+\begin{equation}
+	d_{clr}=0.01\text{ m}.
+\end{equation}
+
+The constraint is active only away from contact transitions:
+\begin{equation}
+	a_{fc,i}(t)
+	=
+	\neg c_i(t)
+	\land
+	\neg c_i(t+0.025)
+	\land
+	\neg c_i(t-0.05).
+\end{equation}
+This prevents the barrier from exploding at lift-off or touch-down, where the foot is expected to be close to the terrain.
+
+The linearization is:
+\begin{equation}
+	\frac{\partial h_{fc,i}}{\partial \bm{x}}
+	=
+	\nabla d_{\text{SDF}}(\bm{p}_{ee,i})^{\top}
+	\frac{\partial \bm{p}_{ee,i}}{\partial \bm{x}}.
+\end{equation}
+The barrier parameters are:
+\begin{equation}
+	(\mu,\delta)=(10^{-2},10^{-3}).
+\end{equation}
+
+\subsection{Body Sphere SDF Constraint}
+
+The body collision model approximates selected links by spheres. In the current notes, the four calf links are used:
+\begin{equation}
+	\{\texttt{FL\_calf},\texttt{FR\_calf},\texttt{RL\_calf},\texttt{RR\_calf}\}.
+\end{equation}
+
+For sphere $j$ with center $\bm{p}_j(\bm{x})$ and radius $r_j$, the constraint is:
+\begin{equation}
+	\boxed{
+		h_{sdf,j}(\bm{x})
+		=
+		d_{\text{SDF}}(\bm{p}_j(\bm{x}))
+		-
+		r_j
+		\geq
+		0
+	}
+\end{equation}
+
+The linearization is:
+\begin{equation}
+	\frac{\partial h_{sdf,j}}{\partial \bm{x}}
+	=
+	\nabla d_{\text{SDF}}(\bm{p}_j)^{\top}
+	\frac{\partial \bm{p}_j}{\partial \bm{x}}.
+\end{equation}
+The barrier parameters are weaker than the foot collision penalty:
+\begin{equation}
+	(\mu,\delta)=(10^{-3},10^{-3}).
+\end{equation}
+
+%=============================================================================
+
+\section{Perceptive MPC Problem}
+\label{sec:perceptive_ocp}
+%=============================================================================
+
+The baseline centroidal MPC solves:
+\begin{equation}
+	\min_{\bm{u}(\cdot)}
+	\int_{t_0}^{t_0+T}
+	\ell_{base}(\bm{x},\bm{u},t)\,dt
+	+
+	\Phi_{base}(\bm{x}(t_0+T))
+\end{equation}
+subject to SRBD dynamics and mode-dependent constraints.
+
+The perceptive MPC keeps the same dynamics:
+\begin{equation}
+	\dot{\bm{x}}
+	=
+	f_{\text{SRBD}}(\bm{x},\bm{u},\sigma(t)).
+\end{equation}
+It modifies the references and adds perceptive soft penalties:
+\begin{equation}
+	\ell_{perc}
+	=
+	\ell_{base}
+	(\bm{x},\bm{u},\bm{x}^{ref}_{perc},\bm{u}^{ref})
+	+
+	\ell_{fp}
+	+
+	\ell_{fc}
+	+
+	\ell_{body}.
+\end{equation}
+
+The complete perceptive OCP is:
+\begin{equation}
+	\boxed{
+		\begin{aligned}
+			\min_{\bm{u}(\cdot)}\quad
+			&
+			\int_{t_0}^{t_0+T}
+			\ell_{perc}(\bm{x}(t),\bm{u}(t),t)\,dt
+			+
+			\Phi_{base}(\bm{x}(t_0+T))\\
+			\text{s.t.}\quad
+			&
+			\dot{\bm{x}}(t)=f_{\text{SRBD}}(\bm{x}(t),\bm{u}(t),\sigma(t)),\\
+			&
+			\bm{g}_{eq}^{\sigma(t)}(\bm{x}(t),\bm{u}(t))=\bm{0},\\
+			&
+			\bm{g}_{ineq}^{\sigma(t)}(\bm{x}(t),\bm{u}(t))\geq\bm{0},\\
+			&
+			\bm{x}(t_0)=\hat{\bm{x}}(t_0).
+		\end{aligned}
+	}
+\end{equation}
+
+The added soft penalties are:
+\begin{align}
+	\ell_{fp}
+	&=
+	\sum_{i=1}^{4}
+	a_{fp,i}(t)
+	\sum_{k=1}^{n_v}
+	p_{fp}\!\left(h_{fp,i,k}(\bm{x})\right),\\
+	\ell_{fc}
+	&=
+	\sum_{i=1}^{4}
+	a_{fc,i}(t)
+	p_{fc}\!\left(h_{fc,i}(\bm{x})\right),\\
+	\ell_{body}
+	&=
+	\sum_{j=1}^{n_s}
+	p_{body}\!\left(h_{sdf,j}(\bm{x})\right).
+\end{align}
+
+This is why perceptive mode is best viewed as a terrain-aware wrapper around the existing OCS2 centroidal OCP.
+
+%=============================================================================
+
+\section{State Estimation Height Alignment}
+%=============================================================================
+
+When the linear Kalman estimator is used, the perceptive controller optionally aligns the estimated base height to the terrain:
+\begin{equation}
+	z_b
+	\leftarrow
+	h_s(x_b,y_b)
+	+
+	h_{\text{com}}.
+\end{equation}
+This is applied at the controller tick before the observation is sent to the MPC interface. It is skipped for ground-truth estimation, where the base height is already accurate.
+
+This correction is not part of the OCP. It is an observation-conditioning step used to reduce estimator height drift on terrain.
+
+%=============================================================================
+
+\section{Timing and Data Consistency}
+%=============================================================================
+
+The perceptive pipeline has three relevant rates:
+\begin{itemize}
+	\item ROS controller tick: state estimation, observation update, visualization, MRT policy evaluation, WBC.
+	\item MPC solver tick: synchronized modules, reference modification, precomputation, SQP solve.
+	\item Terrain publisher / perception pipeline: external terrain message updates.
+\end{itemize}
+
+The timing is:
+\begin{algorithm}
+	\caption{Perceptive MPC Timing}
+	\begin{algorithmic}[1]
+		\STATE Terrain publisher sends \texttt{PlanarTerrain}
+		\STATE \texttt{PlanarTerrainReceiver} stores message in callback buffer
+		\STATE MPC solver begins an iteration
+		\STATE \texttt{PlanarTerrainReceiver::preSolverRun} copies terrain and recomputes SDF
+		\STATE \texttt{PerceptiveLeggedReferenceManager::modifyReferences} modifies base and swing references
+		\STATE \texttt{ConvexRegionSelector::update} builds terrain projections and polygons
+		\STATE \texttt{PerceptiveLeggedPrecomputation::request} converts polygons to half-space constraints
+		\STATE SQP evaluates perceptive soft constraints and solves the MPC OCP
+		\STATE WBC evaluates the resulting policy and solves its unchanged inverse-dynamics QP
+	\end{algorithmic}
+\end{algorithm}
+
+The key design point is that terrain is copied at solver synchronization time. Therefore, one MPC solve uses one internally consistent terrain snapshot for reference modification, foot-placement polygons, and SDF collision constraints.
+
+%=============================================================================
+
+\section{Complete Conceptual Flow}
+%=============================================================================
+
+The overall perceptive control stack can be summarized as:
+\begin{equation}
+	\begin{aligned}
+		\text{MuJoCo XML or perception}
+		&\longrightarrow
+		\mathcal{T},d_{\text{SDF}}\\
+		&\longrightarrow
+		\left(
+			\bm{x}^{ref}_{perc},
+			\{\bm{A}_{world,i},\bm{b}_{world,i}\},
+			d_{\text{SDF}}
+		\right)\\
+		&\longrightarrow
+		\text{terrain-aware centroidal MPC}\\
+		&\longrightarrow
+		(\bm{x}^*,\bm{u}^*,\sigma^*)\\
+		&\longrightarrow
+		\text{unchanged WBC}\\
+		&\longrightarrow
+		\bm{\tau}_{motor}.
+	\end{aligned}
+\end{equation}
+
+\subsection{One-Sentence Summary}
+
+The perceptive layer keeps the OCS2 centroidal MPC and WBC architecture intact, but replaces flat-ground references with terrain-aware base and swing references, and augments the MPC cost with relaxed-barrier constraints built from convex foot-placement regions and SDF collision distances.
+
+\end{document}

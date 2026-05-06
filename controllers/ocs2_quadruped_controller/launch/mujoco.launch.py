@@ -34,8 +34,18 @@ def launch_setup(context, *args, **kwargs):
     enable_perceptive_body_collision_constraint = context.launch_configurations['enable_perceptive_body_collision_constraint'].lower() in ("true", "1", "yes", "on")
     perceptive_foot_placement_boundary_margin = float(
         context.launch_configurations['perceptive_foot_placement_boundary_margin'])
+    ocs2_dump_dir = context.launch_configurations.get('ocs2_dump_dir', '')
+    ocs2_dump_max_cycles = int(context.launch_configurations.get('ocs2_dump_max_cycles', '0'))
+    ocs2_dump_min_interval_sec = float(context.launch_configurations.get('ocs2_dump_min_interval_sec', '0.01'))
+    enable_refiner_swap = context.launch_configurations.get('enable_refiner_swap', 'false').lower() in ("true", "1", "yes", "on")
+    refined_dir = context.launch_configurations.get('refined_dir', '/dev/shm/robust_refine/out')
+    refined_timeout_sec = float(context.launch_configurations.get('refined_timeout_sec', '0.5'))
+    mpc_one_shot = context.launch_configurations.get('mpc_one_shot', 'false').lower() in ("true", "1", "yes", "on")
+    mpc_one_shot_solves = int(context.launch_configurations.get('mpc_one_shot_solves', '10'))
+    tick_log_path = context.launch_configurations.get('tick_log_path', '')
     publish_static_terrain = context.launch_configurations['publish_static_terrain'].lower() in ("true", "1", "yes", "on")
     terrain_smoothing_radius = float(context.launch_configurations['terrain_smoothing_radius'])
+    terrain_z_offset = float(context.launch_configurations.get('terrain_z_offset', '0.0'))
     terrain_scene_file = resolve_scene_file(context.launch_configurations['terrain_scene_file'])
     pkg_path = os.path.join(get_package_share_directory(package_description))
 
@@ -53,6 +63,15 @@ def launch_setup(context, *args, **kwargs):
             f"    enable_perceptive_foot_collision_constraint: {'true' if enable_perceptive_foot_collision_constraint else 'false'}\n"
             f"    enable_perceptive_body_collision_constraint: {'true' if enable_perceptive_body_collision_constraint else 'false'}\n"
             f"    perceptive_foot_placement_boundary_margin: {perceptive_foot_placement_boundary_margin}\n"
+            f"    ocs2_dump_dir: \"{ocs2_dump_dir}\"\n"
+            f"    ocs2_dump_max_cycles: {ocs2_dump_max_cycles}\n"
+            f"    ocs2_dump_min_interval_sec: {ocs2_dump_min_interval_sec}\n"
+            f"    enable_refiner_swap: {'true' if enable_refiner_swap else 'false'}\n"
+            f"    refined_dir: \"{refined_dir}\"\n"
+            f"    refined_timeout_sec: {refined_timeout_sec}\n"
+            f"    mpc_one_shot: {'true' if mpc_one_shot else 'false'}\n"
+            f"    mpc_one_shot_solves: {mpc_one_shot_solves}\n"
+            f"    tick_log_path: \"{tick_log_path}\"\n"
         )
         controller_override_file = controller_param_file.name
 
@@ -159,6 +178,7 @@ def launch_setup(context, *args, **kwargs):
                 "resolution": 0.03,
                 "smoothing_radius": terrain_smoothing_radius,
                 "publish_rate": 0.0,
+                "terrain_z_offset": terrain_z_offset,
             }
         ],
     )
@@ -227,6 +247,58 @@ def generate_launch_description():
         description='Publish a static PlanarTerrain message for perceptive mode'
     )
 
+    ocs2_dump_dir = DeclareLaunchArgument(
+        'ocs2_dump_dir',
+        default_value='',
+        description='If non-empty, dump OCS2 PrimalSolution CSVs into this directory (Stage 7)'
+    )
+
+    ocs2_dump_max_cycles = DeclareLaunchArgument(
+        'ocs2_dump_max_cycles',
+        default_value='0',
+        description='Maximum number of MPC cycles to dump (0 = disabled)'
+    )
+
+    ocs2_dump_min_interval_sec = DeclareLaunchArgument(
+        'ocs2_dump_min_interval_sec',
+        default_value='0.01',
+        description='Minimum solver-init-time delta between consecutive dumps'
+    )
+
+    enable_refiner_swap = DeclareLaunchArgument(
+        'enable_refiner_swap',
+        default_value='false',
+        description='Stage 8: enable synchronous robust_refine IPC; MPC thread '
+                    'dumps every solve to /dev/shm/robust_refine/in and blocks '
+                    'on /dev/shm/robust_refine/out, refined plan overrides WBC tracking.'
+    )
+
+    refined_dir = DeclareLaunchArgument(
+        'refined_dir',
+        default_value='/dev/shm/robust_refine/out',
+        description='Stage 8: output directory polled by RefinedPolicyReader for refined plans.'
+    )
+
+    refined_timeout_sec = DeclareLaunchArgument(
+        'refined_timeout_sec',
+        default_value='0.5',
+        description='Stage 8: timeout per MPC cycle while blocking for the refined plan.'
+    )
+
+    mpc_one_shot = DeclareLaunchArgument(
+        'mpc_one_shot',
+        default_value='false',
+        description='Stage 9: solve a single full-horizon OCP at OCS2 entry then stop replanning. '
+                    'WBC tracks the cached policy throughout the trial.'
+    )
+
+    mpc_one_shot_solves = DeclareLaunchArgument(
+        'mpc_one_shot_solves',
+        default_value='10',
+        description='Stage 9: number of advanceMpc() iterations to run during one-shot bootstrap '
+                    '(each is one SQP iteration; warm-starts from previous).'
+    )
+
     enable_perceptive_reference_modification = DeclareLaunchArgument(
         'enable_perceptive_reference_modification',
         default_value='true',
@@ -258,9 +330,21 @@ def generate_launch_description():
     )
 
     terrain_smoothing_radius = DeclareLaunchArgument(
-        'terrain_smoothing_radius', 
+        'terrain_smoothing_radius',
         default_value='0.06',
         description='Gaussian smoothing radius used to generate the smooth_planar layer in meters'
+    )
+
+    terrain_z_offset = DeclareLaunchArgument(
+        'terrain_z_offset',
+        default_value='0.0',
+        description='Perception noise: shift all non-floor box top z by this offset (MuJoCo physics unchanged)'
+    )
+
+    tick_log_path = DeclareLaunchArgument(
+        'tick_log_path',
+        default_value='',
+        description='If non-empty, StateOCS2 writes a per-tick CSV (t, refined_active, opt_state, opt_input, meas_rbd) to this path. Used for post-trial analysis.'
     )
 
     terrain_scene_file = DeclareLaunchArgument(
@@ -279,6 +363,16 @@ def generate_launch_description():
         perceptive_foot_placement_boundary_margin,
         publish_static_terrain,
         terrain_smoothing_radius,
+        terrain_z_offset,
         terrain_scene_file,
+        ocs2_dump_dir,
+        ocs2_dump_max_cycles,
+        ocs2_dump_min_interval_sec,
+        enable_refiner_swap,
+        refined_dir,
+        refined_timeout_sec,
+        mpc_one_shot,
+        mpc_one_shot_solves,
+        tick_log_path,
         OpaqueFunction(function=launch_setup),
     ])

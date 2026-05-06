@@ -348,8 +348,21 @@ class StaticPlanarTerrainPublisher final : public rclcpp::Node {
     const auto resolution = this->declare_parameter<double>("resolution", 0.03);
     const auto smoothingRadius = this->declare_parameter<double>("smoothing_radius", 0.12);
     const auto publishRate = this->declare_parameter<double>("publish_rate", 0.0);
+    // Perception uncertainty: shift ALL non-floor box top z by this offset before
+    // building the planar terrain. MuJoCo physics is unaffected so the actual
+    // ground stays at the true XML height; the controller perceives a wrong z.
+    const auto terrainZOffset = this->declare_parameter<double>("terrain_z_offset", 0.0);
 
-    const SceneDescription scene = loadSceneDescription(sceneFile);
+    SceneDescription scene = loadSceneDescription(sceneFile);
+    if (std::abs(terrainZOffset) > 0.0) {
+      for (auto& surface : scene.surfaces) {
+        surface.topCenterInWorld.z() += terrainZOffset;
+      }
+      RCLCPP_WARN(this->get_logger(),
+                  "Applied terrain_z_offset=%+.4f m to %zu non-floor surfaces "
+                  "(perception only — MuJoCo physics unchanged).",
+                  terrainZOffset, scene.surfaces.size());
+    }
     terrain_ = buildPlanarTerrain(scene, resolution, frameId, smoothingRadius);
     terrainMsg_ = convex_plane_decomposition::toMessage(terrain_);
 

@@ -11,9 +11,38 @@
 #include <ocs2_sqp/SqpMpc.h>
 #include <angles/angles.h>
 #include <ocs2_quadruped_controller/control/GaitManager.h>
+#include <controller_common/FSM/BaseFixedStand.h>
 
 namespace ocs2::legged_robot
 {
+    namespace {
+        // Fixed-pose stand intermediate between PASSIVE and OCS2.
+        // Enter via command=2 from PASSIVE, then command=4 transitions to OCS2.
+        // Ported from colleague's quadruped_temp/run_v1.
+        class StateStandToOcs2 final : public BaseFixedStand {
+        public:
+            StateStandToOcs2(CtrlInterfaces& ctrl_interfaces,
+                             const std::vector<double>& target_pos,
+                             double kp,
+                             double kd)
+                : BaseFixedStand(ctrl_interfaces, target_pos, kp, kd) {}
+
+            FSMStateName checkChange() override {
+                if (percent_ < 1.5) {
+                    return FSMStateName::FIXEDSTAND;
+                }
+                switch (ctrl_interfaces_.control_inputs_.command) {
+                    case 1:
+                        return FSMStateName::PASSIVE;
+                    case 4:
+                        return FSMStateName::OCS2;
+                    default:
+                        return FSMStateName::FIXEDSTAND;
+                }
+            }
+        };
+    }  // namespace
+
     using config_type = controller_interface::interface_configuration_type;
 
     controller_interface::InterfaceConfiguration Ocs2QuadrupedController::command_interface_configuration() const
@@ -130,11 +159,17 @@ namespace ocs2::legged_robot
         foot_force_interface_types_ =
             auto_declare<std::vector<std::string>>("foot_force_interfaces", state_interface_types_);
 
+        // Stand pose & gains for StateStandToOcs2
+        stand_pos_ = auto_declare<std::vector<double>>("stand_pos", stand_pos_);
+        stand_kp_ = auto_declare<double>("stand_kp", stand_kp_);
+        stand_kd_ = auto_declare<double>("stand_kd", stand_kd_);
+
         ctrl_comp_ = std::make_shared<CtrlComponent>(get_node(), ctrl_interfaces_);
         ctrl_comp_->setupStateEstimate(estimator_type_);
 
         state_list_.passive = std::make_shared<StatePassive>(ctrl_interfaces_);
-        state_list_.fixedDown = std::make_shared<StateOCS2>(ctrl_interfaces_, ctrl_comp_);
+        state_list_.fixedDown = std::make_shared<StateStandToOcs2>(ctrl_interfaces_, stand_pos_, stand_kp_, stand_kd_);
+        state_list_.ocs2 = std::make_shared<StateOCS2>(ctrl_interfaces_, ctrl_comp_);
 
         return CallbackReturn::SUCCESS;
     }
@@ -239,6 +274,8 @@ namespace ocs2::legged_robot
             return state_list_.passive;
         case FSMStateName::FIXEDDOWN:
             return state_list_.fixedDown;
+        case FSMStateName::OCS2:
+            return state_list_.ocs2;
         default:
             return state_list_.invalid;
         }

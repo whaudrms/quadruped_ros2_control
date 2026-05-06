@@ -4,13 +4,16 @@
 
 #ifndef CTRLCOMPONENT_H
 #define CTRLCOMPONENT_H
+#include <atomic>
 #include <memory>
 #include <limits>
+#include <mutex>
 #include <optional>
 #include <sstream>
 #include <string>
 #include <vector>
 #include <nav_msgs/msg/path.hpp>
+#include <ocs2_core/Types.h>
 #include <ocs2_mpc/SystemObservation.h>
 #include <ocs2_quadruped_controller/estimator/StateEstimateBase.h>
 #include <ocs2_quadruped_controller/interface/LeggedInterface.h>
@@ -20,6 +23,9 @@
 #include <ocs2_legged_robot_ros/visualization/LeggedRobotVisualizer.h>
 #include <ocs2_quadruped_controller/perceptive/visualize/FootPlacementVisualization.h>
 #include <ocs2_quadruped_controller/perceptive/visualize/SphereVisualization.h>
+#include <ocs2_quadruped_controller/control/MpcDumpRecorder.h>
+#include <ocs2_quadruped_controller/control/RefinedPolicyReader.h>
+#include <ocs2_quadruped_controller/control/GaitManager.h>
 
 #include "TargetManager.h"
 
@@ -50,10 +56,37 @@ namespace ocs2::legged_robot
         std::unique_ptr<LeggedRobotVisualizer> visualizer_;
         std::shared_ptr<MPC_BASE> mpc_;
         std::unique_ptr<MPC_MRT_Interface> mpc_mrt_interface_;
+        std::unique_ptr<MpcDumpRecorder> mpc_dump_recorder_;
+        std::shared_ptr<GaitManager> gait_manager_ptr_;
+
+        // Stage 8 — synchronous robust_refine IPC.
+        // The MPC thread, after each advanceMpc(), dumps the just-solved
+        // PrimalSolution to /dev/shm/robust_refine/in/cycle_<seq>.csv via
+        // mpc_dump_recorder_, then blocks for the matching output file via
+        // refined_policy_reader_. On success it stores the refined plan in
+        // the members below so that StateOCS2::run() can override the WBC
+        // tracking targets.
+        std::unique_ptr<RefinedPolicyReader> refined_policy_reader_;
+        std::atomic<size_t> refined_seq_{std::numeric_limits<size_t>::max()};
+        std::mutex refined_mtx_;
+        scalar_t refined_init_time_{};
+        scalar_array_t refined_time_traj_;
+        vector_array_t refined_state_traj_;
+        vector_array_t refined_input_traj_;
 
         SystemObservation observation_;
         vector_t measured_rbd_state_;
         std::atomic_bool mpc_running_{};
+
+        // Stage 9 — full-horizon 1-shot OCP mode.
+        // When mpc_one_shot_ is true, init() runs N SQP iterations of advanceMpc()
+        // (warm-starting from same observation/reference) to converge a single OCP,
+        // dumps the policy once, then sets mpc_one_shot_done_. The MPC thread loop
+        // then skips all subsequent advanceMpc()/dump calls but keeps polling
+        // refined_policy_reader_ so the offline-refined plan can replace tracking.
+        bool mpc_one_shot_ = false;
+        int mpc_one_shot_solves_ = 10;
+        std::atomic_bool mpc_one_shot_done_{false};
 
         bool verbose_ = false;
 
