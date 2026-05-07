@@ -26,6 +26,15 @@ For M1'' the guard is hard-wired to `n = e_z`, `p_plane.z = robustPhase.terrain_
 (scalar from `task.info`). M2 will swap this for the stance-side projection from
 `ConvexRegionSelector::getProjections(leg)[stance_phase_idx]`.
 
+`g(x)` is defined on the **contact point**, not the URDF foot frame: `EndEffectorKinematics`
+returns the FK position of the URDF foot frame (the ankle for go2's `FL_foot`/etc.), which
+sits ~6 cm above the ground contact along `n`. `RobustGuardBoundaryConstraint` therefore
+subtracts `n · foot_frame_offset` so that `g(x) = 0` corresponds to "contact point on the
+terrain plane", regardless of how high the URDF frame sits above the contact. The offset
+is a constant scalar (`task.info: robustPhase.foot_frame_offset`, default 0.06 m for go2);
+the Jacobian is unchanged. This factoring transitions cleanly to M2, where `p_plane`
+becomes the stance-side terrain projection and the same offset still maps "frame z" → "contact z".
+
 ### Phase representation: binary contact + robust mask (not ternary mode)
 
 Effective `swing → robust → stance` is expressed as `(c_ℓ, r_ℓ)` instead of a new
@@ -72,27 +81,62 @@ only the `g(t_b)=-d` boundary and `ġ ≤ 0` remain active over the truncated wi
 
 ## Verification (M1'' done)
 
-Three trials on flat-scene `scene.xml`, `standing_trot_forward` scenario, all on the
-`replan` branch with the in-OCP robust phase enabled.
+Three tuning trials on flat-scene `scene.xml`, `standing_trot_forward` scenario, all on
+the `replan` branch with the in-OCP robust phase enabled. The first two iterations used
+the workaround of folding the foot-frame offset into `terrain_z_M1`; the post-review
+trial uses the explicit `foot_frame_offset` parameter introduced by the review fixes
+(numerically equivalent to trial 3).
 
-| trial | terrain_z_M1 | d | w_boundary | success | t_b residual | t_a residual | note |
-|---|---|---|---|---|---|---|---|
-| 1 | 0.00 | 0.05 | 100 | true | +0.11 m | +0.11 m | soft penalty too weak — no observable pull |
-| 2 | 0.00 | 0.05 | 10000 | **fall (roll_limit)** | — | — | physically-infeasible target (z = −0.05 below ground) × strong weight = destabilizing |
-| 3 | 0.06 | 0.03 | 1000 | true | **+0.018 m** | +0.06 m | physical foot-frame z (0.06) + modest d → clean pull, no instability |
+| trial | terrain_z_M1 | foot_offset | d | w_boundary | success | t_b residual* | t_a residual* | note |
+|---|---|---|---|---|---|---|---|---|
+| 1 | 0.00 | n/a | 0.05 | 100 | true | +0.11 m | +0.11 m | soft penalty too weak — no observable pull |
+| 2 | 0.00 | n/a | 0.05 | 10000 | **fall (roll_limit)** | — | — | physically-infeasible target × strong weight |
+| 3 | 0.06 | n/a | 0.03 | 1000 | true | +0.018 m | +0.06 m | folded offset; clean pull, no instability |
+| 4 | 0.00 | 0.06 | 0.03 | 1000 | true | **+0.014 m** | +0.058 m | post-review: explicit offset, ready for M2 |
 
-Trial 3 confirms the M1'' code path end-to-end: window calculation correct (`t_b − t_a =
-0.10 s = P·sqp.dt`, trot diagonal pair `(FL,RR)` vs `(FR,RL)`), constraint trips at
-boundary nodes (residual would be ~0.11 m without it, as in trial 1), `skip_t_a_boundary`
-partial-window logic correct, no regression in walking stability vs baseline (pitch_rms
-1.44° identical, base z stable, full 16 s scenario completed, 0.98 m forward).
+*Residual = `foot_frame_z(opt) − (p_plane.z + foot_offset ± d)` measured at the SQP
+shooting node closest to `t_b` / `t_a`.
 
-Trial output (results, plot, residual table) lives at:
-`tools/perceptive_dev_v2/results/20260507_201319_scene_perceptive_dev_v2_robust_M1pp_z06_d03_w1k/`.
+What trial 4 actually demonstrates:
+- Window calculation correct: `t_b − t_a = 0.10 s = P·sqp.dt`, trot diagonal pair
+  `(FL,RR)` vs `(FR,RL)`, `skip_t_a_boundary` partial-window logic exercised.
+- `t_b` boundary (terminal target `g = -d`) is **respected within ~1.4 cm** — the soft
+  penalty pulls the foot strongly toward the contact-point target.
+- `t_a` boundary (start target `g = +d`) **under-tracks by ~6 cm** — the foot does not
+  reach `+d` above terrain at the window start. This is consistent with the soft-penalty
+  trade-off: the `w_boundary=1000` weight can shape the trajectory but cannot
+  counter-rotate the upward swing peak. Bumping `w_boundary` aggressively (trial 2)
+  destabilizes. Per `plan.md` sub-decision 1, the documented fallback is to promote the
+  boundaries to hard `equalityConstraintPtr` entries if soft tuning continues to
+  under-track on real terrain in M2.
+- No regression in walking stability: pitch_rms 1.47° (baseline 1.44°), base z stable,
+  full 16 s scenario completed, 0.99 m forward; SDF clearance constraint records no
+  violation events inside robust windows (gating fix is honoured).
 
-The remaining ~2 cm residual at `t_b` is the soft-penalty trade-off Plan sub-decision 1
-flagged: bumping `w_boundary` higher destabilizes (trial 2). A true `equalityConstraintPtr`
-hard equality is the documented fallback if M2 still under-tracks ±d on terrain.
+So M1'' verification is: **terminal boundary pull confirmed; start boundary under-tracks
+within tolerance** — the in-OCP plumbing is sound and ready for M2's terrain-aware
+projection.
+
+Trial output (`result.json`, `tick.csv`, `controller.log`, `robust_phase_foot_z.png`,
+console residual table) lives at:
+`tools/perceptive_dev_v2/results/20260507_210019_scene_perceptive_dev_v2_robust_M1pp_postreview2/`.
+
+## Review fixes applied post-M1''
+
+A peer review on the initial M1'' commit raised five issues. F1, F2, F4, F5 are fixed in
+the follow-up commit before M2 begins; F3 was a wording correction that landed in this
+note alongside trial 4.
+
+| # | severity | issue | fix |
+|---|---|---|---|
+| F1 | high | M2 would put the foot frame `~6 cm + d` below the contact terrain because `EndEffectorKinematics::getPosition` returns the URDF foot frame, not the contact point | Added `foot_frame_offset` to `RobustPhaseSettings` / `RobustWindowData`. `RobustGuardBoundaryConstraint` subtracts `foot_offset` from `g(x)` (Jacobian unchanged). For M1'' set `terrain_z_M1 = 0.0` and `foot_frame_offset = 0.06`. M2's `ConvexRegionSelector` projection now plugs into `p_plane` directly without further offset bookkeeping. |
+| F2 | high | `computeRobustWindows` could miss the next touchdown if the leg was currently in stance: it grabbed the first `false→true` transition and `continue`d the leg if `t_b ≤ initTime`, instead of scanning further | Loop now keeps scanning until it finds a `false→true` transition with `eventTimes[idx] > initTime`. Past transitions (leg already in stance) are skipped, not the entire leg. |
+| F3 | medium | Note overstated trial 3's verification — `t_a` residual was +0.06 m; the start boundary did not actually reach `+d` | Verification table now lists `t_a` and `t_b` residuals separately and the conclusion reads "terminal boundary pull confirmed; start boundary under-tracks within tolerance" instead of "boundary nodes correct". |
+| F4 | medium | `getRobustWindow` returned a reference into mutex-protected internal storage past the lock — structurally racy even if the MPC thread happens to serialise calls | Base virtual signature changed to return `RobustWindowData` by value. The override copies under the lock and releases. All call sites switched from `const auto&` to `const RobustWindowData` capture. |
+| F5 | low | `[robust_phase]` `std::cerr` per cycle × 4 legs is fine in sim but not RT-safe on hardware | Wrapped in `if (robustPhaseSettings_.verbose_log)`. Default `false`; enabled in current `task.info` for offline plot verification. Stage 8/9's `[robust_refine] override=...` lines remain (will be removed in the follow-up cleanup PR). |
+
+The post-fix smoke trial (trial 4 above) confirms numerical equivalence with the
+pre-fix trial 3 baseline.
 
 ## Out of scope (deferred)
 

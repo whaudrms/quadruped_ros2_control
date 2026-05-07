@@ -35,7 +35,7 @@ FRAME_NAMES = ["FL_foot", "FR_foot", "RL_foot", "RR_foot"]
 
 ROBUST_LINE_RE = re.compile(
     r"\[robust_phase\] t=([-\d.e+]+) leg=(\d+) active=(\d+) ta=([-\d.e+]+) tb=([-\d.e+]+) "
-    r"pz=([-\d.e+]+) d=([-\d.e+]+) clamped=(\d+)"
+    r"pz=([-\d.e+]+) d=([-\d.e+]+)(?: offset=([-\d.e+]+))? clamped=(\d+)"
 )
 
 
@@ -100,7 +100,11 @@ def compute_foot_z_trajectory(model, data, frame_ids, q_pin_traj):
 
 
 def parse_robust_phase_log(log_path: Path):
-    """Returns dict: leg_idx -> list of (t_query, active, ta, tb, pz, d, clamped)"""
+    """Returns dict: leg_idx -> list of (t_query, active, ta, tb, pz, d, offset, clamped).
+
+    `offset` is the foot_frame_offset (FK foot frame z above contact along n). It may be
+    absent in old logs (pre-review-fix); defaults to 0.0 in that case.
+    """
     out = {leg: [] for leg in range(4)}
     with open(log_path) as f:
         for line in f:
@@ -114,25 +118,26 @@ def parse_robust_phase_log(log_path: Path):
             tb = float(m.group(5))
             pz = float(m.group(6))
             d = float(m.group(7))
-            clamped = int(m.group(8)) == 1
+            offset = float(m.group(8)) if m.group(8) is not None else 0.0
+            clamped = int(m.group(9)) == 1
             if 0 <= leg < 4:
-                out[leg].append((t_q, active, ta, tb, pz, d, clamped))
+                out[leg].append((t_q, active, ta, tb, pz, d, offset, clamped))
     return out
 
 
 def extract_unique_windows(per_leg_log):
-    """Collapse repeated (ta, tb, pz, d) windows so we only mark each one once."""
+    """Collapse repeated (ta, tb, pz, d, offset) windows so we only mark each one once."""
     out = {leg: [] for leg in range(4)}
     for leg, entries in per_leg_log.items():
         seen = set()
-        for (_, active, ta, tb, pz, d, clamped) in entries:
+        for (_, active, ta, tb, pz, d, offset, clamped) in entries:
             if not active:
                 continue
             key = (round(ta, 5), round(tb, 5))
             if key in seen:
                 continue
             seen.add(key)
-            out[leg].append((ta, tb, pz, d, clamped))
+            out[leg].append((ta, tb, pz, d, offset, clamped))
     return out
 
 
@@ -200,20 +205,24 @@ def main(argv=None):
     n_active_total = sum(len(w) for w in windows.values())
     print(f"parsed [robust_phase] log: {n_active_total} unique active windows total")
 
-    # Plot
+    # Plot — markers are drawn at the FOOT-FRAME z values that the constraint enforces
+    # (i.e. p_plane.z + foot_frame_offset ± d), since the FK in pinocchio gives the URDF
+    # foot frame, not the contact point.
     fig, axes = plt.subplots(4, 1, figsize=(12, 10), sharex=True)
     for leg in range(4):
         ax = axes[leg]
-        ax.plot(t, foot_z_opt[:, leg], color="tab:blue", lw=1.0, label="opt foot z")
-        ax.plot(t, foot_z_meas[:, leg], color="tab:orange", lw=1.0, alpha=0.7, label="meas foot z")
+        ax.plot(t, foot_z_opt[:, leg], color="tab:blue", lw=1.0, label="opt foot frame z")
+        ax.plot(t, foot_z_meas[:, leg], color="tab:orange", lw=1.0, alpha=0.7, label="meas foot frame z")
         ax.axhline(0.0, color="k", lw=0.5, alpha=0.3)
-        # Window markers
-        for (ta, tb, pz, d, clamped) in windows[leg]:
+        # Window markers (foot-frame z = p_plane.z + offset ± d)
+        for (ta, tb, pz, d, offset, clamped) in windows[leg]:
             color = "tab:red" if not clamped else "tab:purple"
+            target_a = pz + offset + d
+            target_b = pz + offset - d
             if not clamped:
-                ax.plot([ta], [pz + d], marker="^", color=color, markersize=6,
+                ax.plot([ta], [target_a], marker="^", color=color, markersize=6,
                         markeredgecolor="k", linestyle="None", zorder=5)
-            ax.plot([tb], [pz - d], marker="v", color=color, markersize=6,
+            ax.plot([tb], [target_b], marker="v", color=color, markersize=6,
                     markeredgecolor="k", linestyle="None", zorder=5)
             ax.axvspan(ta, tb, color=color, alpha=0.07)
         ax.set_ylabel(f"{LEG_NAMES[leg]} foot z [m]")
@@ -224,26 +233,30 @@ def main(argv=None):
     axes[-1].set_xlabel("time [s]")
     fig.suptitle(
         f"M1'' robust-phase verification — {trial_dir.name}\n"
-        f"red ▲▼ = nominal (t_a,+d) (t_b,-d) markers; purple = partial-clamped (only t_b)"
+        f"red ▲▼ = nominal (t_a, p_plane+offset+d) (t_b, p_plane+offset-d) foot-frame targets; "
+        f"purple = partial-clamped (only t_b)"
     )
     fig.tight_layout(rect=(0, 0, 1, 0.97))
     fig.savefig(out_png, dpi=110)
     print(f"saved {out_png}")
 
-    # Print quantitative residuals at boundary nodes
-    print("\n=== boundary residuals (closest tick to t_b) ===")
-    print(" leg     t_b      target (-d)    foot_z_opt    residual")
+    # Print quantitative residuals at boundary nodes (foot-frame z basis)
+    print("\n=== boundary residuals (closest tick to t_b/t_a, foot-frame z basis) ===")
+    print(" leg     time     target (foot-frame z)    foot_z_opt    residual    contact_residual")
     for leg in range(4):
-        for (ta, tb, pz, d, clamped) in windows[leg]:
+        for (ta, tb, pz, d, offset, clamped) in windows[leg]:
             i = int(np.argmin(np.abs(t - tb)))
-            target = pz - d
-            print(f"  {leg}    {tb:7.3f}    {target:+.4f}        {foot_z_opt[i, leg]:+.4f}     "
-                  f"{foot_z_opt[i, leg] - target:+.4f}")
+            target_b = pz + offset - d
+            res_b = foot_z_opt[i, leg] - target_b
+            contact_res_b = res_b  # foot-frame and contact-point residuals coincide (same offset)
+            print(f"  {leg}    {tb:7.3f}    {target_b:+.4f}                {foot_z_opt[i, leg]:+.4f}     "
+                  f"{res_b:+.4f}   {contact_res_b:+.4f}")
             if not clamped:
                 i_a = int(np.argmin(np.abs(t - ta)))
-                target_a = pz + d
-                print(f"  {leg}    {ta:7.3f}    {target_a:+.4f}        {foot_z_opt[i_a, leg]:+.4f}     "
-                      f"{foot_z_opt[i_a, leg] - target_a:+.4f}  (t_a)")
+                target_a = pz + offset + d
+                res_a = foot_z_opt[i_a, leg] - target_a
+                print(f"  {leg}    {ta:7.3f}    {target_a:+.4f}                {foot_z_opt[i_a, leg]:+.4f}     "
+                      f"{res_a:+.4f}   {res_a:+.4f}  (t_a)")
     return 0
 
 

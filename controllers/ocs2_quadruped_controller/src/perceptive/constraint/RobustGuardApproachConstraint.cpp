@@ -23,7 +23,7 @@ bool RobustGuardApproachConstraint::isActive(scalar_t time) const {
 
 vector_t RobustGuardApproachConstraint::getValue(scalar_t /*time*/, const vector_t& state, const vector_t& input,
                                                  const PreComputation& /*preComp*/) const {
-    const auto& w = referenceManagerPtr_->getRobustWindow(contactPointIndex_);
+    const RobustWindowData w = referenceManagerPtr_->getRobustWindow(contactPointIndex_);
     const vector3_t v_foot = endEffectorKinematicsPtr_->getVelocity(state, input).front();
     const scalar_t g_dot = w.n.dot(v_foot);
     vector_t value(1);
@@ -34,7 +34,7 @@ vector_t RobustGuardApproachConstraint::getValue(scalar_t /*time*/, const vector
 VectorFunctionLinearApproximation RobustGuardApproachConstraint::getLinearApproximation(
     scalar_t /*time*/, const vector_t& state, const vector_t& input,
     const PreComputation& /*preComp*/) const {
-    const auto& w = referenceManagerPtr_->getRobustWindow(contactPointIndex_);
+    const RobustWindowData w = referenceManagerPtr_->getRobustWindow(contactPointIndex_);
     const auto velocityApprox = endEffectorKinematicsPtr_->getVelocityLinearApproximation(state, input).front();
 
     VectorFunctionLinearApproximation approx =

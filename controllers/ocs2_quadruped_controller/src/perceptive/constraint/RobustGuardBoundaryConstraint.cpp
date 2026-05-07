@@ -39,11 +39,18 @@ scalar_t RobustGuardBoundaryConstraint::targetAt(scalar_t time, const RobustWind
     return (distToTa < distToTb) ? +w.d : -w.d;
 }
 
+// g(x) is defined on the CONTACT POINT, not the URDF foot frame:
+//   p_contact = p_foot - foot_frame_offset · n
+//   g(x)      = n · (p_contact - p_plane) = n · (p_foot - p_plane) - foot_frame_offset
+// So g = 0 means "contact point on the terrain plane" regardless of how high the foot
+// frame sits above the contact (the FK foot frame for go2 is at the ankle, ~6 cm above).
+// The Jacobian is unchanged since foot_frame_offset is a constant.
+
 vector_t RobustGuardBoundaryConstraint::getValue(scalar_t time, const vector_t& state,
                                                  const PreComputation& /*preComp*/) const {
-    const auto& w = referenceManagerPtr_->getRobustWindow(contactPointIndex_);
+    const RobustWindowData w = referenceManagerPtr_->getRobustWindow(contactPointIndex_);
     const vector3_t p_foot = endEffectorKinematicsPtr_->getPosition(state).front();
-    const scalar_t g = w.n.dot(p_foot - w.p_plane);
+    const scalar_t g = w.n.dot(p_foot - w.p_plane) - w.foot_frame_offset;
     const scalar_t target = targetAt(time, w);
     vector_t value(1);
     value(0) = g - target;
@@ -52,12 +59,12 @@ vector_t RobustGuardBoundaryConstraint::getValue(scalar_t time, const vector_t& 
 
 VectorFunctionLinearApproximation RobustGuardBoundaryConstraint::getLinearApproximation(
     scalar_t time, const vector_t& state, const PreComputation& /*preComp*/) const {
-    const auto& w = referenceManagerPtr_->getRobustWindow(contactPointIndex_);
+    const RobustWindowData w = referenceManagerPtr_->getRobustWindow(contactPointIndex_);
     const auto positionApprox = endEffectorKinematicsPtr_->getPositionLinearApproximation(state).front();
     const scalar_t target = targetAt(time, w);
 
     VectorFunctionLinearApproximation approx = VectorFunctionLinearApproximation::Zero(1, state.size(), 0);
-    approx.f(0) = w.n.dot(positionApprox.f - w.p_plane) - target;
+    approx.f(0) = w.n.dot(positionApprox.f - w.p_plane) - w.foot_frame_offset - target;
     approx.dfdx = w.n.transpose() * positionApprox.dfdx;  // 1 x nx
     return approx;
 }

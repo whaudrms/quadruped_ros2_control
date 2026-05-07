@@ -44,14 +44,16 @@ namespace ocs2::legged_robot
             bool      enabled = false;
             int       P = 5;            // window length in nodes
             scalar_t  d = 0.05;         // uncertainty half-width [m]
-            scalar_t  terrain_z_M1 = 0.0;  // M1'' flat-ground guard reference
-            scalar_t  dt_mpc = 0.015;   // SQP shooting interval [s]
+            scalar_t  terrain_z_M1 = 0.0;       // M1'' flat-ground guard reference
+            scalar_t  foot_frame_offset = 0.0;  // FK foot-frame z above contact point along n
+            scalar_t  dt_mpc = 0.015;           // SQP shooting interval [s]
+            bool      verbose_log = false;      // emit per-cycle [robust_phase] std::cerr
         };
         void setRobustPhaseSettings(const RobustPhaseSettings& settings) { robustPhaseSettings_ = settings; }
 
         // Overrides from SwitchedModelReferenceManager.
         bool isInRobustWindow(size_t leg, scalar_t time) const override;
-        const RobustWindowData& getRobustWindow(size_t leg) const override;
+        RobustWindowData getRobustWindow(size_t leg) const override;
 
         bool getLatestReferencePaths(
             std::vector<vector3_t, Eigen::aligned_allocator<vector3_t>>& rawBasePath,

@@ -59,9 +59,12 @@ namespace ocs2::legged_robot {
         // and by RobustGuard{Boundary,Approach}Constraint to gate themselves on.
         virtual bool isInRobustWindow(size_t /*leg*/, scalar_t /*time*/) const { return false; }
 
-        virtual const RobustWindowData &getRobustWindow(size_t /*leg*/) const {
-            static const RobustWindowData kEmpty{};
-            return kEmpty;
+        // Returns BY VALUE so callers cannot hold a reference into the override's
+        // mutex-protected internal storage past the lock window. The MPC thread reads
+        // this on every constraint evaluation; the perceptive override rewrites the
+        // backing array each preSolverRun.
+        virtual RobustWindowData getRobustWindow(size_t /*leg*/) const {
+            return RobustWindowData{};
         }
 
         const std::shared_ptr<GaitSchedule> &getGaitSchedule() { return gaitSchedulePtr_; }

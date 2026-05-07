@@ -197,7 +197,9 @@ robustPhase
   w_v                      1.0     ; soft penalty weight on Σ ġ² running cost
   approach_barrier_mu      0.01    ; RelaxedBarrierPenalty mu for approach inequality
   approach_barrier_delta   0.001   ; RelaxedBarrierPenalty delta for approach inequality
-  terrain_z_M1             0.06    ; M1'' flat-ground reference z [m] = FL_foot frame z at natural touchdown (frame is at ankle, contact ~6cm below)
+  terrain_z_M1             0.0     ; M1'' flat-ground terrain z [m] (the actual ground; foot offset handled separately)
+  foot_frame_offset        0.06    ; URDF FL_foot frame z above contact along n [m] (ankle frame, contact ~6 cm below)
+  verbose_log              true    ; emit per-cycle [robust_phase] std::cerr (off for hardware/RT)
 }
 
 selfCollision
