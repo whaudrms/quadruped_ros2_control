@@ -78,101 +78,12 @@ namespace ocs2::legged_robot
         // Load the latest MPC policy
         ctrl_component_->mpc_mrt_interface_->updatePolicy();
 
-        // Stage 7/8: the MPC PrimalSolution dump used to live here, but it
-        // has moved into the MPC thread itself (CtrlComponent::setupMrt) so
-        // that the dumped seq number is aligned 1:1 with each advanceMpc()
-        // call and the synchronous robust_refine reader can match files.
-
         // Evaluate the current policy
         size_t planned_mode = 0; // The mode that is active at the time the policy is evaluated at.
         ctrl_component_->mpc_mrt_interface_->evaluatePolicy(ctrl_component_->observation_.time,
                                                             ctrl_component_->observation_.state,
                                                             optimized_state_,
                                                             optimized_input_, planned_mode);
-
-        // ---------------------------------------------------------------
-        // Stage 8 — REFINED POLICY OVERRIDE (load-bearing).
-        // After raw MPC evaluation, if the synchronous robust_refine pipeline
-        // has produced a refined plan for the latest MPC cycle, interpolate
-        // the refined trajectories at t_now and OVERRIDE optimized_state_ /
-        // optimized_input_. WBC then tracks the refined values instead of
-        // raw MPC. If no refined plan is available (timeout, disabled, or
-        // out-of-horizon), the raw MPC outputs flow through unchanged.
-        // ---------------------------------------------------------------
-        bool refined_active = false;
-        if (ctrl_component_->refined_seq_.load(std::memory_order_acquire) !=
-            std::numeric_limits<size_t>::max())
-        {
-            std::lock_guard<std::mutex> lk(ctrl_component_->refined_mtx_);
-            const auto& tTraj = ctrl_component_->refined_time_traj_;
-            const auto& xTraj = ctrl_component_->refined_state_traj_;
-            const auto& uTraj = ctrl_component_->refined_input_traj_;
-
-            if (tTraj.size() >= 2 && !xTraj.empty())
-            {
-                const scalar_t t_now = ctrl_component_->observation_.time;
-                const scalar_t t0 = tTraj.front();
-                const scalar_t tEnd = tTraj.back();
-
-                if (t_now >= t0 && t_now <= tEnd)
-                {
-                    // Linear interpolation on the refined time grid.
-                    auto upper = std::upper_bound(tTraj.begin(), tTraj.end(), t_now);
-                    size_t idx_hi = static_cast<size_t>(upper - tTraj.begin());
-                    if (idx_hi == 0) idx_hi = 1;
-                    if (idx_hi >= tTraj.size()) idx_hi = tTraj.size() - 1;
-                    const size_t idx_lo = idx_hi - 1;
-
-                    const scalar_t denom = tTraj[idx_hi] - tTraj[idx_lo];
-                    const scalar_t alpha = (denom > 0.0)
-                                               ? std::clamp((t_now - tTraj[idx_lo]) / denom, 0.0, 1.0)
-                                               : 0.0;
-
-                    if (idx_lo < xTraj.size() && idx_hi < xTraj.size())
-                    {
-                        const vector_t& x_lo = xTraj[idx_lo];
-                        const vector_t& x_hi = xTraj[idx_hi];
-                        if (x_lo.size() == optimized_state_.size() &&
-                            x_hi.size() == optimized_state_.size())
-                        {
-                            optimized_state_ = (1.0 - alpha) * x_lo + alpha * x_hi;
-                            refined_active = true;
-                        }
-                    }
-
-                    // Inputs may be one shorter than states (collocation last
-                    // node has no input). Clamp idx_hi to input array.
-                    if (!uTraj.empty())
-                    {
-                        size_t u_lo = idx_lo;
-                        size_t u_hi = idx_hi;
-                        if (u_hi >= uTraj.size()) u_hi = uTraj.size() - 1;
-                        if (u_lo > u_hi) u_lo = u_hi;
-                        const vector_t& u_lo_v = uTraj[u_lo];
-                        const vector_t& u_hi_v = uTraj[u_hi];
-                        if (u_lo_v.size() == optimized_input_.size() &&
-                            u_hi_v.size() == optimized_input_.size())
-                        {
-                            optimized_input_ = (1.0 - alpha) * u_lo_v + alpha * u_hi_v;
-                            refined_active = true;
-                        }
-                    }
-                }
-            }
-        }
-
-        // Low-frequency status log (~once per 0.5 s) — confirms whether the
-        // controller tick is currently tracking the refined plan or raw MPC.
-        {
-            const double t_now = ctrl_component_->observation_.time;
-            if (t_now - last_refined_log_time_ > 0.5)
-            {
-                last_refined_log_time_ = t_now;
-                RCLCPP_INFO(node_->get_logger(),
-                            "[robust_refine] override=%s (t=%.3f)",
-                            refined_active ? "active" : "inactive", t_now);
-            }
-        }
 
         // Whole body control
         ctrl_component_->observation_.input = optimized_input_;
@@ -183,14 +94,14 @@ namespace ocs2::legged_robot
                                   period.seconds());
         wbc_timer_.endTimer();
 
-        // Stage 8 — per-tick CSV log (only when tick_log_ is open).
-        // Layout: t,refined_active,opt_state[0..23],opt_input[0..23],meas_rbd[0..23]
+        // Per-tick CSV log (only when tick_log_ is open).
+        // Layout: t,opt_state[0..23],opt_input[0..23],meas_rbd[0..23],planned_mode
         // measured_rbd_state has shape: [theta_zyx(3), r_b(3), q_j(12), w_b(3), r_b_dot(3), q_j_dot(12)] = 36
         if (tick_log_.is_open())
         {
             if (!tick_log_header_written_)
             {
-                tick_log_ << "t,refined_active";
+                tick_log_ << "t";
                 for (int i = 0; i < 24; ++i) tick_log_ << ",opt_x" << i;
                 for (int i = 0; i < 24; ++i) tick_log_ << ",opt_u" << i;
                 for (int i = 0;
@@ -199,8 +110,7 @@ namespace ocs2::legged_robot
                 tick_log_ << ",planned_mode\n";
                 tick_log_header_written_ = true;
             }
-            tick_log_ << ctrl_component_->observation_.time
-                      << "," << (refined_active ? 1 : 0);
+            tick_log_ << ctrl_component_->observation_.time;
             for (int i = 0; i < optimized_state_.size(); ++i)
                 tick_log_ << "," << optimized_state_(i);
             for (int i = 0; i < optimized_input_.size(); ++i)

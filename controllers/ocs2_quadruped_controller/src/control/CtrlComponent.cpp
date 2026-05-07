@@ -47,27 +47,6 @@ namespace ocs2::legged_robot
             node_->declare_parameter("enable_perceptive_body_collision_constraint", enable_perceptive_body_collision_constraint_);
         if (!node_->has_parameter("perceptive_foot_placement_boundary_margin"))
             node_->declare_parameter("perceptive_foot_placement_boundary_margin", perceptive_foot_placement_boundary_margin_);
-        if (!node_->has_parameter("ocs2_dump_dir"))
-            node_->declare_parameter<std::string>("ocs2_dump_dir", "");
-        if (!node_->has_parameter("ocs2_dump_max_cycles"))
-            node_->declare_parameter<int>("ocs2_dump_max_cycles", 0);
-        if (!node_->has_parameter("ocs2_dump_min_interval_sec"))
-            node_->declare_parameter<double>("ocs2_dump_min_interval_sec", 0.01);
-        // Stage 8 — synchronous robust_refine swap path.
-        if (!node_->has_parameter("enable_refiner_swap"))
-            node_->declare_parameter<bool>("enable_refiner_swap", false);
-        if (!node_->has_parameter("refined_dir"))
-            node_->declare_parameter<std::string>("refined_dir", "/dev/shm/robust_refine/out");
-        if (!node_->has_parameter("refined_timeout_sec"))
-            node_->declare_parameter<double>("refined_timeout_sec", 0.5);
-        // Stage 9 — one-shot OCP mode.
-        if (!node_->has_parameter("mpc_one_shot"))
-            node_->declare_parameter<bool>("mpc_one_shot", false);
-        if (!node_->has_parameter("mpc_one_shot_solves"))
-            node_->declare_parameter<int>("mpc_one_shot_solves", 10);
-        mpc_one_shot_ = node_->get_parameter("mpc_one_shot").as_bool();
-        mpc_one_shot_solves_ = node_->get_parameter("mpc_one_shot_solves").as_int();
-
         robot_pkg_ = node_->get_parameter("robot_pkg").as_string();
         joint_names_ = node_->get_parameter("joints").as_string_array();
         feet_names_ = node_->get_parameter("feet").as_string_array();
@@ -118,64 +97,6 @@ namespace ocs2::legged_robot
             static_cast<long>(legged_interface_->getCentroidalModelInfo().inputDim));
         observation_.mode = STANCE;
 
-        // Stage 7: optional MPC PrimalSolution dump for robust_refine
-        const std::string dump_dir = node_->get_parameter("ocs2_dump_dir").as_string();
-        const int dump_max_cycles = node_->get_parameter("ocs2_dump_max_cycles").as_int();
-        const double dump_min_interval = node_->get_parameter("ocs2_dump_min_interval_sec").as_double();
-
-        // Stage 8: synchronous robust_refine swap path
-        const bool enable_refiner_swap = node_->get_parameter("enable_refiner_swap").as_bool();
-        const std::string refined_dir = node_->get_parameter("refined_dir").as_string();
-        const double refined_timeout_sec = node_->get_parameter("refined_timeout_sec").as_double();
-
-        if (enable_refiner_swap)
-        {
-            // The recorder feeds the daemon's input pipe; it MUST be always-on,
-            // unbounded, and produce one file per MPC solve.
-            const std::string sync_in_dir = "/dev/shm/robust_refine/in";
-            mpc_dump_recorder_ = std::make_unique<MpcDumpRecorder>(
-                sync_in_dir,
-                /*maxCycles=*/0,         // 0 means infinite
-                /*minIntervalSec=*/0.0); // dump every solve
-            if (mpc_dump_recorder_->isEnabled())
-            {
-                RCLCPP_INFO(node_->get_logger(),
-                            "[MpcDumpRecorder] Sync-IPC mode. dir='%s' (infinite, no throttle).",
-                            sync_in_dir.c_str());
-            }
-            else
-            {
-                RCLCPP_WARN(node_->get_logger(),
-                            "[MpcDumpRecorder] Failed to create '%s' — sync IPC disabled.",
-                            sync_in_dir.c_str());
-                mpc_dump_recorder_.reset();
-            }
-
-            refined_policy_reader_ = std::make_unique<RefinedPolicyReader>(
-                refined_dir, refined_timeout_sec, /*blocking=*/true);
-            RCLCPP_INFO(node_->get_logger(),
-                        "[RefinedPolicyReader] Enabled. dir='%s' timeout=%.3fs",
-                        refined_dir.c_str(), refined_timeout_sec);
-        }
-        else if (!dump_dir.empty() && dump_max_cycles > 0)
-        {
-            // Legacy Stage 7 path (offline dump only, no IPC wait).
-            mpc_dump_recorder_ = std::make_unique<MpcDumpRecorder>(
-                dump_dir, static_cast<size_t>(dump_max_cycles), dump_min_interval);
-            if (mpc_dump_recorder_->isEnabled())
-            {
-                RCLCPP_INFO(node_->get_logger(),
-                            "[MpcDumpRecorder] Enabled. dir='%s' max_cycles=%d interval=%.3fs",
-                            dump_dir.c_str(), dump_max_cycles, dump_min_interval);
-            }
-            else
-            {
-                RCLCPP_WARN(node_->get_logger(),
-                            "[MpcDumpRecorder] Failed to create directory '%s' — disabled.",
-                            dump_dir.c_str());
-                mpc_dump_recorder_.reset();
-            }
-        }
     }
 
     nav_msgs::msg::Path CtrlComponent::pathFromBasePositions(
@@ -321,84 +242,18 @@ namespace ocs2::legged_robot
         {
             mpc_mrt_interface_->setCurrentObservation(observation_);
 
-            if (mpc_one_shot_)
+            const TargetTrajectories target_trajectories({observation_.time},
+                                                         {observation_.state},
+                                                         {observation_.input});
+
+            mpc_mrt_interface_->getReferenceManager().setTargetTrajectories(target_trajectories);
+            RCLCPP_INFO(node_->get_logger(), "Waiting for the initial policy ...");
+            while (!mpc_mrt_interface_->initialPolicyReceived())
             {
-                // Stage 9 — full-horizon 1-shot OCP.
-                // Do NOT override the reference manager with a stationary single-point
-                // target. TargetManager has already populated forward-tracking
-                // references from the live cmd_vel (set by the scenario before
-                // OCS2 entry). We just run the solver enough SQP iterations to
-                // converge from cold start, then dump once.
-                //
-                // GaitManager::preSolverRun normally inserts a newly-selected
-                // gait template at finalTime (so it activates AFTER the current
-                // horizon), which is harmless in MPC mode but disastrous here
-                // because we never re-solve. Prime the gait schedule across
-                // [initTime, finalTime] BEFORE the bootstrap loop so the OCP
-                // optimizes over the actual walking gait instead of all-stance.
-                if (gait_manager_ptr_)
-                {
-                    const scalar_t initTime = observation_.time;
-                    const scalar_t finalTime =
-                        initTime + legged_interface_->mpcSettings().timeHorizon_;
-                    gait_manager_ptr_->primeForOneShot(initTime, finalTime);
-                }
-
-                RCLCPP_INFO(node_->get_logger(),
-                            "[mpc_one_shot] Solving full-horizon OCP (%d SQP iters)...",
-                            mpc_one_shot_solves_);
-                rclcpp::WallRate rate(legged_interface_->mpcSettings().mrtDesiredFrequency_);
-                const auto wall_t0 = std::chrono::steady_clock::now();
-                for (int i = 0; i < mpc_one_shot_solves_; ++i)
-                {
-                    mpc_mrt_interface_->advanceMpc();
-                    rate.sleep();
-                }
-                const auto wall_t1 = std::chrono::steady_clock::now();
-                const double solve_ms =
-                    std::chrono::duration<double, std::milli>(wall_t1 - wall_t0).count();
-                RCLCPP_INFO(node_->get_logger(),
-                            "[mpc_one_shot] OCP solved (%d iters in %.1f ms).",
-                            mpc_one_shot_solves_, solve_ms);
-
-                if (mpc_dump_recorder_ && !mpc_dump_recorder_->isFinished())
-                {
-                    SystemObservation mpcInitObs = observation_;
-                    PrimalSolution dumpSolution;
-                    const scalar_t startTime = mpcInitObs.time;
-                    const scalar_t finalTime =
-                        (mpc_->settings().solutionTimeWindow_ < 0)
-                            ? mpc_->getSolverPtr()->getFinalTime()
-                            : startTime + mpc_->settings().solutionTimeWindow_;
-                    mpc_->getSolverPtr()->getPrimalSolution(finalTime, &dumpSolution);
-                    const bool wrote =
-                        mpc_dump_recorder_->record(mpcInitObs, dumpSolution);
-                    RCLCPP_INFO(node_->get_logger(),
-                                "[mpc_one_shot] One-shot policy dump %s "
-                                "(t0=%.3f, tf=%.3f, N=%zu).",
-                                wrote ? "succeeded" : "FAILED",
-                                startTime, finalTime,
-                                dumpSolution.timeTrajectory_.size());
-                }
-
-                mpc_one_shot_done_.store(true);
+                mpc_mrt_interface_->advanceMpc();
+                rclcpp::WallRate(legged_interface_->mpcSettings().mrtDesiredFrequency_).sleep();
             }
-            else
-            {
-                // Original receding-horizon bootstrap.
-                const TargetTrajectories target_trajectories({observation_.time},
-                                                             {observation_.state},
-                                                             {observation_.input});
-
-                mpc_mrt_interface_->getReferenceManager().setTargetTrajectories(target_trajectories);
-                RCLCPP_INFO(node_->get_logger(), "Waiting for the initial policy ...");
-                while (!mpc_mrt_interface_->initialPolicyReceived())
-                {
-                    mpc_mrt_interface_->advanceMpc();
-                    rclcpp::WallRate(legged_interface_->mpcSettings().mrtDesiredFrequency_).sleep();
-                }
-                RCLCPP_INFO(node_->get_logger(), "Initial policy has been received.");
-            }
+            RCLCPP_INFO(node_->get_logger(), "Initial policy has been received.");
 
             mpc_running_ = true;
         }
@@ -497,79 +352,9 @@ namespace ocs2::legged_robot
                         {
                             if (mpc_running_)
                             {
-                                // Stage 9 — in one-shot mode, init() already solved
-                                // and dumped the OCP. Skip all advanceMpc()/dump
-                                // calls here so the cached policy never gets
-                                // overwritten. Refined-policy polling still runs
-                                // below so an offline-refined plan can replace it.
-                                const bool skip_solve =
-                                    mpc_one_shot_ && mpc_one_shot_done_.load();
-
-                                if (!skip_solve)
-                                {
-                                    mpc_timer_.startTimer();
-                                    mpc_mrt_interface_->advanceMpc();
-                                    mpc_timer_.endTimer();
-
-                                    // Stage 8 — synchronous robust_refine IPC.
-                                    // After every MPC solve, dump the just-solved
-                                    // PrimalSolution to /dev/shm/robust_refine/in.
-                                    if (mpc_dump_recorder_ &&
-                                        !mpc_dump_recorder_->isFinished())
-                                    {
-                                        SystemObservation mpcInitObs;
-                                        {
-                                            mpcInitObs = observation_;
-                                        }
-
-                                        PrimalSolution dumpSolution;
-                                        const scalar_t startTime = mpcInitObs.time;
-                                        const scalar_t finalTime =
-                                            (mpc_->settings().solutionTimeWindow_ < 0)
-                                                ? mpc_->getSolverPtr()->getFinalTime()
-                                                : startTime + mpc_->settings().solutionTimeWindow_;
-                                        mpc_->getSolverPtr()->getPrimalSolution(
-                                            finalTime, &dumpSolution);
-
-                                        mpc_dump_recorder_->record(mpcInitObs, dumpSolution);
-                                    }
-                                }
-
-                                // Stage 8 Option B (async-with-latest): always poll
-                                // for the freshest refined plan. In MPC mode this
-                                // runs after every solve; in one-shot mode this is
-                                // the only thing the thread does after init().
-                                if (refined_policy_reader_)
-                                {
-                                    size_t loadedSeq = std::numeric_limits<size_t>::max();
-                                    scalar_array_t tTraj;
-                                    vector_array_t xTraj;
-                                    vector_array_t uTraj;
-                                    const bool ok = refined_policy_reader_->loadLatest(
-                                        loadedSeq, tTraj, xTraj, uTraj);
-                                    if (ok && !tTraj.empty())
-                                    {
-                                        const size_t prevSeq =
-                                            refined_seq_.load(std::memory_order_acquire);
-                                        const bool isNewer =
-                                            (prevSeq == std::numeric_limits<size_t>::max()) ||
-                                            (loadedSeq > prevSeq);
-                                        if (isNewer)
-                                        {
-                                            std::lock_guard<std::mutex> lk(refined_mtx_);
-                                            refined_init_time_ = tTraj.front();
-                                            refined_time_traj_ = std::move(tTraj);
-                                            refined_state_traj_ = std::move(xTraj);
-                                            refined_input_traj_ = std::move(uTraj);
-                                            refined_seq_.store(loadedSeq, std::memory_order_release);
-                                            RCLCPP_DEBUG(node_->get_logger(),
-                                                         "[robust_refine] latest seq=%zu loaded "
-                                                         "(N=%zu)",
-                                                         loadedSeq,
-                                                         refined_time_traj_.size());
-                                        }
-                                    }
-                                }
+                                mpc_timer_.startTimer();
+                                mpc_mrt_interface_->advanceMpc();
+                                mpc_timer_.endTimer();
                             }
                         },
                         legged_interface_->mpcSettings().mpcDesiredFrequency_);

@@ -58,32 +58,4 @@ namespace ocs2::legged_robot
                     gait_name_list_[command].c_str());
         gait_updated_ = true;
     }
-
-    void GaitManager::primeForOneShot(const scalar_t initTime, const scalar_t finalTime)
-    {
-        // Force the latest commanded gait template into target_gait_, even if
-        // the command hasn't changed since last_command_. This bypasses the
-        // early-return guards in getTargetGait() that exist to avoid
-        // re-inserting on every preSolverRun.
-        if (ctrl_interfaces_.control_inputs_.command > 0)
-        {
-            const int command = std::max(0, ctrl_interfaces_.control_inputs_.command - 2);
-            if (command < static_cast<int>(gait_list_.size()))
-            {
-                target_gait_ = gait_list_[command];
-                last_command_ = ctrl_interfaces_.control_inputs_.command;
-                RCLCPP_INFO(rclcpp::get_logger("GaitManager"),
-                            "[primeForOneShot] tiling '%s' over [%.3f, %.3f]",
-                            gait_name_list_[command].c_str(), initTime, finalTime);
-            }
-        }
-
-        // Tile the template directly across [initTime, finalTime] so the
-        // upcoming solve sees a real walking gait inside its horizon.
-        // (Normal preSolverRun would tile starting at finalTime instead.)
-        gait_schedule_ptr_->insertModeSequenceTemplate(target_gait_, initTime, finalTime);
-        // Mark as not-needing-update so preSolverRun on the first advanceMpc
-        // does not re-tile starting at finalTime and clobber what we just set.
-        gait_updated_ = false;
-    }
 }

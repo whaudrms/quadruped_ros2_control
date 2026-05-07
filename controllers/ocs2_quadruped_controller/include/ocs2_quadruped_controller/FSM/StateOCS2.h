@@ -56,15 +56,10 @@ namespace ocs2::legged_robot
 
         vector_t optimized_state_, optimized_input_;
 
-        // Stage 8 — throttle for the per-cycle "refined override active/inactive"
-        // status log; uses observation_.time (controller-driven monotonic clock).
-        double last_refined_log_time_ = -1.0;
-
-        // Stage 8 analysis — per-tick CSV log of (t, refined_active,
-        // optimized_state[24], optimized_input[24], measured_rbd_state[24]).
-        // Enabled by launch parameter `tick_log_path`; if empty, no log is
-        // written. Used by post-trial analysis to compute tracking error vs
-        // raw or refined MPC plan.
+        // Per-tick CSV log of (t, optimized_state[24], optimized_input[24],
+        // measured_rbd_state[36], planned_mode). Enabled by launch parameter
+        // `tick_log_path`; if empty, no log is written. Used by post-trial
+        // analysis to compute tracking error and overlay robust_phase markers.
         std::ofstream tick_log_;
         std::string tick_log_path_;
         bool tick_log_header_written_ = false;

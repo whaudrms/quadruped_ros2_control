@@ -26,18 +26,6 @@ namespace ocs2::legged_robot
 
         void init(const std::string& gait_file);
 
-        // Stage 9 — for one-shot OCP mode. The normal preSolverRun() inserts a
-        // newly-selected gait template starting AT finalTime (i.e., AFTER the
-        // current solve's horizon). MPC mode tolerates this because the next
-        // tick's solve picks up the new gait at its initTime; one-shot mode
-        // never re-solves, so the horizon stays stuck on the OLD gait
-        // (typically all-STANCE).
-        // This helper forces the latest commanded gait to tile across
-        // [initTime, finalTime] BEFORE the bootstrap solve runs, so the OCP
-        // optimizes over a real walking gait. Caller must invoke this just
-        // before advanceMpc() in init().
-        void primeForOneShot(scalar_t initTime, scalar_t finalTime);
-
     private:
         void getTargetGait();
 

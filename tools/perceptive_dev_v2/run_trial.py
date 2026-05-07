@@ -40,24 +40,15 @@ READINESS_NODES = (
 # Default workspace env script (FastDDS + ROS2 humble + our install tree).
 DEFAULT_WS_SETUP = Path.home() / "GO2_ws" / "setup_quadruped.sh"
 
-# Refiner daemon defaults (Stage 8).
-REFINER_PYTHON = Path("/home/cora/miniforge3/envs/wb-mpc/bin/python")
-REFINER_DAEMON_SCRIPT = Path("/home/cora/GO2_ws/contact_timing_uncertainty/robust_refine/refiner_daemon.py")
-
 # Process-name patterns that should never survive past the end of a trial.
-# Used for both pre-run defensive cleanup and post-run nuke.
-# Stage 8 fix: rviz2/robot_state_publisher/spawner were missing — those
-# processes survived run_trial's stop_process pgid-based cleanup (likely
-# because ros2 launch double-forks them outside the launch's process group).
-# Adding them here makes the post-run nuke + pre-run defensive sweep catch
-# every leftover from the previous trial.
+# Used for both pre-run defensive cleanup and post-run nuke. The list catches
+# processes that ros2 launch double-forks outside its own pgid.
 LINGERING_PROCESS_PATTERNS = (
     "unitree_mujoco",
     "ros2_control_node",
     "ocs2_quadruped_controller",
     "ros2 launch ocs2",
     "planar_terrain",
-    "refiner_daemon.py",
     "rviz2",
     "robot_state_publisher",
     "controller_manager",
@@ -354,41 +345,9 @@ def main():
     parser.add_argument("--mujoco-build-dir", default=None)
     parser.add_argument("--mujoco-extra-args", default=None,
                         help="Extra flags for unitree_mujoco (default: '-k 0 -z 0.40' for basic_step, else empty)")
-    parser.add_argument("--ocs2-dump-dir", default="",
-                        help="Stage 7: if non-empty, dump OCS2 PrimalSolution CSVs into this directory")
-    parser.add_argument("--ocs2-dump-max-cycles", type=int, default=0,
-                        help="Stage 7: max MPC cycles to dump (0 = disabled)")
-    parser.add_argument("--ocs2-dump-min-interval-sec", type=float, default=0.05,
-                        help="Stage 7: min solver-init-time delta between dumps (s)")
     parser.add_argument("--terrain-z-offset", type=float, default=0.0,
                         help="Perception noise: shift all non-floor box top z by this offset "
-                             "(MuJoCo physics unchanged). Used for robust_refine evaluation.")
-    parser.add_argument("--enable-refiner-swap", action="store_true",
-                        help="Stage 8: enable synchronous robust_refine IPC + WBC override.")
-    parser.add_argument("--enable-refiner", action="store_true",
-                        help="Stage 8: spawn the robust_refine Python daemon as a sidecar "
-                             "and pass enable_refiner_swap:=true to the launch. Combines the "
-                             "common case of '--enable-refiner-swap + start the daemon for me'.")
-    parser.add_argument("--refiner-python", default=str(REFINER_PYTHON),
-                        help=f"Python interpreter to run refiner_daemon.py (default: {REFINER_PYTHON})")
-    parser.add_argument("--refiner-daemon-script", default=str(REFINER_DAEMON_SCRIPT),
-                        help=f"Path to refiner_daemon.py (default: {REFINER_DAEMON_SCRIPT})")
-    parser.add_argument("--refined-dir", default=None,
-                        help="Stage 8: directory polled for refined plans "
-                             "(default /dev/shm/robust_refine/out).")
-    parser.add_argument("--refined-timeout-sec", type=float, default=None,
-                        help="Stage 8: per-cycle timeout while waiting for the refined plan (s).")
-    parser.add_argument("--no-wipe-refine-out", action="store_true",
-                        help="Stage 8 offline-replay: do NOT wipe /dev/shm/robust_refine/out/ "
-                             "before the run. Used when refined plans are pre-placed manually "
-                             "(no live daemon).")
-    parser.add_argument("--mpc-one-shot", action="store_true",
-                        help="Stage 9: solve a single full-horizon OCP at OCS2 entry then "
-                             "stop replanning. WBC tracks the cached policy for the rest of "
-                             "the trial.")
-    parser.add_argument("--mpc-one-shot-solves", type=int, default=10,
-                        help="Stage 9: number of advanceMpc() iterations to run during the "
-                             "one-shot bootstrap (each is one SQP iteration; warm-starts).")
+                             "(MuJoCo physics unchanged).")
     args = parser.parse_args()
 
     ws_setup = detect_ws_setup(args.ws_setup)
@@ -434,26 +393,9 @@ def main():
         f"./unitree_mujoco -r go2 -s {scene_path} {mujoco_extra}"
     ).strip()
     extra_args = []
-    if args.ocs2_dump_dir:
-        extra_args.append(f"ocs2_dump_dir:={args.ocs2_dump_dir}")
-    if args.ocs2_dump_max_cycles > 0:
-        extra_args.append(f"ocs2_dump_max_cycles:={args.ocs2_dump_max_cycles}")
-        extra_args.append(f"ocs2_dump_min_interval_sec:={args.ocs2_dump_min_interval_sec}")
     if abs(args.terrain_z_offset) > 0.0:
         extra_args.append(f"terrain_z_offset:={args.terrain_z_offset}")
-    # --enable-refiner is the convenience flag: it both enables the launch arg
-    # and spawns the daemon below. --enable-refiner-swap remains for callers
-    # that manage the daemon out-of-band.
-    if args.enable_refiner_swap or args.enable_refiner:
-        extra_args.append("enable_refiner_swap:=true")
-    if args.refined_dir is not None:
-        extra_args.append(f"refined_dir:={args.refined_dir}")
-    if args.refined_timeout_sec is not None:
-        extra_args.append(f"refined_timeout_sec:={args.refined_timeout_sec}")
-    if args.mpc_one_shot:
-        extra_args.append("mpc_one_shot:=true")
-        extra_args.append(f"mpc_one_shot_solves:={args.mpc_one_shot_solves}")
-    # Stage 8 analysis — per-tick CSV log saved into the run_dir.
+    # Per-tick CSV log saved into the run_dir for offline analysis.
     tick_log_default = str(run_dir / "tick.csv")
     extra_args.append(f"tick_log_path:={tick_log_default}")
 
@@ -479,51 +421,9 @@ def main():
     # behind. Cheap and idempotent.
     kill_lingering_processes(quiet=True)
 
-    # Wipe Stage 8 IPC dirs so stale files from a previous run can't trigger
-    # phantom "override=active" log lines or be re-read by the new daemon.
-    # Stage 8 offline-replay variant: --no-wipe-refine-out keeps pre-placed
-    # refined plans in /dev/shm/.../out/ for the offline 1-shot comparison.
-    if args.enable_refiner_swap or args.enable_refiner:
-        wipe_subs = ["in"]
-        if not args.no_wipe_refine_out:
-            wipe_subs.append("out")
-        for sub in wipe_subs:
-            d = Path("/dev/shm/robust_refine") / sub
-            if d.exists():
-                for f in d.glob("*"):
-                    try:
-                        f.unlink()
-                    except OSError:
-                        pass
-
     mujoco = None
     controller = None
-    refiner = None
     try:
-        if args.enable_refiner:
-            refiner_python = Path(args.refiner_python)
-            refiner_script = Path(args.refiner_daemon_script)
-            if not refiner_python.exists():
-                raise FileNotFoundError(f"refiner python not found: {refiner_python}")
-            if not refiner_script.exists():
-                raise FileNotFoundError(f"refiner_daemon.py not found: {refiner_script}")
-            # The wb-mpc conda env's pinocchio gets shadowed by /opt/ros/humble's
-            # pinocchio if PYTHONPATH/AMENT_PREFIX_PATH/LD_LIBRARY_PATH inherit
-            # from the user's ROS-sourced shell. Strip them so the daemon's
-            # interpreter resolves imports purely against its own site-packages.
-            refiner_cmd = (
-                "unset PYTHONPATH AMENT_PREFIX_PATH AMENT_CURRENT_PREFIX "
-                "ROS_DISTRO ROS_PYTHON_VERSION ROS_VERSION CMAKE_PREFIX_PATH "
-                "ROS_LOCALHOST_ONLY RMW_IMPLEMENTATION CYCLONEDDS_URI "
-                "COLCON_PREFIX_PATH LD_LIBRARY_PATH && "
-                f"cd {refiner_script.parent} && "
-                f"{refiner_python} {refiner_script.name}"
-            )
-            refiner = launch_process(refiner_cmd, run_dir / "refiner_daemon.log")
-            # Give the daemon a moment to bind its IPC channel before the
-            # controller starts polling for refined plans.
-            time.sleep(1.0)
-
         mujoco = launch_process(mujoco_cmd, run_dir / "mujoco.log")
         time.sleep(float(scenario_cfg.get("mujoco_startup_wait_sec", 2.5)))
         controller = launch_process(controller_cmd, run_dir / "controller.log")
@@ -556,8 +456,6 @@ def main():
             stop_process(controller, label="controller")
         if mujoco is not None:
             stop_process(mujoco, label="mujoco")
-        if refiner is not None:
-            stop_process(refiner, label="refiner")
         # Belt-and-suspenders: regardless of whether the per-process stop
         # succeeded, sweep the process table for any leftover noise. This is
         # what catches the zombie-pgid / 37-minute-hang case.
