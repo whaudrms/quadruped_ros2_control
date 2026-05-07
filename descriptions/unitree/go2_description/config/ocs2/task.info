@@ -197,7 +197,8 @@ robustPhase
   w_v                      1.0     ; soft penalty weight on Σ ġ² running cost
   approach_barrier_mu      0.01    ; RelaxedBarrierPenalty mu for approach inequality
   approach_barrier_delta   0.001   ; RelaxedBarrierPenalty delta for approach inequality
-  terrain_z_M1             0.0     ; M1'' flat-ground terrain z [m] (the actual ground; foot offset handled separately)
+  terrain_source           convex_region  ; "flat" (M1'') or "convex_region" (M2 — per-leg stance projection)
+  terrain_z_M1             0.0     ; M1'' flat-ground fallback z [m] (used by "flat" mode; also fallback if projection.regionPtr is null)
   foot_frame_offset        0.06    ; URDF FL_foot frame z above contact along n [m] (ankle frame, contact ~6 cm below)
   verbose_log              true    ; emit per-cycle [robust_phase] std::cerr (off for hardware/RT)
 }

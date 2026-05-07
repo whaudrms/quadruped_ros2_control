@@ -44,6 +44,14 @@ namespace ocs2::legged_robot
             bool      enabled = false;
             int       P = 5;            // window length in nodes
             scalar_t  d = 0.05;         // uncertainty half-width [m]
+            // Terrain plane source for the per-leg robust window:
+            //   "flat"          M1'' — n = e_z, p_plane.z = terrain_z_M1
+            //   "convex_region" M2   — n = e_z (for now), p_plane = stance-side
+            //                          projection from ConvexRegionSelector::getProjections(leg)
+            //                          at the stance phase index (NOT getProjection(t_b),
+            //                          which returns the swing-side at exact event boundaries).
+            // Falls back to "flat" for any leg whose projection is null in convex_region mode.
+            std::string terrain_source = "flat";
             scalar_t  terrain_z_M1 = 0.0;       // M1'' flat-ground guard reference
             scalar_t  foot_frame_offset = 0.0;  // FK foot-frame z above contact point along n
             scalar_t  dt_mpc = 0.015;           // SQP shooting interval [s]

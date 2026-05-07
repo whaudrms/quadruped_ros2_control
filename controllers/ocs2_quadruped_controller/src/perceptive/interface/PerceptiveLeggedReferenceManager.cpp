@@ -562,12 +562,31 @@ namespace ocs2::legged_robot
             w.k_a_phase_index = swingPhase;
             w.k_b_phase_index = stancePhase;
 
-            // For M1'' (flat ground): p_plane.z = terrain_z_M1, xy irrelevant since n = e_z.
-            // For M2 we will use the stance-side projection here:
-            //   const auto proj = convexRegionSelectorPtr_->getProjection(leg, t_b + 1e-6);
-            //   if (proj.regionPtr != nullptr) { w.p_plane = proj.positionInWorld; }
+            // M1'' default: flat-ground guard plane.
             w.p_plane = vector3_t::Zero();
             w.p_plane.z() = robustPhaseSettings_.terrain_z_M1;
+
+            // M2 path: pull stance-side terrain projection from ConvexRegionSelector.
+            // Use the phase-index path (NOT getProjection(leg, t_b + eps)) so we share
+            // exactly the same projection the existing perceptive touchdown-height code uses
+            // (PerceptiveLeggedReferenceManager.cpp:443-451 reads projections[i+1].positionInWorld.z()
+            // at the swing→stance boundary, where i+1 == stancePhase).
+            if (robustPhaseSettings_.terrain_source == "convex_region")
+            {
+                const auto perLegProjections = convexRegionSelectorPtr_->getProjections(leg);
+                if (stancePhase < perLegProjections.size())
+                {
+                    const auto& proj = perLegProjections[stancePhase];
+                    if (proj.regionPtr != nullptr)
+                    {
+                        w.p_plane = proj.positionInWorld;
+                        // n stays e_z for now (horizontal step surfaces). M2.x will extract
+                        // the plane normal from proj.regionPtr->transformPlaneToWorld for
+                        // inclined terrain.
+                    }
+                    // else: leave the flat fallback (terrain_z_M1) intact for this leg.
+                }
+            }
         }
 
         {
@@ -646,6 +665,7 @@ namespace ocs2::legged_robot
         loadData::loadPtreeValue(pt, s.enabled,           prefix + "enabled",           verbose);
         loadData::loadPtreeValue(pt, s.P,                 prefix + "P",                 verbose);
         loadData::loadPtreeValue(pt, s.d,                 prefix + "d",                 verbose);
+        loadData::loadPtreeValue(pt, s.terrain_source,    prefix + "terrain_source",    verbose);
         loadData::loadPtreeValue(pt, s.terrain_z_M1,      prefix + "terrain_z_M1",      verbose);
         loadData::loadPtreeValue(pt, s.foot_frame_offset, prefix + "foot_frame_offset", verbose);
         loadData::loadPtreeValue(pt, s.verbose_log,       prefix + "verbose_log",       verbose);
