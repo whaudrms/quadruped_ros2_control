@@ -121,23 +121,6 @@ Trial output (`result.json`, `tick.csv`, `controller.log`, `robust_phase_foot_z.
 console residual table) lives at:
 `tools/perceptive_dev_v2/results/20260507_210019_scene_perceptive_dev_v2_robust_M1pp_postreview2/`.
 
-## Review fixes applied post-M1''
-
-A peer review on the initial M1'' commit raised five issues. F1, F2, F4, F5 are fixed in
-the follow-up commit before M2 begins; F3 was a wording correction that landed in this
-note alongside trial 4.
-
-| # | severity | issue | fix |
-|---|---|---|---|
-| F1 | high | M2 would put the foot frame `~6 cm + d` below the contact terrain because `EndEffectorKinematics::getPosition` returns the URDF foot frame, not the contact point | Added `foot_frame_offset` to `RobustPhaseSettings` / `RobustWindowData`. `RobustGuardBoundaryConstraint` subtracts `foot_offset` from `g(x)` (Jacobian unchanged). For M1'' set `terrain_z_M1 = 0.0` and `foot_frame_offset = 0.06`. M2's `ConvexRegionSelector` projection now plugs into `p_plane` directly without further offset bookkeeping. |
-| F2 | high | `computeRobustWindows` could miss the next touchdown if the leg was currently in stance: it grabbed the first `false→true` transition and `continue`d the leg if `t_b ≤ initTime`, instead of scanning further | Loop now keeps scanning until it finds a `false→true` transition with `eventTimes[idx] > initTime`. Past transitions (leg already in stance) are skipped, not the entire leg. |
-| F3 | medium | Note overstated trial 3's verification — `t_a` residual was +0.06 m; the start boundary did not actually reach `+d` | Verification table now lists `t_a` and `t_b` residuals separately and the conclusion reads "terminal boundary pull confirmed; start boundary under-tracks within tolerance" instead of "boundary nodes correct". |
-| F4 | medium | `getRobustWindow` returned a reference into mutex-protected internal storage past the lock — structurally racy even if the MPC thread happens to serialise calls | Base virtual signature changed to return `RobustWindowData` by value. The override copies under the lock and releases. All call sites switched from `const auto&` to `const RobustWindowData` capture. |
-| F5 | low | `[robust_phase]` `std::cerr` per cycle × 4 legs is fine in sim but not RT-safe on hardware | Wrapped in `if (robustPhaseSettings_.verbose_log)`. Default `false`; enabled in current `task.info` for offline plot verification. Stage 8/9's `[robust_refine] override=...` lines remain (will be removed in the follow-up cleanup PR). |
-
-The post-fix smoke trial (trial 4 above) confirms numerical equivalence with the
-pre-fix trial 3 baseline.
-
 ## Out of scope (deferred)
 
 - **M2** — replace flat `terrain_z_M1` with per-leg `(n, p_plane)` from
@@ -152,3 +135,79 @@ pre-fix trial 3 baseline.
   `[robust_refine] override=…` log lines and CSV-IPC plumbing remain in place; they emit
   `override=inactive` on every cycle (no refined policy file present) and are harmless.
   Removal will land in a separate cleanup PR after M2.
+
+---
+
+## Appendix — Peer review findings + applied fixes (pre-M2)
+
+After the initial M1'' commit (`0fe5079`) a peer review raised five issues. Four were
+fixed before M2 begins; the fifth was a wording correction that landed in the
+verification section of this note alongside trial 4. All fixes ship in commit
+`508dbed`.
+
+### Original review (verbatim)
+
+> 엄밀히 보면 보고서는 "방향과 구현 대조"는 꽤 정확하지만, 그대로 M2로 넘어가면 안 되는 핵심 문제가 몇 개 있습니다.
+>
+> **주요 Findings**
+>
+> 1. **M2 plane 정의가 아직 틀릴 가능성이 큼.**
+>    M1에서 `terrain_z_M1=0.06`으로 맞춘 이유는 `p_foot`가 실제 접촉점이 아니라 foot frame이기
+>    때문입니다. 그런데 보고서는 M2에서 `ConvexRegionSelector`의 stance projection을 그대로
+>    `p_plane`으로 쓰겠다고 합니다. 그러면 M2에서는 foot frame을 terrain plane 아래 `d`만큼
+>    넣게 되어, 실제 접촉점 기준으로는 약 `6 cm + d`만큼 과도하게 들어갑니다.
+>    수정 방향: `g`를 foot frame이 아니라 contact point로 정의하거나, terrain plane을
+>    foot-frame offset만큼 normal 방향으로 올린 guard plane으로 써야 합니다.
+>
+> 2. **`computeRobustWindows()`가 "first upcoming touchdown"을 놓칠 수 있음.**
+>    현재 코드는 현재 phase부터 처음 만나는 `false → true` transition을 잡고, 그 touchdown
+>    time이 `initTime`보다 과거면 leg 전체를 `continue`합니다. 즉 어떤 leg가 "방금 stance로
+>    들어온 phase"에 있으면, 그 leg의 다음 touchdown이 horizon 안에 있어도 못 잡을 수 있습니다.
+>    loop에서 `t_b > initTime && t_b ≤ finalTime`인 transition을 찾을 때까지 계속 스캔해야
+>    합니다.
+>
+> 3. **M1 검증 결론이 약간 과장되어 있음.**
+>    보고서 자체가 trial 3에서 `t_a residual = +0.06 m`라고 적고 있습니다. 그러면
+>    `g(t_a) = +d`는 제대로 달성되지 않았고, 실제 robust band 진입은 `t_a`보다 늦습니다.
+>    "boundary nodes correct"라고 말하기보다는 "terminal boundary pull은 확인, start
+>    boundary는 under-track"이라고 쓰는 게 맞습니다.
+>
+> 4. **`getRobustWindow()`는 mutex 보호가 불완전함.**
+>    함수가 lock 안에서 내부 `robustWindows_[leg]` reference를 반환하고 lock을 풀어버립니다.
+>    현재 OCS2 평가가 같은 thread 순서로 돈다면 문제 없을 수 있지만, 구조상 안전한 API는
+>    아닙니다. `RobustWindowData`를 value로 반환하는 쪽이 낫습니다.
+>
+> 5. **RT 관점에서 로그는 "harmless"라고 보기 어려움.**
+>    `[robust_phase]`는 MPC cycle마다 leg 4개를 `std::cerr`로 찍습니다. Stage 8/9
+>    `override=inactive` 로그도 계속 남습니다. 시뮬 검증에는 괜찮지만 hardware/RT 전에는
+>    debug flag로 막아야 합니다.
+>
+> **확인된 점**
+>
+> - `NormalVelocity`와 `FootCollision`을 robust window에서 끄는 설계는 실제 코드에 반영되어 있습니다.
+> - `QuadraticPenalty(2*w)`를 써서 실제 cost가 `w*h^2`가 되게 한 것도 맞습니다.
+> - `P=5`, `sqp.dt=0.02`라서 `T_robust = 0.10 s`라는 보고서 설명도 task.info와 일치합니다.
+> - result artifact는 존재하고 trial 3은 `success=true`, `duration_executed=16.0`,
+>   `distance_xy ≈ 0.98 m`, `pitch_rms ≈ 1.44 deg`로 기록되어 있습니다.
+>
+> 정리하면 M1'' 구현은 "in-OCP robust phase plumbing 검증" 단계로는 충분히 의미 있습니다.
+> 다만 아직 robust timing uncertainty가 완전히 검증됐다고 쓰면 안 됩니다. M2 전에 반드시
+> `contact point vs foot frame offset`, `upcoming touchdown scan`, `t_a under-tracking`
+> 이 세 가지는 고쳐야 합니다.
+
+### Applied fixes (commit `508dbed`)
+
+| # | severity | issue (one-liner) | fix |
+|---|---|---|---|
+| F1 | high | M2 would put the foot frame `~6 cm + d` below the contact terrain because `EndEffectorKinematics::getPosition` returns the URDF foot frame, not the contact point. | Added `foot_frame_offset` to `RobustPhaseSettings` and `RobustWindowData`. `RobustGuardBoundaryConstraint::getValue` and `getLinearApproximation` now compute `g(x) = n·(p_foot − p_plane) − foot_frame_offset` — the Jacobian is unchanged because the offset is constant. `task.info` for go2: `terrain_z_M1 = 0.0` (true ground), `foot_frame_offset = 0.06`. M2's `ConvexRegionSelector` projection plugs into `p_plane` directly with no further offset bookkeeping. |
+| F2 | high | `computeRobustWindows` returned no window for any leg currently in stance, because the first `false→true` transition it found had `t_b ≤ initTime` and the loop `continue`d the entire leg instead of scanning further. | Loop now keeps scanning forward until it finds a `false→true` transition with `eventTimes[idx] > initTime`. Past transitions (leg already in stance) are skipped, not the entire leg. |
+| F3 | medium | Note overstated trial 3's verification — the reported `t_a` residual was +0.06 m, so the start boundary `g(t_a) = +d` did not actually hold. | Verification section now lists `t_a` and `t_b` residuals separately. The conclusion reads "terminal boundary pull confirmed; start boundary under-tracks within tolerance" instead of "boundary nodes correct". The soft-vs-hard equality fallback path is cited (`plan.md` sub-decision 1). |
+| F4 | medium | `getRobustWindow` returned a reference into mutex-protected internal storage **past** the lock release — structurally racy even though the MPC thread happens to serialise calls today. | Base virtual signature changed from `const RobustWindowData&` to `RobustWindowData` (return by value). The perceptive override copies under `std::lock_guard` then releases. All call sites in `RobustGuard{Boundary,Approach}Constraint` switched from `const auto&` to `const RobustWindowData` capture. |
+| F5 | low | `[robust_phase]` `std::cerr` per MPC cycle × 4 legs is fine in sim but not RT-safe on hardware. Stage 8/9's `[robust_refine] override=...` lines also still print. | Robust-phase log gated by `if (robustPhaseSettings_.verbose_log)`. Default `false`; the current `task.info` enables it for offline plot verification. The log line gained an `offset=...` field so the plot script can render contact-point-correct targets. Stage 8/9 log removal stays in the planned cleanup PR. |
+
+### Smoke trial (post-fix)
+
+`tools/perceptive_dev_v2/results/20260507_210019_scene_perceptive_dev_v2_robust_M1pp_postreview2/`:
+`success=True`, `dist=0.99 m`, `pitch_rms=1.47°`, `t_b residual=+0.014 m`,
+`t_a residual=+0.058 m` — numerically equivalent to the pre-fix trial 3 baseline,
+confirming F1 (offset semantics) and F2 (scan loop) are non-regressive on flat ground.
