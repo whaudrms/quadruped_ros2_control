@@ -190,7 +190,7 @@ frictionConeSoftConstraint
 ; M1'' = flat-ground sanity check: n = e_z, p_plane.z = terrain_z_M1.
 robustPhase
 {
-  enabled                  true    ; M1'' enabled — verify guard band on flat ground
+  enabled                  true    ; M2 enabled (terrain_source=convex_region drives p_plane)
   P                        5       ; window length in nodes (T_robust = P * sqp.dt)
   d                        0.03    ; uncertainty half-width [m] (M1'' modest)
   w_boundary               1000.0  ; soft penalty weight on boundary equality

@@ -118,34 +118,53 @@ Same soft-penalty trade-off pattern as M1'' trial 4: terminal `t_b` pull strong,
 under-tracking matters in M3 / hardware tests is to promote the boundary to hard
 `equalityConstraintPtr->add` instead of `StateSoftConstraint`.
 
-### Body descent quality (suspected base-ref / WBC issue; needs A/B confirmation)
+### Body descent quality — A/B confirmed (robust phase NOT the cause)
 
 The body z stayed near box1's stance height (`min_z = 0.317`, `start_z = 0.317`,
 `end_z = 0.463`) — the robot does not gracefully transfer body weight onto box2 even
 though the swing legs reach the box2 surface. `pitch_rms` ≈ 5.6° (vs 1.47° on flat in
 M1'' trial 4) reflects the body straddling the step.
 
-The most likely root cause is base-reference + WBC tracking, *not* the robust phase
-itself, but this attribution is provisional and needs an A/B trial to confirm:
+The chatM2review fix #4 left this attribution as "suspected base-ref / WBC issue;
+needs A/B confirmation". The A/B trial has now been run (after the Stage 8/9 cleanup
+commit `2c4b986`):
 
-- The existing perceptive base-reference modification
-  ([`PerceptiveLeggedReferenceManager.cpp:188-294`](../controllers/ocs2_quadruped_controller/src/perceptive/interface/PerceptiveLeggedReferenceManager.cpp#L188-L294))
-  already governs body z descent based on per-leg supports, separately from the swing
-  guard.
-- The same WBC under-tracking pattern is documented in `plan.md` Context #6
-  (splice-point-style discontinuity between OCP plan and WBC tracking under perception
-  uncertainty); prior `--terrain basic_step_short` trials *before* the in-OCP robust
-  phase existed showed similar body-z behaviour.
-- BUT — the robust foot target alters contact timing (`±d` band, `ġ ≤ 0` enforcement),
-  which can perturb stance reaction forces and indirectly degrade WBC tracking. So
-  saying "M2 robust phase had no effect on the body descent gap" overstates what we
-  measured. A direct comparison with `robustPhase.enabled = false` on the same scene
-  / scenario is the only clean way to separate the two contributions, and that A/B
-  has not been run yet.
+| metric                  | M2 (robust ON, `9509863`) | A/B (`robustPhase.enabled=false`) | Δ (off vs on) |
+|---|---|---|---|
+| success / fall          | True / none               | True / none                       | same |
+| dist [m]                | 1.170                     | **1.573**                         | +0.40 m (+34 %) |
+| start_z [m]             | 0.317                     | 0.317                             | identical |
+| **end_z [m]**           | **0.463**                 | **0.459**                         | **−0.004 (≈)** |
+| **min_z [m]**           | **0.317**                 | **0.317**                         | **identical** |
+| pitch_rms [°]           | 5.62                      | 5.78                              | +0.16 (≈) |
+| roll_rms [°]            | 1.21                      | 2.20                              | **+1.00 (worse off)** |
+| base_z_std [m]          | 0.046                     | 0.049                             | ≈ |
 
-What is solid is that **M2's plumbing contribution — the OCP now plans a foot
-trajectory that lands on box2 — is a necessary precondition for any subsequent body
-descent fix**, regardless of what is currently dragging the body down.
+A/B results, same `basic_step_short` / `standing_trot_forward`:
+`results/20260507_220657_..._robust_M2_first/` vs
+`results/20260508_022845_..._M2_AB_baseline_off/`.
+
+What this confirms:
+
+- **Body descent gap is independent of robust phase.** `min_z` and `end_z` are
+  identical between robust ON and robust OFF; the robot fails to transfer body weight
+  onto box2 in both cases. The straddling and the body-z stuck-on-box1 behavior are
+  driven by the perceptive base-reference modification + WBC, not by the M2 robust
+  guard. So the original (provisional) attribution was correct.
+- **Robust phase actually improves roll stability.** `roll_rms` is roughly half with
+  the robust phase on (1.21° vs 2.20°). Plausible mechanism: the boundary equality
+  forces a more consistent foot landing height per cycle, which gives the WBC a
+  steadier set of stance contacts.
+- **Robust phase costs ~34 % forward progress.** `dist` drops from 1.57 m (off) to
+  1.17 m (on). Plausible mechanism: the soft penalty pulling foot z toward
+  `p_plane.z + offset ± d` slows the swing slightly, and the deactivated
+  `NormalVelocityConstraint` removes the strong "land on the nominal touchdown
+  height" signal that the swing planner normally uses.
+
+**M2's plumbing contribution — the OCP now plans a foot trajectory that lands on box2
+— is a necessary precondition for any subsequent body descent fix**, but the body
+descent fix itself lives in the base-reference / WBC stack and is queued separately
+(Next milestones table row #2).
 
 So M2 verification is: **per-leg terrain projection plumbing works end-to-end; the
 boundary equality is now defined relative to the (horizontal) box/step surface the leg
