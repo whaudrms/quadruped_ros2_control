@@ -38,6 +38,21 @@ namespace ocs2::legged_robot
 
         void setEnableReferenceModification(bool enable) { enableReferenceModification_ = enable; }
 
+        // Robust phase configuration (loaded from task.info `robustPhase` block by
+        // PerceptiveLeggedInterface). Applied during modifyReferences().
+        struct RobustPhaseSettings {
+            bool      enabled = false;
+            int       P = 5;            // window length in nodes
+            scalar_t  d = 0.05;         // uncertainty half-width [m]
+            scalar_t  terrain_z_M1 = 0.0;  // M1'' flat-ground guard reference
+            scalar_t  dt_mpc = 0.015;   // SQP shooting interval [s]
+        };
+        void setRobustPhaseSettings(const RobustPhaseSettings& settings) { robustPhaseSettings_ = settings; }
+
+        // Overrides from SwitchedModelReferenceManager.
+        bool isInRobustWindow(size_t leg, scalar_t time) const override;
+        const RobustWindowData& getRobustWindow(size_t leg) const override;
+
         bool getLatestReferencePaths(
             std::vector<vector3_t, Eigen::aligned_allocator<vector3_t>>& rawBasePath,
             std::vector<vector3_t, Eigen::aligned_allocator<vector3_t>>& terrainAwareBasePath) const;
@@ -61,6 +76,13 @@ namespace ocs2::legged_robot
                                                                  convex_plane_decomposition::PlanarTerrainProjection>&
                                                              projections);
 
+        // Computes (per leg) the first-touchdown robust window for the current MPC cycle.
+        // Called from modifyReferences() right after convexRegionSelectorPtr_->update(...).
+        // For M1'': hard-coded n = e_z, p_plane.z = robustPhaseSettings_.terrain_z_M1.
+        // For M2: pull (n, p_plane) from ConvexRegionSelector stance-side projection.
+        void computeRobustWindows(scalar_t initTime, scalar_t finalTime, const ModeSchedule& modeSchedule,
+                                  const vector_t& initState);
+
         const CentroidalModelInfo info_;
         feet_array_t<vector3_t> lastLiftoffPos_;
         contact_flag_t previousContactFlags_{};
@@ -75,10 +97,21 @@ namespace ocs2::legged_robot
         scalar_t comHeight_;
         bool enableReferenceModification_ = true;
 
+        // Robust phase state (one window per leg, recomputed each MPC cycle).
+        RobustPhaseSettings robustPhaseSettings_{};
+        mutable std::mutex robustWindowsMutex_;
+        feet_array_t<RobustWindowData> robustWindows_{};
+
         mutable std::mutex latestReferenceTrajectoriesMutex_;
         std::vector<vector3_t, Eigen::aligned_allocator<vector3_t>> latestRawBasePath_;
         std::vector<vector3_t, Eigen::aligned_allocator<vector3_t>> latestTerrainAwareBasePath_;
         FootPlacementDebugInfo latestFootPlacementDebugInfo_;
         bool hasLatestReferenceTrajectories_ = false;
     };
+
+    // Free function: parse `robustPhase` block from task.info.
+    // Defaults: enabled=false, P=5, d=0.05, terrain_z_M1=0.0, dt_mpc=0.015.
+    // The caller is expected to override dt_mpc with the actual `sqp.dt` from task.info.
+    PerceptiveLeggedReferenceManager::RobustPhaseSettings loadRobustPhaseSettings(
+        const std::string& taskFile, bool verbose);
 } // namespace legged

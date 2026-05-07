@@ -4,6 +4,9 @@
 
 #include <ocs2_core/misc/LoadData.h>
 #include "ocs2_quadruped_controller/perceptive/constraint/FootCollisionConstraint.h"
+#include "ocs2_quadruped_controller/perceptive/constraint/FootPlacementConstraint.h"
+#include "ocs2_quadruped_controller/perceptive/constraint/RobustGuardApproachConstraint.h"
+#include "ocs2_quadruped_controller/perceptive/constraint/RobustGuardBoundaryConstraint.h"
 #include "ocs2_quadruped_controller/perceptive/constraint/SphereSdfConstraint.h"
 
 #include "ocs2_quadruped_controller/perceptive/interface/ConvexRegionSelector.h"
@@ -12,8 +15,14 @@
 #include "ocs2_quadruped_controller/perceptive/interface/PerceptiveLeggedReferenceManager.h"
 
 #include <ocs2_centroidal_model/CentroidalModelPinocchioMapping.h>
+#include <ocs2_core/penalties/penalties/QuadraticPenalty.h>
+#include <ocs2_core/penalties/penalties/RelaxedBarrierPenalty.h>
+#include <ocs2_core/soft_constraint/StateInputSoftConstraint.h>
 #include <ocs2_core/soft_constraint/StateSoftConstraint.h>
 #include <ocs2_pinocchio_interface/PinocchioEndEffectorKinematicsCppAd.h>
+
+#include <boost/property_tree/info_parser.hpp>
+#include <boost/property_tree/ptree.hpp>
 
 #include <memory>
 
@@ -56,6 +65,36 @@ namespace ocs2::legged_robot
 
         LeggedInterface::setupOptimalControlProblem(taskFile, urdfFile, referenceFile, verbose);
 
+        // Load robust phase settings from task.info and apply to the perceptive reference manager.
+        // dt_mpc is overridden with the actual SQP shooting interval so that
+        // RobustGuardBoundaryConstraint::isActive uses the correct dt/2 tolerance.
+        auto& perceptiveRefManager = dynamic_cast<PerceptiveLeggedReferenceManager&>(*reference_manager_ptr_);
+        auto robustSettings = loadRobustPhaseSettings(taskFile, verbose);
+        robustSettings.dt_mpc = sqp_settings_.dt;
+        perceptiveRefManager.setRobustPhaseSettings(robustSettings);
+
+        // Robust phase soft penalty weights (separate from the constraint settings, since they
+        // parameterize how strongly the boundary equality and ġ² cost are enforced).
+        scalar_t w_boundary = 100.0;
+        scalar_t w_v = 1.0;
+        RelaxedBarrierPenalty::Config approachBarrierConfig(1e-2, 1e-3);
+        if (robustSettings.enabled)
+        {
+            try
+            {
+                boost::property_tree::ptree pt;
+                boost::property_tree::read_info(taskFile, pt);
+                loadData::loadPtreeValue(pt, w_boundary,                  "robustPhase.w_boundary",          verbose);
+                loadData::loadPtreeValue(pt, w_v,                         "robustPhase.w_v",                 verbose);
+                loadData::loadPtreeValue(pt, approachBarrierConfig.mu,    "robustPhase.approach_barrier_mu", verbose);
+                loadData::loadPtreeValue(pt, approachBarrierConfig.delta, "robustPhase.approach_barrier_delta", verbose);
+            }
+            catch (const std::exception&)
+            {
+                // Defaults already set above.
+            }
+        }
+
         for (size_t i = 0; i < centroidal_model_info_.numThreeDofContacts; i++)
         {
             const std::string& footName = modelSettings().contactNames3DoF[i];
@@ -85,6 +124,31 @@ namespace ocs2::legged_robot
                 problem_ptr_->stateSoftConstraintPtr->add(
                     footName + "_footCollision",
                     std::make_unique<StateSoftConstraint>(std::move(footCollisionConstraint), std::move(collisionPenalty)));
+            }
+
+            // Robust phase: 3 entries per leg (boundary equality, approach inequality, ġ² cost).
+            if (robustSettings.enabled)
+            {
+                // (1) Boundary g(x_a)=+d, g(x_b)=-d via QuadraticPenalty(2*w_boundary).
+                problem_ptr_->stateSoftConstraintPtr->add(
+                    footName + "_robustGuardBoundary",
+                    std::make_unique<StateSoftConstraint>(
+                        std::make_unique<RobustGuardBoundaryConstraint>(*reference_manager_ptr_, *eeKinematicsPtr, i),
+                        std::make_unique<QuadraticPenalty>(2.0 * w_boundary)));
+
+                // (2) Approach inequality -ġ ≥ 0 via RelaxedBarrierPenalty.
+                problem_ptr_->softConstraintPtr->add(
+                    footName + "_robustGuardApproach",
+                    std::make_unique<StateInputSoftConstraint>(
+                        std::make_unique<RobustGuardApproachConstraint>(*reference_manager_ptr_, *eeKinematicsPtr, i),
+                        std::make_unique<RelaxedBarrierPenalty>(approachBarrierConfig)));
+
+                // (3) ġ² running cost via QuadraticPenalty(2*w_v) on the same -ġ scalar (sign-symmetric).
+                problem_ptr_->softConstraintPtr->add(
+                    footName + "_robustGuardCost",
+                    std::make_unique<StateInputSoftConstraint>(
+                        std::make_unique<RobustGuardApproachConstraint>(*reference_manager_ptr_, *eeKinematicsPtr, i),
+                        std::make_unique<QuadraticPenalty>(2.0 * w_v)));
             }
         }
 

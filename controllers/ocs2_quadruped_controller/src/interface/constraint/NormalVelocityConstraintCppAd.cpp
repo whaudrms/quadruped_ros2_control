@@ -52,7 +52,10 @@ namespace ocs2::legged_robot {
 
 
     bool NormalVelocityConstraintCppAd::isActive(scalar_t time) const {
-        return !referenceManagerPtr_->getContactFlags(time)[contactPointIndex_];
+        // Off during stance (existing behavior) AND off inside the robust phase window —
+        // the robust guard target ±d is incompatible with the swing-z spline target.
+        if (referenceManagerPtr_->getContactFlags(time)[contactPointIndex_]) return false;
+        return !referenceManagerPtr_->isInRobustWindow(contactPointIndex_, time);
     }
 
 

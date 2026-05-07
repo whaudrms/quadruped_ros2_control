@@ -35,6 +35,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <ocs2_legged_robot/gait/GaitSchedule.h>
 #include <ocs2_legged_robot/gait/MotionPhaseDefinition.h>
 
+#include "RobustWindowData.h"
 #include "constraint/SwingTrajectoryPlanner.h"
 
 namespace ocs2::legged_robot {
@@ -51,6 +52,17 @@ namespace ocs2::legged_robot {
         void setModeSchedule(const ModeSchedule &modeSchedule) override;
 
         contact_flag_t getContactFlags(scalar_t time) const;
+
+        // Robust phase window query — overridden by PerceptiveLeggedReferenceManager.
+        // Default: no robust window ever active. Used by NormalVelocityConstraintCppAd
+        // and FootCollisionConstraint to deactivate themselves inside the robust window,
+        // and by RobustGuard{Boundary,Approach}Constraint to gate themselves on.
+        virtual bool isInRobustWindow(size_t /*leg*/, scalar_t /*time*/) const { return false; }
+
+        virtual const RobustWindowData &getRobustWindow(size_t /*leg*/) const {
+            static const RobustWindowData kEmpty{};
+            return kEmpty;
+        }
 
         const std::shared_ptr<GaitSchedule> &getGaitSchedule() { return gaitSchedulePtr_; }
 

@@ -6,8 +6,11 @@
 #include <limits>
 #include <algorithm>
 #include <cmath>
+#include <ocs2_core/misc/LoadData.h>
 #include <ocs2_core/misc/Lookup.h>
 #include <ocs2_centroidal_model/AccessHelperFunctions.h>
+#include <boost/property_tree/info_parser.hpp>
+#include <boost/property_tree/ptree.hpp>
 #include "ocs2_quadruped_controller/perceptive/interface/PerceptiveLeggedReferenceManager.h"
 
 namespace ocs2::legged_robot
@@ -296,6 +299,9 @@ namespace ocs2::legged_robot
         // Swing trajectory
         updateSwingTrajectoryPlanner(initTime, initState, modeSchedule);
 
+        // Robust phase windows (per leg, first upcoming touchdown only for M1''/M2 scope).
+        computeRobustWindows(initTime, finalTime, modeSchedule, initState);
+
         {
             std::lock_guard lock(latestReferenceTrajectoriesMutex_);
             latestRawBasePath_ = extractBasePath(rawTargetTrajectories, info_);
@@ -460,6 +466,176 @@ namespace ocs2::legged_robot
         //  std::cerr << std::endl;
 
         return {liftOffHeights, touchDownHeights};
+    }
+
+    void PerceptiveLeggedReferenceManager::computeRobustWindows(scalar_t initTime, scalar_t finalTime,
+                                                                const ModeSchedule& modeSchedule,
+                                                                const vector_t& initState)
+    {
+        feet_array_t<RobustWindowData> windows{};
+        if (!robustPhaseSettings_.enabled)
+        {
+            std::lock_guard lock(robustWindowsMutex_);
+            robustWindows_ = windows;
+            return;
+        }
+
+        const auto& eventTimes = modeSchedule.eventTimes;
+        const auto& modeSequence = modeSchedule.modeSequence;
+        const size_t numPhases = modeSequence.size();
+        if (numPhases == 0)
+        {
+            std::lock_guard lock(robustWindowsMutex_);
+            robustWindows_ = windows;
+            return;
+        }
+
+        const auto contactFlagStocks = convexRegionSelectorPtr_->extractContactFlags(modeSequence);
+        const int initPhaseInt = lookup::findIndexInTimeArray(eventTimes, initTime);
+        const size_t initPhase = static_cast<size_t>(std::clamp<int>(initPhaseInt, 0, static_cast<int>(numPhases) - 1));
+
+        const scalar_t T_robust = static_cast<scalar_t>(robustPhaseSettings_.P) * robustPhaseSettings_.dt_mpc;
+
+        for (size_t leg = 0; leg < info_.numThreeDofContacts; ++leg)
+        {
+            RobustWindowData& w = windows[leg];
+            w.active = false;
+            w.d = robustPhaseSettings_.d;
+            w.n = vector3_t::UnitZ();   // M1''/M2-flat: world-z guard
+
+            const auto& flags = contactFlagStocks[leg];
+
+            // Walk forward from initPhase, find the first phase index `stancePhase` where
+            // flags[stancePhase] is true and flags[stancePhase-1] is false.
+            // The touchdown event time is eventTimes[stancePhase - 1].
+            size_t stancePhase = numPhases;  // sentinel: not found
+            const size_t startPhase = (flags[initPhase]) ? initPhase : initPhase;
+            for (size_t i = std::max<size_t>(startPhase, 1); i < numPhases; ++i)
+            {
+                if (flags[i] && !flags[i - 1])
+                {
+                    stancePhase = i;
+                    break;
+                }
+            }
+            if (stancePhase == numPhases)
+            {
+                continue;  // no upcoming touchdown for this leg
+            }
+
+            const size_t swingPhase = stancePhase - 1;
+            const size_t eventIdx = stancePhase - 1;  // boundary between swing and stance
+            if (eventIdx >= eventTimes.size())
+            {
+                continue;
+            }
+            const scalar_t t_b = eventTimes[eventIdx];
+            if (t_b <= initTime || t_b > finalTime)
+            {
+                continue;
+            }
+
+            scalar_t t_a = t_b - T_robust;
+            const bool clamped = (t_a < initTime);
+            if (clamped)
+            {
+                t_a = initTime;
+            }
+
+            w.active = true;
+            w.skip_t_a_boundary = clamped;
+            w.dt_mpc = robustPhaseSettings_.dt_mpc;
+            w.t_a = t_a;
+            w.t_b = t_b;
+            w.k_a_phase_index = swingPhase;
+            w.k_b_phase_index = stancePhase;
+
+            // For M1'' (flat ground): p_plane.z = terrain_z_M1, xy irrelevant since n = e_z.
+            // For M2 we will use the stance-side projection here:
+            //   const auto proj = convexRegionSelectorPtr_->getProjection(leg, t_b + 1e-6);
+            //   if (proj.regionPtr != nullptr) { w.p_plane = proj.positionInWorld; }
+            w.p_plane = vector3_t::Zero();
+            w.p_plane.z() = robustPhaseSettings_.terrain_z_M1;
+        }
+
+        {
+            std::lock_guard lock(robustWindowsMutex_);
+            robustWindows_ = windows;
+        }
+
+        // Verification log — one line per MPC cycle so that an offline plot can overlay
+        // (t_a, +d) and (t_b, -d) markers on the foot-z trajectory derived from tick.csv.
+        // Format (machine-parseable):  [robust_phase] t=... leg=N active=0/1 ta=... tb=... pz=... d=... clamped=0/1
+        for (size_t leg = 0; leg < info_.numThreeDofContacts; ++leg)
+        {
+            const auto& w = windows[leg];
+            std::cerr << "[robust_phase] t=" << initTime
+                      << " leg=" << leg
+                      << " active=" << (w.active ? 1 : 0)
+                      << " ta=" << w.t_a
+                      << " tb=" << w.t_b
+                      << " pz=" << w.p_plane.z()
+                      << " d=" << w.d
+                      << " clamped=" << (w.skip_t_a_boundary ? 1 : 0)
+                      << "\n";
+        }
+    }
+
+    bool PerceptiveLeggedReferenceManager::isInRobustWindow(size_t leg, scalar_t time) const
+    {
+        std::lock_guard lock(robustWindowsMutex_);
+        if (leg >= robustWindows_.size())
+        {
+            return false;
+        }
+        const auto& w = robustWindows_[leg];
+        return w.active && time >= w.t_a && time <= w.t_b;
+    }
+
+    const RobustWindowData& PerceptiveLeggedReferenceManager::getRobustWindow(size_t leg) const
+    {
+        std::lock_guard lock(robustWindowsMutex_);
+        if (leg >= robustWindows_.size())
+        {
+            static const RobustWindowData kEmpty{};
+            return kEmpty;
+        }
+        return robustWindows_[leg];
+    }
+
+    PerceptiveLeggedReferenceManager::RobustPhaseSettings loadRobustPhaseSettings(
+        const std::string& taskFile, bool verbose)
+    {
+        PerceptiveLeggedReferenceManager::RobustPhaseSettings s;
+        boost::property_tree::ptree pt;
+        try
+        {
+            boost::property_tree::read_info(taskFile, pt);
+        }
+        catch (const std::exception& e)
+        {
+            if (verbose)
+            {
+                std::cerr << "[loadRobustPhaseSettings] failed to read task file: " << e.what() << std::endl;
+            }
+            return s;
+        }
+
+        const std::string prefix = "robustPhase.";
+        if (verbose)
+        {
+            std::cerr << "\n #### Robust Phase Settings: ";
+            std::cerr << "\n #### =============================================================================\n";
+        }
+        loadData::loadPtreeValue(pt, s.enabled,      prefix + "enabled",      verbose);
+        loadData::loadPtreeValue(pt, s.P,            prefix + "P",            verbose);
+        loadData::loadPtreeValue(pt, s.d,            prefix + "d",            verbose);
+        loadData::loadPtreeValue(pt, s.terrain_z_M1, prefix + "terrain_z_M1", verbose);
+        if (verbose)
+        {
+            std::cerr << " #### =============================================================================\n";
+        }
+        return s;
     }
 
     contact_flag_t PerceptiveLeggedReferenceManager::getFootPlacementFlags(scalar_t time) const

@@ -178,6 +178,28 @@ frictionConeSoftConstraint
   delta                  5.0
 }
 
+; Robust contact-timing-uncertainty phase (M1'' / M2 plan).
+; When enabled=true the perceptive reference manager builds a per-leg robust window
+; for the first upcoming touchdown event, and three new soft constraints / costs are
+; registered per leg in PerceptiveLeggedInterface::setupOptimalControlProblem:
+;   - g(x_a)=+d, g(x_b)=-d  via QuadraticPenalty(2*w_boundary)
+;   - approach inequality   via RelaxedBarrierPenalty(approach_barrier_mu, approach_barrier_delta)
+;   - soft cost w_v * ġ²    via QuadraticPenalty(2*w_v) on the same approach scalar
+; Inside the robust window NormalVelocityConstraintCppAd and FootCollisionConstraint
+; are deactivated for the corresponding leg (see their isActive()).
+; M1'' = flat-ground sanity check: n = e_z, p_plane.z = terrain_z_M1.
+robustPhase
+{
+  enabled                  true    ; M1'' enabled — verify guard band on flat ground
+  P                        5       ; window length in nodes (T_robust = P * sqp.dt)
+  d                        0.03    ; uncertainty half-width [m] (M1'' modest)
+  w_boundary               1000.0  ; soft penalty weight on boundary equality
+  w_v                      1.0     ; soft penalty weight on Σ ġ² running cost
+  approach_barrier_mu      0.01    ; RelaxedBarrierPenalty mu for approach inequality
+  approach_barrier_delta   0.001   ; RelaxedBarrierPenalty delta for approach inequality
+  terrain_z_M1             0.06    ; M1'' flat-ground reference z [m] = FL_foot frame z at natural touchdown (frame is at ankle, contact ~6cm below)
+}
+
 selfCollision
 {
   ; Self Collision raw object pairs

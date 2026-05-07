@@ -32,9 +32,13 @@ namespace ocs2::legged_robot
     bool FootCollisionConstraint::isActive(scalar_t time) const
     {
         scalar_t offset = 0.05;
-        return !referenceManagerPtr_->getContactFlags(time)[contactPointIndex_] &&
-            !referenceManagerPtr_->getContactFlags(time + 0.5 * offset)[contactPointIndex_] &&
-            !referenceManagerPtr_->getContactFlags(time - offset)[contactPointIndex_];
+        // Existing pre-touchdown buffer: turn off during stance and ~0.05 s window around it.
+        if (referenceManagerPtr_->getContactFlags(time)[contactPointIndex_]) return false;
+        if (referenceManagerPtr_->getContactFlags(time + 0.5 * offset)[contactPointIndex_]) return false;
+        if (referenceManagerPtr_->getContactFlags(time - offset)[contactPointIndex_]) return false;
+        // Plus: turn off inside the robust phase window — the guard target z = z_g - d would
+        // otherwise be in conflict with a positive SDF clearance constraint.
+        return !referenceManagerPtr_->isInRobustWindow(contactPointIndex_, time);
     }
 
     vector_t FootCollisionConstraint::getValue(scalar_t /*time*/, const vector_t& state,

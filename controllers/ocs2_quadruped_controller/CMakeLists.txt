@@ -72,6 +72,8 @@ add_library(${PROJECT_NAME} SHARED
 
         src/perceptive/constraint/FootCollisionConstraint.cpp
         src/perceptive/constraint/FootPlacementConstraint.cpp
+        src/perceptive/constraint/RobustGuardApproachConstraint.cpp
+        src/perceptive/constraint/RobustGuardBoundaryConstraint.cpp
         src/perceptive/constraint/SphereSdfConstraint.cpp
         src/perceptive/interface/ConvexRegionSelector.cpp
         src/perceptive/interface/PerceptiveLeggedInterface.cpp
