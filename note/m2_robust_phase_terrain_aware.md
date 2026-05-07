@@ -134,16 +134,35 @@ boundary equality is now defined relative to the actual surface the leg targets,
 the perception pipeline correctly identifies the descent target one swing before
 touchdown**. Body descent quality is a separately tracked tuning issue.
 
-## What's next
+## Files (read-or-modify map)
 
-- **M2.x (optional)** — extract the plane normal from
-  `proj.regionPtr->transformPlaneToWorld.linear().col(2)` so inclined surfaces use a
-  proper terrain-normal guard (currently `n = e_z` only).
-- **M3** — multi-touchdown (all upcoming touchdowns in horizon, not just the first) and
-  optional pair-impulse cost via `M⁻¹ J^T` (CppAD differentiability check first).
-- **Track ②** — unscheduled-contact mode-switch (handled in `CtrlComponent::updateState`
-  per `plan.md`'s note that `SolverSynchronizedModule::preSolverRun` cannot see the
-  observation).
-- **Stage 8/9 cleanup** — remove `RefinedPolicyReader`, `MpcDumpRecorder`, and the
-  legacy `[robust_refine] override=…` log lines; M2 is the natural cut-off after which
-  the in-OCP path fully replaces the external Python refiner.
+Single-commit change set: `9509863`. Three small edits, no new files.
+
+| Path | Change |
+|---|---|
+| [`include/.../perceptive/interface/PerceptiveLeggedReferenceManager.h`](../controllers/ocs2_quadruped_controller/include/ocs2_quadruped_controller/perceptive/interface/PerceptiveLeggedReferenceManager.h) | Added `std::string terrain_source` to `RobustPhaseSettings` (`"flat"` or `"convex_region"`). |
+| [`src/perceptive/interface/PerceptiveLeggedReferenceManager.cpp`](../controllers/ocs2_quadruped_controller/src/perceptive/interface/PerceptiveLeggedReferenceManager.cpp) | `computeRobustWindows` adds the `convex_region` branch (phase-index projection lookup, null-projection flat fallback). `loadRobustPhaseSettings` parses the new field. |
+| [`descriptions/unitree/go2_description/config/ocs2/task.info`](../descriptions/unitree/go2_description/config/ocs2/task.info) | Default `terrain_source = convex_region`. `terrain_z_M1` retained as fallback. |
+
+## Next milestones — choose one
+
+After M2 the in-OCP robust phase plumbing is complete enough that the Python `robust_refine`
+external layer is no longer load-bearing. The remaining work splits into four candidates,
+with rough cost / impact estimates:
+
+| # | candidate | scope | est. cost | impact / why pick this next |
+|---|---|---|---|---|
+| 1 | **Stage 8/9 cleanup** | Delete `RefinedPolicyReader`, `MpcDumpRecorder`, the `mpc_one_shot_*` machinery, the `[robust_refine] override=…` per-cycle log lines; trim `tools/perceptive_dev_v2` of `--enable-refiner-swap` / oneshot scenarios | ~0.5 day | Removes ongoing debug noise (the log lines still print every cycle), shrinks build, eliminates a dead failure-mode path before any hardware bring-up. **Prereq for clean M3 telemetry**. |
+| 2 | **Body descent tuning** | Address the body-z gap exposed by M2 (`min_z = start_z`, `pitch_rms 5.6°` on `basic_step_short`). Touch points: `PerceptiveLeggedReferenceManager.cpp:188-294` base-reference modification (height-blend / pitch-blend / down-step commit distance) and/or WBC tracking weights | ~1–2 days, larger result variance | Most visible quality improvement. M2 already plans box2-targeting feet, so this is the bottleneck preventing the whole "graceful descent" demo. |
+| 3 | **M3 — multi-touchdown + optional impulse cost** | Generalize `computeRobustWindows` to record up to `M_horizon` upcoming touchdowns per leg (not just the first); optionally add the `λ = (J M⁻¹ Jᵀ)⁻¹ J v⁻` pair-impulse cost from the original `robust_refine` formulation, gated on a CppAD differentiability smoke test for `crba`+inverse | ~2–3 days | Closes the gap with the original `robust_refine` capability set; required for any per-step `d_ℓ` perception-confidence work later. |
+| 4 | **M2.x — terrain-normal extraction** | Extract `n` from `proj.regionPtr->transformPlaneToWorld.linear().col(2)` so inclined surfaces (slopes, ramps) use a proper terrain-normal guard rather than world `e_z` | ~0.5 day | Only matters when we actually test on inclined terrain; cheap to do but no immediate sim payoff on box scenes. |
+
+**Recommended order** (driven by "what unblocks the next thing" and "what gives a visible result soon"):
+
+1. **#1 Stage 8/9 cleanup** — small, removes noise, prereq for clean further telemetry.
+2. **#2 Body descent tuning** — biggest visible quality win on `basic_step_short`; once done the whole "perceptive descent demo" actually works end-to-end.
+3. **#3 M3** — once descent is robust, add multi-touchdown so the robust phase covers more than the first event in horizon.
+4. **#4 M2.x** — defer until we actually have an inclined-terrain scenario to validate against.
+
+Track ② (unscheduled-contact mode-switch in `CtrlComponent::updateState`) is orthogonal
+and remains parked per `plan.md`.
