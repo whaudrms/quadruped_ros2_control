@@ -395,6 +395,38 @@ roll_rms, formulation issue is the right diagnosis and (F-a) is the
 fix; broader sweep can resume. If (F-a) doesn't move the needle, try
 (F-b).
 
+## §F6: Pointer — Track ② step (b) implemented; see [`WithSplice.md`](WithSplice.md)
+
+After F5, a third peer review (`chat6.md`) corrected the
+"formulation 문제 확정" reading: the splice-less result is not enough on its
+own to indict the formulation. The competing hypothesis is that **splice is
+the missing piece** — without it, the OCP keeps planning towards
+`g(t_b) = −d` even after the leg has physically touched, because the gait
+schedule never updates on measured contact. Chat6 also noted that the F0
+early-vs-late count is not a fair ON/OFF metric (in OFF the early-event log
+is gated by `isInRobustWindow`, which is always false, so OFF
+early-count = 0 by construction).
+
+To resolve this, Track ② step (b) — schedule splice on sustained measured
+contact during a robust window, with WBC contact-flag override deliberately
+kept deferred — was implemented and the same critical cell was re-run.
+
+The full implementation, splice algorithm, results, and verdict are in the
+sibling report **[`WithSplice.md`](WithSplice.md)**. Headline:
+
+- Splice helps significantly: roll RMS 7.27° → ~4.5° (≈38 % reduction).
+- Splice is **not** by itself sufficient to recover the OFF baseline at
+  10 Hz MPC: ON+splice still ~1.7× the roll of OFF (~4.5° vs ~2.5°). The
+  residual gap is consistent with a 105 ms stale-policy window
+  (5 ms detection latch + ~100 ms next MPC solve at 10 Hz).
+- Chat6's hypothesis (splice is the missing piece) is therefore
+  **partially confirmed**: real and large effect, but at 10 Hz the
+  formulation candidate F-a from §F5 above is not falsified either.
+
+The next planned experiment, also detailed in `WithSplice.md`, is a re-run
+of the critical cell at MPC 50 Hz with splice ON to test whether the
+residual is just re-solve latency before deciding on F-a.
+
 ## What this report does not yet answer
 
 - **Whether the F2 null result is due to MPC rate or to the test scenario

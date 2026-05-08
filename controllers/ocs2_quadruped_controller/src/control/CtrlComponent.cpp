@@ -16,7 +16,9 @@
 
 #include <ocs2_centroidal_model/CentroidalModelRbdConversions.h>
 #include <ocs2_centroidal_model/AccessHelperFunctions.h>
+#include <ocs2_core/misc/Lookup.h>
 #include <ocs2_core/thread_support/ExecuteAndSleep.h>
+#include <ocs2_legged_robot/gait/MotionPhaseDefinition.h>
 #include <ocs2_legged_robot_ros/visualization/LeggedRobotVisualizer.h>
 #include <ocs2_quadruped_controller/control/GaitManager.h>
 #include <ocs2_quadruped_controller/perceptive/interface/PerceptiveLeggedInterface.h>
@@ -222,21 +224,33 @@ namespace ocs2::legged_robot
             const bool prev_s = prev_scheduled_contact_[leg];
 
             // Liftoff (stance→swing edge in the schedule) opens a new swing
-            // cycle for this leg. Reset the early-event latch so the next swing
-            // is eligible to log again.
+            // cycle for this leg. Reset the per-swing latches and the
+            // sustained-tick counter so the next swing is eligible to log
+            // and splice again.
             const bool liftoff = prev_s && !s;
             if (liftoff)
             {
                 early_event_logged_in_swing_[leg] = false;
+                splice_applied_in_swing_[leg] = false;
+                sustained_early_ticks_[leg] = 0;
             }
 
-            // Early contact: measured stance during scheduled swing inside an
-            // active robust window. Latched per swing cycle (not per-t_b)
-            // because the MPC re-solves every ~10 ms and the touchdown time
-            // t_b drifts slightly each cycle — a t_b-keyed latch would log
-            // ~one line per MPC cycle for the same physical event.
-            if (refMgr.isInRobustWindow(leg, t) && m && !s &&
-                !early_event_logged_in_swing_[leg])
+            const bool early_now = refMgr.isInRobustWindow(leg, t) && m && !s;
+
+            // Sustained-contact counter: increment while the early condition
+            // holds (measured stance + scheduled swing + inside robust window),
+            // reset to 0 when it doesn't.
+            if (early_now)
+            {
+                ++sustained_early_ticks_[leg];
+            }
+            else
+            {
+                sustained_early_ticks_[leg] = 0;
+            }
+
+            // Early-event log (latched per swing).
+            if (early_now && !early_event_logged_in_swing_[leg])
             {
                 const auto w = refMgr.getRobustWindow(leg);
                 RCLCPP_INFO(node_->get_logger(),
@@ -246,9 +260,7 @@ namespace ocs2::legged_robot
                 early_event_logged_in_swing_[leg] = true;
             }
 
-            // Late contact: scheduled flipped swing→stance this tick (rising
-            // edge of `s`) but measured still has no contact. Rising-edge by
-            // construction so each scheduled touchdown can fire at most once.
+            // Late contact log (rising edge of scheduled, no measured).
             if (!prev_s && s && !m)
             {
                 RCLCPP_INFO(node_->get_logger(),
@@ -257,8 +269,77 @@ namespace ocs2::legged_robot
                             leg, t);
             }
 
+            // SPLICE TRIGGER. After kEventSpliceSustainedTicks consecutive
+            // ticks of early contact, splice the gait schedule so that this
+            // leg becomes stance from observation_.time forward. The next
+            // MPC solve will plan with the leg already in stance, removing
+            // the robust phase's push-down on a foot that is physically
+            // already in contact. WBC is NOT modified (no override) — the
+            // current MPC policy continues until the next replan.
+            if (early_now &&
+                sustained_early_ticks_[leg] >= kEventSpliceSustainedTicks &&
+                !splice_applied_in_swing_[leg])
+            {
+                spliceStanceForLeg(leg);
+                splice_applied_in_swing_[leg] = true;
+            }
+
             prev_scheduled_contact_[leg] = s;
         }
+    }
+
+    void CtrlComponent::spliceStanceForLeg(size_t leg)
+    {
+        if (legged_interface_ == nullptr || gait_manager_ptr_ == nullptr) return;
+        const auto& gaitSchedulePtr =
+            legged_interface_->getSwitchedModelReferenceManagerPtr()->getGaitSchedule();
+        if (!gaitSchedulePtr) return;
+
+        const scalar_t t = observation_.time;
+        // Pull a slice of the current schedule wide enough to splice into.
+        // We use a [t - dt, t + horizon] window so the splice replaces the
+        // current and future modes only; past events are dropped.
+        const scalar_t timeHorizon = legged_interface_->mpcSettings().timeHorizon_;
+        ModeSchedule sched = gaitSchedulePtr->getModeSchedule(t - 0.5, t + timeHorizon + 0.5);
+
+        // Find the phase index containing time t in the slice.
+        const int curPhaseInt = lookup::findIndexInTimeArray(sched.eventTimes, t);
+        const size_t curPhase = static_cast<size_t>(
+            std::clamp<int>(curPhaseInt, 0, static_cast<int>(sched.modeSequence.size()) - 1));
+
+        // Take the current mode's contact flags, set this leg to stance.
+        contact_flag_t curFlags = modeNumber2StanceLeg(sched.modeSequence[curPhase]);
+        if (curFlags[leg])
+        {
+            // Already stance in the schedule — nothing to splice.
+            return;
+        }
+        curFlags[leg] = true;
+        const size_t newMode = stanceLeg2ModeNumber(curFlags);
+
+        // Insert a new event at t with newMode taking effect for [t, next).
+        // ModeSchedule semantics:
+        //   modeSequence[i] applies to [eventTimes[i-1], eventTimes[i])
+        //   (eventTimes has size N-1, modeSequence has size N).
+        // To insert an event at t between current phase k (covering
+        // [eventTimes[k-1], eventTimes[k])) and the next, we add t to
+        // eventTimes at index k (so eventTimes[k]=t becomes the new boundary)
+        // and add newMode to modeSequence at index k+1 (so modeSequence[k+1]
+        // is newMode for [t, original eventTimes[k])).
+        //
+        // After insertion:
+        //   modeSequence[curPhase]   for [..., t)            unchanged
+        //   modeSequence[curPhase+1] = newMode for [t, original next)
+        //   modeSequence[curPhase+2] = original next mode
+        sched.eventTimes.insert(sched.eventTimes.begin() + curPhase, t);
+        sched.modeSequence.insert(sched.modeSequence.begin() + curPhase + 1, newMode);
+
+        gaitSchedulePtr->setModeSchedule(sched);
+
+        RCLCPP_INFO(node_->get_logger(),
+                    "[robust_splice] leg=%zu t=%.3f mode_old=%zu mode_new=%zu "
+                    "(splice stance for sustained early contact)",
+                    leg, t, sched.modeSequence[curPhase], newMode);
     }
 
     std::optional<scalar_t> CtrlComponent::samplePerceptiveTerrainHeight(const scalar_t x, const scalar_t y) const

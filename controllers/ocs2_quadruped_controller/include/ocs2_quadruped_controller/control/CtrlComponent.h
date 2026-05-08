@@ -75,22 +75,34 @@ namespace ocs2::legged_robot
         void logPerceptiveFootPlacementDebug();
         std::optional<scalar_t> samplePerceptiveTerrainHeight(scalar_t x, scalar_t y) const;
 
-        // Track ② step (a) — detection-only event logging.
+        // Track ② step (a) — detection + log + schedule splice (no WBC override).
         // Compares per-leg measured contact (estimator → observation_.mode) against
         // scheduled contact (gait schedule). Logs at most one [robust_event] line per
-        // (leg, type) per robust window so it doesn't spam at 50–100 Hz.
-        // No state mutation: schedule and WBC contact flags are unchanged.
-        // Track ② step (b) will turn the detection into an actual schedule splice +
-        // WBC override.
+        // (leg, type) per robust window. When sustained early contact is detected
+        // (≥ kEventSpliceSustainedTicks consecutive control ticks while inside the
+        // robust window), splices the gait schedule so that leg becomes stance from
+        // observation_.time onwards (so the NEXT MPC solve plans the leg as stance).
+        // The current MPC policy and the WBC are NOT modified — we deliberately do
+        // not add a WBC contact-flag override (per chat4.md / chat6.md) so that the
+        // splice's effect is attributable to the OCP-level event handling alone.
         void detectAndLogContactEvents();
+        void spliceStanceForLeg(size_t leg);
+
+        static constexpr int kEventSpliceSustainedTicks = 5;
         // prev_scheduled_contact_ is the previous-tick scheduled flag per leg, used
         // to detect rising / falling edges (touchdown / liftoff in the schedule).
         // early_event_logged_in_swing_ latches once per swing cycle and resets on
         // the leg's stance→swing transition (liftoff), so a single drawn-out
-        // early-contact condition is logged once even though t_b drifts every MPC
-        // cycle. Late events are inherently rising-edge so they don't need a latch.
+        // early-contact condition is logged once. Late events are inherently
+        // rising-edge so they don't need a latch.
+        // sustained_early_ticks_ counts consecutive ticks where the early-contact
+        // condition holds; reset on any tick where the condition is false.
+        // splice_applied_in_swing_ latches once per swing so we splice at most once
+        // per swing cycle; reset on liftoff.
         feet_array_t<bool> prev_scheduled_contact_{};
         feet_array_t<bool> early_event_logged_in_swing_{};
+        feet_array_t<int>  sustained_early_ticks_{};
+        feet_array_t<bool> splice_applied_in_swing_{};
 
         bool enable_perceptive_ = false;
         bool enable_perceptive_reference_modification_ = true;
