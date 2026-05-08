@@ -396,3 +396,111 @@ Two-step plan inside Track ②:
 
 (a) and (b) split into separate commits keeps the "where did the new behavior come
 from" debugging story clean.
+
+## Appendix D — Track ② step (a) detection-only — commit `f86da92`
+
+`+83 / 0` in `CtrlComponent.{h,cpp}`. New private method `detectAndLogContactEvents()`
+runs once per control tick from `updateState()` right after `observation_.mode` is
+filled by the estimator. Compares per-leg measured contact (sensor-derived) against
+the scheduled contact flags from the gait schedule and emits one `[robust_event]` log
+line per (leg, type) per swing cycle on mismatches. **No schedule mutation, no WBC
+contact-flag override** — those land in step (b).
+
+### Conversion direction (peer-review correction)
+
+`estimator_->getMode()` returns a `size_t` mode number — it is itself
+`stanceLeg2ModeNumber(contact_flag_)` per [`StateEstimateBase.h:37`](../controllers/ocs2_quadruped_controller/include/ocs2_quadruped_controller/estimator/StateEstimateBase.h#L37).
+For the per-leg comparison we want we therefore need the **inverse**:
+
+```cpp
+const contact_flag_t measured = modeNumber2StanceLeg(observation_.mode);
+```
+
+(The earlier draft of step (a) had `stanceLeg2ModeNumber` here, which is the wrong
+direction; flagged in peer review and corrected before commit.)
+
+### Two event types
+
+- **early** — `refMgr.isInRobustWindow(leg, t) && measured && !scheduled`
+  (foot landed before the scheduled `t_b`, while still inside the robust window)
+- **late**  — schedule swing→stance rising edge for the leg, but measured contact
+  still `false` at that tick (scheduled stance starts with no actual touchdown)
+
+### Latching
+
+- **early latch** `early_event_logged_in_swing_[leg]` resets on **liftoff**
+  (stance→swing edge in the schedule) so each swing fires at most one early line.
+  A `t_b`-keyed latch would re-fire every MPC cycle because the predicted touchdown
+  time drifts a few ms each `preSolverRun`. Empirically a `t_b`-keyed latch produced
+  one log line per MPC cycle for the same physical event; the swing-cycle latch
+  collapses that to one log line per swing.
+- **late** is inherently a rising-edge detector on `scheduled` so it doesn't need a
+  latch.
+
+### Verification
+
+Two trials, post-commit `f86da92`:
+
+| trial | scene | scenario | success | dist [m] | pitch_rms [°] | early | late |
+|---|---|---|---|---|---|---|---|
+| `track2_step_a_swinglatch` | `basic_step_short` | `standing_trot_forward` | True | 1.16 | 5.39 | **264** | **6** |
+| `track2_step_a_flat`       | `scene` (flat)     | `standing_trot_forward` | True | 0.97 | 1.49 | **270** | **0** |
+
+Per-leg adjacent-event spacing (leg 1, basic_step_short): ~0.60 s, matching the
+trot gait period — confirms the latch fires exactly **once per swing per leg**,
+which is the design intent.
+
+### Important interpretation
+
+The flat-scene trial fires ~270 early events too. This is **not** anomalous
+early contact from terrain; it's the M2 robust-phase soft penalty doing its
+job. With `g(t_b) = −d` enforced softly and `foot_frame_offset = 0.06 m`, the
+contact point ends up roughly `d = 0.03 m` below the nominal touchdown
+plane (M2 trial 4 measured contact-point residual ≈ 1.6 cm below ground at
+`t_b`), so the foot touches `~10–15 ms` earlier than the scheduled `t_b`.
+Every healthy swing therefore registers as an early-contact event.
+
+**Implication for step (b)**: a naïve "any early-contact event triggers schedule
+splice" rule would re-splice on every swing on flat ground — which would defeat
+the gait scheduler entirely. Step (b) needs a threshold to distinguish "designed"
+early contact (small lead, ~10 ms, repeating every swing) from anomalous early
+contact (large lead because actual terrain came up sooner than planned). Two
+sensible thresholds:
+
+1. **Lead-time threshold.** Splice only when `t_b − t_event > τ_lead` for some
+   `τ_lead` larger than the design-driven lead (e.g., `τ_lead = 30 ms`).
+2. **Sustained-contact threshold.** Splice only when measured contact persists
+   for `N` consecutive ticks at the same robust-window event. The design-driven
+   case lasts only a few ticks because scheduled stance arrives soon after; an
+   anomalous early contact (hit higher terrain) would persist much longer.
+
+(2) is more robust because it doesn't need calibration of `τ_lead` per scene
+and naturally adapts to gait period changes.
+
+### Files
+
+| Path | Change |
+|---|---|
+| [`include/.../control/CtrlComponent.h`](../controllers/ocs2_quadruped_controller/include/ocs2_quadruped_controller/control/CtrlComponent.h) | New private `detectAndLogContactEvents()` declaration; `prev_scheduled_contact_` and `early_event_logged_in_swing_` `feet_array_t<bool>` state members. |
+| [`src/control/CtrlComponent.cpp`](../controllers/ocs2_quadruped_controller/src/control/CtrlComponent.cpp) | Method implementation + call site in `updateState()` after `observation_.mode = estimator_->getMode()`. |
+
+### Trial artifacts
+
+- `tools/perceptive_dev_v2/results/20260508_161108_..._track2_step_a_swinglatch/`
+- `tools/perceptive_dev_v2/results/20260508_161346_..._track2_step_a_flat/`
+
+### What's next — step (b)
+
+Implement schedule splice + WBC contact-flag override on detected anomalous
+events, gated by the sustained-contact threshold (2) above. Touch points:
+
+1. `CtrlComponent` keeps a per-leg `consecutive_unscheduled_contact_ticks_` counter,
+   incremented while the early-contact condition holds and reset on schedule
+   transition. When it crosses a threshold (e.g., `N = 3` ticks), declare an
+   actionable event.
+2. On actionable event, build a one-leg modification of the active mode schedule
+   that latches the leg to stance from `observation_.time` and call
+   `gait_schedule_ptr_->setModeSchedule(...)`. Mirror for late events.
+3. WBC override: pass the measured contact flag (instead of the scheduled one)
+   to the WBC for the affected leg until the next preSolverRun assimilates the
+   spliced schedule.
