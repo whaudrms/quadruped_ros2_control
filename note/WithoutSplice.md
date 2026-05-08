@@ -19,7 +19,7 @@ In place (this branch, commits up to `6f4f665`):
 | layer | status |
 |---|---|
 | Robust phase guard `g(x_a)=+d, g(x_b)=-d`, `ġ ≤ 0`, `Σ w_v ġ²` inside MPC OCP | **DONE** (M1''/M2 commits `0fe5079, 508dbed, d46a921, 9509863, f7efd82, 785f68d, f0d57c9`) |
-| Per-leg projection `(n, p_plane)` from `ConvexRegionSelector` | **DONE** (M2, `9509863`) |
+| Per-leg `p_plane` from `ConvexRegionSelector` (terrain plane normal `n` is still hard-wired to `e_z`) | **DONE for `p_plane`; `n` deferred to M2.x** (M2, `9509863`) |
 | `NormalVelocityConstraintCppAd::isActive` deactivation in robust window | **DONE** (M1'' part of `0fe5079`) |
 | `FootCollisionConstraint::isActive` deactivation in robust window | **DONE** (M1'' part of `0fe5079`) |
 | Track ② step (a) — `[robust_event] type=early\|late` detection logging in `CtrlComponent::updateState` | **DONE** (`f86da92, be27135`) |
@@ -102,15 +102,29 @@ Six trials, single seed each:
 | `m2ab10_robOFF_offM05`  | false | −0.05 |
 
 Physical interpretation of the offsets (MuJoCo physics is unchanged in all
-cases — the actual box2 stays at z=0.10):
+cases — the actual box2 stays at z=0.10). Robust ON foot-frame target at
+`t_b` is `target_zf = perceived_terrain_z + foot_frame_offset − d` where
+`foot_frame_offset = 0.06 m` and `d = 0.03 m`; the natural-touchdown foot
+frame z is `actual_terrain_z + foot_frame_offset = 0.16 m`:
 
-| offset | controller's perceived box2 top | meaning for the descent |
-|---|---|---|
-| **+0.05** | z = 0.15 (5 cm too high) | OCP plans to land on z=0.15 but the foot reaches z=0.10 first → **early contact** |
-| **0.00** | z = 0.10 (correct) | Nominal case |
-| **−0.05** | z = 0.05 (5 cm too low) | OCP plans to land on z=0.05 but the actual surface is at z=0.10 → **foot driven 5 cm into the actual terrain** |
+| offset | perceived box2 top | robust ON `target_zf(t_b)` | vs natural touchdown 0.16 | regime |
+|---|---|---|---|---|
+| **+0.05** | z = 0.15 (5 cm too high) | **0.18 m** | 2 cm **above** | foot trajectory ends ABOVE actual ground → no contact at scheduled `t_b` → **late / missed contact** |
+| **0.00** | z = 0.10 (correct) | **0.13 m** | 3 cm **below** | foot reaches actual ground a few ms before `t_b` → mild design-driven early contact (M2 baseline behavior) |
+| **−0.05** | z = 0.05 (5 cm too low) | **0.08 m** | 8 cm **below** | foot trajectory aims through the actual ground; meets it well before `t_b` → **hard early contact** |
 
-The −0.05 case is the harsh case (perception under-shoots the descent target).
+So **+0.05 is the late-contact case** (the perceived terrain sits above the
+real one, the foot aims too high, and the swing runs out before contact),
+and **−0.05 is the hard early-contact case** (perceived terrain sits
+below the real one, the foot aims through it, and the actual surface
+arrests the foot well before the scheduled touchdown).
+
+This is consistent with the per-leg `[robust_event]` log counts collected
+during the trials (see "Findings" §F0 below for the table): `+0.05` is
+dominated by `late` events, `−0.05` is dominated by `late` events too but
+those are mostly fall-induced (the leg is airborne after the body rolls
+over), while the small `early` count at `−0.05` (14) catches the actual
+hard-contact moments before the fall.
 
 Driver: [`tools/perceptive_dev_v2/m2_robust_ab_sweep.sh`](../tools/perceptive_dev_v2/m2_robust_ab_sweep.sh).
 The script `sed`-toggles `task.info: robustPhase.enabled` per trial and
@@ -136,82 +150,127 @@ Trial result directories:
 
 ## Findings
 
-### F1 (preliminary, single seed)
+### F0 — `[robust_event]` log counts (Track ② step (a) data)
 
-The harsh case `−0.05` makes BOTH configurations fall (`roll_limit`).
-That on its own is not surprising. What is surprising:
+Per-leg event counts from `controller.log` over each 16 s trial:
+
+| trial | early | late | notes |
+|---|---|---|---|
+| robON  off=0.00 | **263** | 5 | M2 baseline pattern: design-driven mild early on every swing (foot target 3 cm below natural touchdown) |
+| robON  off=+0.05 | 7 | **264** | foot frame target 0.18 m (above actual 0.16 m) → almost every scheduled `t_b` arrives with the foot still in air → late dominant |
+| robON  off=−0.05 | 14 | 257 | 14 hard-contact events captured BEFORE the body falls; the 257 late events are mostly fall-induced (legs airborne after roll) |
+| robOFF off=0.00 | 0 | 264 | early count is 0 by construction (no robust window → `isInRobustWindow` never true). 264 late = baseline noise level: at 10 Hz MPC and `positionErrorGain=0`, the foot arrives at the scheduled `t_b` rising-edge tick with measured force still below the 5 N estimator threshold |
+| robOFF off=+0.05 | 0 | 242 | same baseline rate of late events; foot eventually lands later but not at the rising-edge tick |
+| robOFF off=−0.05 | 0 | 256 | same pattern; fall scenario doesn't shift the count much because robust OFF was already missing schedule-rising-edge contacts |
+
+These counts directly support the offset-sign reading above: `+0.05` is
+the late case (264 late at robust ON), `−0.05` is the early case (only
+14 caught events because the body falls before many more swings can
+happen). The late event count for robust OFF is roughly constant
+(~240–264) regardless of offset, which is itself an interesting baseline
+fact — at 10 Hz with `positionErrorGain=0` the original perceptive MPC
+already misses the rising-edge of scheduled stance ~66 % of the time
+even on flat ground.
+
+### F1 — `−0.05` (hard early contact): both fall, robust ON falls earlier
 
 | | distance covered | roll_rms |
 |---|---|---|
 | robust ON,  off=−0.05 | **0.77 m** | **13.13°** |
 | robust OFF, off=−0.05 | 1.12 m | 7.12° |
 
-Robust ON falls **earlier** and rolls **worse** in the harsh case. The
-mechanism is straightforward once written out:
+Robust ON falls **earlier** and rolls **worse**. Mechanism:
 
 ```
-target z_foot at t_b  =  perceived_terrain_z + foot_frame_offset − d
-                       =  (0.10 − 0.05) + 0.06 − 0.03
-                       =  0.08 m
-contact-point target  =  z_foot − foot_frame_offset = 0.02 m
-actual terrain z      =  0.10 m
+robust ON  target z_foot at t_b  =  perceived_terrain_z + foot_frame_offset − d
+                                 =  0.05 + 0.06 − 0.03 = 0.08 m
+contact-point equivalent          =  0.02 m   (8 cm below actual ground at 0.10 m)
+actual terrain z                  =  0.10 m
 ```
 
-The robust-phase boundary equality is therefore commanding the contact
-point to **0.08 m below the actual terrain**. The soft penalty
-(`w_boundary = 1000`) drives the foot hard against the box surface.
-Asymmetric reaction force across the diagonal trot pair → roll instability
-→ fall. Robust OFF, by contrast, only commands the ankle frame to reach
-z = 0.05 (perceived terrain top), and lacks the additional `−d` push, so
-the violation amplitude is smaller and the body rolls less.
+The robust-phase boundary equality drives a SOFT POSITION constraint on
+the foot frame at z=0.08 — i.e., commands the contact point 8 cm below
+the actual surface. The soft penalty (`w_boundary = 1000`) is strong
+enough to apply meaningful joint torques toward this infeasible target.
+Combined with the diagonal trot pair (one swinging, one stancing), the
+asymmetric reaction force at the impossibly-low target rolls the body.
 
-The reason this is interesting is that this is the case for which the
-robust phase was supposedly designed. Per `robust_phase.tex` and
-`chat1.md` the design intent is "land safely anywhere in the
-`[perceived − d, perceived + d]` band". With `d = 0.03` and `|offset| =
-0.05`, the actual terrain at z=0.10 lies **outside the band**
-(`[0.02, 0.08]`). The robust phase's guarantee is voided. The phase then
-behaves like a strong soft constraint that commits even harder to the
-wrong surface.
+Robust OFF does **not** equivalently command the foot to perceived = 0.05.
+The original perceptive MPC plans the foot trajectory using
+`NormalVelocityConstraint` with `task.info: positionErrorGain = 0.0`, so
+the constraint is **velocity-only** (`config.b -= positionErrorGain *
+zPositionConstraint` is skipped, and `Ax` stays zero — see
+[`LeggedRobotPreComputation.cpp:75-83`](../controllers/ocs2_quadruped_controller/src/interface/LeggedRobotPreComputation.cpp#L75-L83)).
+There is no terminal foot-z position equality; the swing planner shapes
+the trajectory through the cost, not a hard pull at `t_b`. So robust OFF
+sees a milder version of the same wrong perception and reacts to it more
+softly, which is why it survives further (1.12 m before fall vs 0.77 m).
 
-### F2 (preliminary, single seed)
+The original design intent for the robust phase was "land safely
+anywhere in the `[perceived − d, perceived + d]` band". With `d = 0.03`
+and `|offset| = 0.05`, the actual terrain at z=0.10 lies **outside**
+that band (`[0.02, 0.08]`). The phase's correctness guarantee is voided
+in this regime, and the soft boundary becomes a strong nudge toward a
+wrong static position. **The −0.05 sweep is therefore not a fair test
+of the robust phase's design intent** — it is a stress test of what
+robust phase does when its assumption (`|error| ≤ d`) is violated.
 
-The mild case `+0.05` shows **no measurable benefit** from the robust phase:
+### F2 — `+0.05` (late / missed contact): both succeed, no robust-phase benefit
 
 | | distance | pitch_rms | roll_rms |
 |---|---|---|---|
 | robust ON,  off=+0.05 | 1.661 | 5.32 | 1.95 |
 | robust OFF, off=+0.05 | 1.695 | 5.34 | 2.10 |
 
-This is the case for which the robust phase's intent — "expect early
-contact and don't trip on it" — should help. The numbers are nearly
-identical. Likely reasons (not yet verified, listed in priority of
-plausibility):
+Per the corrected offset-sign reading, **+0.05 is the LATE-contact
+regime, not early**. The robust phase as designed is intended to
+handle EARLY contact (foot may meet terrain anywhere in the
+`[perceived − d, perceived + d]` band, possibly before scheduled `t_b`),
+not late contact (perceived terrain sits above reality so the foot
+runs out of swing trajectory before touching). So we should not have
+expected a robust-phase benefit on `+0.05` to begin with — the design
+doesn't promise one. The near-identical numbers are consistent with
+that.
 
-1. **MPC at 10 Hz is still fast enough to absorb early contact via
-   replanning.** The next OCP solve sees the foot already on the ground
-   (initial state has it there) and re-plans starting from a stance-like
-   configuration; over a 100 ms cycle this implicit recovery may rival
-   the explicit robust-phase reference. `chat4.md` predicted this and
-   recommended sweeping down to 2–5 Hz.
-2. **The hardware-interface `Kp = 0` cushions the mismatch.** With
-   position-PID disabled, the joint command does not aggressively fight
-   the ground; the foot just stays planted and ground reaction propagates
-   through the leg without amplifying torque error. Both robust ON and
-   robust OFF benefit equally.
-3. **The +0.05 case is gentler than expected.** The foot lands on the
-   surface, not below it; the resulting state has high force but no
-   penetration. There may simply be no instability to compare against.
+What is interesting is that **both modes survive late contact at all**.
+Two plausible mechanisms (not yet verified by deeper instrumentation):
 
-### F3 (consistent with M2 A/B at 50 Hz)
+1. **Joint Kd = 6 + Kp = 0 absorbs the timing mismatch.** When the foot
+   eventually finds ground (a few tens of ms after scheduled `t_b`), the
+   ground reaction is absorbed by velocity damping rather than amplified
+   by position PID.
+2. **MPC at 10 Hz still re-plans within ~100 ms of the missed touchdown.**
+   The next OCP gets a measured state in which the leg is airborne past
+   its scheduled stance time; the OCP cannot consult `observation_.mode`
+   in this codebase (see "Note on F2 mechanism" below) but the new
+   initial state itself encodes "foot is at z=0.16, not z=0.21" and the
+   OCP re-shapes the next swing/stance accordingly.
 
-The `0.00` baseline (no perception noise) shows robust ON paying ~24 % in
-distance covered (1.14 m vs 1.50 m), with body-stability metrics roughly
-equal. This matches the M2 A/B finding at 50 Hz (1.17 vs 1.57; commit
-`8d6b027` Appendix C.2): the robust-phase soft penalty pulls the foot
-slightly below the swing planner's nominal trajectory and slows forward
-progress. **The cost is consistent and present whether or not perception
-noise exists.**
+**Note on F2 mechanism (correction to an earlier draft).** An earlier
+version of this report said "the next OCP solve sees the foot already
+on the ground and re-plans starting from a stance-like configuration".
+This overstated what the code does. `MPC_MRT_Interface::advanceMpc()`
+calls `mpc_.run(currentObservation.time, currentObservation.state)` —
+state is passed but `currentObservation.mode` is NOT
+([`MPC_MRT_Interface.cpp:73`](https://github.com/leggedrobotics/ocs2/blob/main/ocs2_mpc/src/MPC_MRT_Interface.cpp#L73)).
+The contact schedule used for constraint activation comes from
+`SwitchedModelReferenceManager::getContactFlags(t)` which reads the
+gait template only. So the new OCP only uses the measured state
+(joint positions, base pose) — it does NOT explicitly re-tag the leg
+as stance. Whatever recovery happens is purely through the kinematic
+state being closer-to-stance at the next solve, not through any
+explicit mode update.
+
+### F3 — `0.00` baseline: robust ON costs 24 % distance (consistent with M2 A/B at 50 Hz)
+
+The `0.00` baseline (no perception noise) shows robust ON covering 1.14 m
+vs robust OFF's 1.50 m, with body-stability metrics roughly equal. This
+matches the M2 A/B finding at 50 Hz (1.17 vs 1.57; commit `8d6b027`
+Appendix C.2): the robust-phase soft penalty pulls the foot slightly
+below the swing planner's nominal trajectory (target 3 cm below natural
+touchdown — this is also why the F0 baseline shows 263 design-driven
+early events on every swing) and slows forward progress. **The cost is
+consistent and present whether or not perception noise exists.**
 
 ## What this report does not yet answer
 
@@ -230,28 +289,39 @@ noise exists.**
 
 ## Implication for Track ②
 
-Track ② step (b) — schedule splice + WBC override — was deferred so this
-report could be produced cleanly. The sweep result motivates further
-deferring step (b) at least until **F1 is resolved by a `d` sweep**. The
-specific concern: if step (b) is added on top of a configuration where
-robust phase's guard band fails to contain the actual terrain (as in the
-−0.05 case here), the schedule splice will fire on every cycle the foot
-hits the surface (sustained-contact threshold trivially satisfied), and
-the splice will simply latch the leg to stance after the body has already
-been rolled by the impact. The reactive layer would mask, not fix, the
-underlying parameter mismatch.
+Track ② step (b) — **schedule splice only**, with WBC contact-flag
+override deliberately deferred — was held so this report could be
+produced cleanly. (Per `chat4.md`'s recommendation, mixing in a WBC
+reactive layer would contaminate the original-vs-robust OCP comparison;
+WBC override is a separate decision after the OCP-level effect is
+characterized.)
+
+The sweep result motivates further deferring step (b) at least until
+**F1 is resolved by a `d` sweep**. The specific concern: if schedule
+splice is added on top of a configuration where robust phase's guard
+band fails to contain the actual terrain (as in the −0.05 case here),
+the splice will fire on the first measured contact every swing
+(sustained-contact threshold trivially satisfied), and will latch the
+leg to stance after the body has already been rolled by the impact.
+The reactive layer would mask, not fix, the underlying parameter
+mismatch.
 
 The cleaner sequence is:
 
-1. Sweep `d` at fixed offset. Confirm the regime where robust phase
-   actually delivers its design promise (lower fall rate, lower foot
-   impact velocity than original).
-2. (chat4 recommendation) Sweep MPC rate at off = 0 to confirm the
-   robust phase's effect is rate-dependent in the predicted direction.
-3. Add multi-seed bars for the cells of interest.
-4. Then decide whether step (b) (schedule splice, WBC override held
-   separately for the comparison-purity reason from chat4) is worth
-   adding, and on what threshold.
+1. Sweep `d` at fixed `−offset` (the early-contact regime). Confirm
+   the regime where robust phase actually delivers its design promise
+   (lower fall rate, lower foot impact velocity than original).
+   Reviewer-recommended matrix: `offset ∈ {−0.02, −0.03, −0.05}` ×
+   `d ∈ {0.03, 0.05, 0.07}`.
+2. Treat `+offset` separately as a late-contact stress test, not a
+   robust-phase benefit test.
+3. (chat4 recommendation) Sweep MPC rate at `offset = 0` to confirm
+   the robust phase's `t_b`-tracking effect, if any, is rate-dependent
+   in the predicted direction.
+4. Add multi-seed bars for the cells of interest.
+5. Then decide whether step (b) (schedule splice only, no WBC
+   override) is worth adding, and on what `N` consecutive-tick
+   threshold.
 
 ## Files of record
 

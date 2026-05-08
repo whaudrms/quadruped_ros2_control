@@ -7,11 +7,19 @@
 #
 # terrain_z_offset is restricted to surfaces with true top z < 0.15 m, which on
 # basic_step_short selects ONLY box2 (z=0.10), leaving box1 (z=0.20) unchanged.
-# Physical interpretation:
-#   +0.05  perception sees box2 5cm HIGHER than reality → foot expects it sooner
-#          (early contact; gentle case for the robot)
-#   -0.05  perception sees box2 5cm LOWER than reality → foot expects it later
-#          (late contact at scheduled t_b; foot still in air → potential miss/fall)
+#
+# Physical interpretation (corrected from an earlier draft — earlier comment
+# had the signs reversed; see WithoutSplice.md "Physical interpretation" table
+# and Findings F0/F2):
+#   +0.05  perception sees box2 5cm HIGHER than reality (z=0.15 vs actual 0.10).
+#          Robust ON foot-frame target at t_b = perceived + offset_foot − d
+#          = 0.18 m, which is 2 cm ABOVE the natural touchdown 0.16 m. Foot
+#          trajectory ends ABOVE the actual ground at scheduled t_b → no contact
+#          at t_b → LATE / missed contact (late events dominant in the log).
+#   -0.05  perception sees box2 5cm LOWER than reality (z=0.05 vs actual 0.10).
+#          Robust ON foot-frame target = 0.08 m = 8 cm BELOW natural touchdown
+#          0.16 m. Foot trajectory aims through the actual ground; foot meets
+#          actual ground well before scheduled t_b → HARD EARLY contact.
 #
 # task.info: robustPhase.enabled is toggled in-place per trial (backed up to
 # .info.bak by this script and restored at the end, even on Ctrl+C).
