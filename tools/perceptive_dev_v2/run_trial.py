@@ -346,8 +346,18 @@ def main():
     parser.add_argument("--mujoco-extra-args", default=None,
                         help="Extra flags for unitree_mujoco (default: '-k 0 -z 0.40' for basic_step, else empty)")
     parser.add_argument("--terrain-z-offset", type=float, default=0.0,
-                        help="Perception noise: shift all non-floor box top z by this offset "
+                        help="Perception noise: shift non-floor box top z by this offset "
                              "(MuJoCo physics unchanged).")
+    parser.add_argument("--terrain-z-offset-only-below-z", type=float, default=None,
+                        help="Restrict terrain_z_offset to surfaces with true top z below this "
+                             "threshold [m]. Default omits the launch arg → all non-floor surfaces "
+                             "get the offset. Use 0.15 on basic_step_short to apply only to box2 "
+                             "(z=0.10) and leave box1 (z=0.20) unchanged.")
+    parser.add_argument("--mpc-frequency", type=float, default=None,
+                        help="Override mpcDesiredFrequency in the active task.info for this trial. "
+                             "task.info is backed up to *.bak before the trial and restored "
+                             "afterward (try/finally guarded). sqp.dt is NOT touched — only the "
+                             "MPC re-solve rate changes. Used for the M2 A/B sweep (10/20/50 Hz).")
     args = parser.parse_args()
 
     ws_setup = detect_ws_setup(args.ws_setup)
@@ -395,9 +405,51 @@ def main():
     extra_args = []
     if abs(args.terrain_z_offset) > 0.0:
         extra_args.append(f"terrain_z_offset:={args.terrain_z_offset}")
+    if args.terrain_z_offset_only_below_z is not None:
+        extra_args.append(
+            f"terrain_z_offset_only_below_z:={args.terrain_z_offset_only_below_z}")
     # Per-tick CSV log saved into the run_dir for offline analysis.
     tick_log_default = str(run_dir / "tick.csv")
     extra_args.append(f"tick_log_path:={tick_log_default}")
+
+    # --mpc-frequency: in-place edit of the active task.info before launching,
+    # restored in the finally block. The controller plugin loads task.info from
+    # the package share directory at startup; it has no ROS-param override path,
+    # so a textual swap is the simplest way to vary mpcDesiredFrequency between
+    # trials. We back up to *.bak and restore unconditionally.
+    task_info_path = Path(
+        "/home/cora/GO2_ws/quadruped_ros2_control/descriptions/unitree/"
+        "go2_description/config/ocs2/task.info")
+    task_info_backup = task_info_path.with_suffix(".info.bak")
+    mpc_frequency_overridden = False
+    if args.mpc_frequency is not None:
+        if not task_info_path.exists():
+            raise FileNotFoundError(f"task.info not found at {task_info_path}")
+        original_text = task_info_path.read_text()
+        task_info_backup.write_text(original_text)
+        # Match e.g. "  mpcDesiredFrequency             50  ; comment"
+        pattern = re.compile(
+            r"^(\s*mpcDesiredFrequency\s+)([0-9]+(?:\.[0-9]+)?)(\s*.*)$",
+            re.MULTILINE)
+        n_subs = 0
+
+        def _replace(m: re.Match) -> str:
+            nonlocal n_subs
+            n_subs += 1
+            new_freq = (str(int(args.mpc_frequency))
+                        if float(int(args.mpc_frequency)) == args.mpc_frequency
+                        else str(args.mpc_frequency))
+            return f"{m.group(1)}{new_freq}{m.group(3)}"
+
+        new_text = pattern.sub(_replace, original_text)
+        if n_subs == 0:
+            task_info_backup.unlink(missing_ok=True)
+            raise RuntimeError(
+                f"Could not find 'mpcDesiredFrequency' line in {task_info_path}")
+        task_info_path.write_text(new_text)
+        mpc_frequency_overridden = True
+        print(f"[run_trial] mpc-frequency override: "
+              f"task.info mpcDesiredFrequency → {args.mpc_frequency} (backup at {task_info_backup})")
 
     controller_cmd = (
         f"source {ws_setup} && "
@@ -460,6 +512,11 @@ def main():
         # succeeded, sweep the process table for any leftover noise. This is
         # what catches the zombie-pgid / 37-minute-hang case.
         kill_lingering_processes(quiet=True)
+        # Restore task.info from backup if --mpc-frequency was used.
+        if mpc_frequency_overridden and task_info_backup.exists():
+            task_info_path.write_text(task_info_backup.read_text())
+            task_info_backup.unlink()
+            print(f"[run_trial] mpc-frequency override: task.info restored from backup")
 
     print(f"[done] {run_dir}")
 

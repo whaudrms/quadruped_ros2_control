@@ -38,6 +38,9 @@ def launch_setup(context, *args, **kwargs):
     publish_static_terrain = context.launch_configurations['publish_static_terrain'].lower() in ("true", "1", "yes", "on")
     terrain_smoothing_radius = float(context.launch_configurations['terrain_smoothing_radius'])
     terrain_z_offset = float(context.launch_configurations.get('terrain_z_offset', '0.0'))
+    # +inf default = apply offset to all non-floor surfaces (backward-compatible).
+    terrain_z_offset_only_below_z = float(
+        context.launch_configurations.get('terrain_z_offset_only_below_z', '1e9'))
     terrain_scene_file = resolve_scene_file(context.launch_configurations['terrain_scene_file'])
     pkg_path = os.path.join(get_package_share_directory(package_description))
 
@@ -163,6 +166,7 @@ def launch_setup(context, *args, **kwargs):
                 "smoothing_radius": terrain_smoothing_radius,
                 "publish_rate": 0.0,
                 "terrain_z_offset": terrain_z_offset,
+                "terrain_z_offset_only_below_z": terrain_z_offset_only_below_z,
             }
         ],
     )
@@ -270,7 +274,15 @@ def generate_launch_description():
     terrain_z_offset = DeclareLaunchArgument(
         'terrain_z_offset',
         default_value='0.0',
-        description='Perception noise: shift all non-floor box top z by this offset (MuJoCo physics unchanged)'
+        description='Perception noise: shift non-floor box top z by this offset (MuJoCo physics unchanged)'
+    )
+
+    terrain_z_offset_only_below_z = DeclareLaunchArgument(
+        'terrain_z_offset_only_below_z',
+        default_value='1e9',
+        description='Restrict terrain_z_offset to surfaces with true top z below this threshold [m]. '
+                    'Default 1e9 ≈ +inf (apply to all non-floor surfaces). Use e.g. 0.15 for '
+                    'basic_step_short to apply offset only to box2 (z=0.10), leaving box1 (z=0.20) untouched.'
     )
 
     tick_log_path = DeclareLaunchArgument(
@@ -296,6 +308,7 @@ def generate_launch_description():
         publish_static_terrain,
         terrain_smoothing_radius,
         terrain_z_offset,
+        terrain_z_offset_only_below_z,
         terrain_scene_file,
         tick_log_path,
         OpaqueFunction(function=launch_setup),
