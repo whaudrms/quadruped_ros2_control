@@ -1,0 +1,92 @@
+name: standing_trot_forward_short_dev_v2
+# 8 s short variant of standing_trot_forward, used for fast A/B sweeps
+# (e.g. m2_critical_band_inside.sh). Setup phases are kept identical so the
+# robot reaches OCS2 + stable trot in the same configuration; only the
+# forward+stop tail is shortened.
+#
+# Phase budget (total 8.0 s):
+#   stand_only          1.0 s   (was 2.0)
+#   hold_after_stand    0.5 s   (was 1.0)
+#   enter_ocs2          0.5 s   (same)
+#   stabilize_gait      1.0 s   (was 1.5)
+#   forward             3.0 s   (was 6.0; with twist x=0.3 m/s → ~0.9 m forward,
+#                                enough to descend basic_step_short edge at x=0.30)
+#   stop                2.0 s   (was 3.0)
+publish_rate_hz: 50.0
+timeout_sec: 8.0
+monitoring_start_sec: 2.5
+initial_window_sec: 1.0
+mujoco_startup_wait_sec: 2.5
+controller_startup_wait_sec: 20.0
+fall_detection:
+  min_base_z: 0.03
+  max_base_z_drop: 0.08
+  max_abs_roll_deg: 60.0
+  max_abs_pitch_deg: 60.0
+steps:
+  - name: stand_only
+    duration: 1.0
+    control_input:
+      command: 2
+      lx: 0.0
+      ly: 0.0
+      rx: 0.0
+      ry: 0.0
+    twist:
+      linear: {x: 0.0, y: 0.0, z: 0.0}
+      angular: {x: 0.0, y: 0.0, z: 0.0}
+  - name: hold_after_stand
+    duration: 0.5
+    control_input:
+      command: 0
+      lx: 0.0
+      ly: 0.0
+      rx: 0.0
+      ry: 0.0
+    twist:
+      linear: {x: 0.0, y: 0.0, z: 0.0}
+      angular: {x: 0.0, y: 0.0, z: 0.0}
+  - name: enter_ocs2
+    duration: 0.5
+    control_input:
+      command: 4
+      lx: 0.0
+      ly: 0.0
+      rx: 0.0
+      ry: 0.0
+    twist:
+      linear: {x: 0.0, y: 0.0, z: 0.0}
+      angular: {x: 0.0, y: 0.0, z: 0.0}
+  - name: stabilize_gait
+    duration: 1.0
+    control_input:
+      command: 0
+      lx: 0.0
+      ly: 0.0
+      rx: 0.0
+      ry: 0.0
+    twist:
+      linear: {x: 0.0, y: 0.0, z: 0.0}
+      angular: {x: 0.0, y: 0.0, z: 0.0}
+  - name: forward
+    duration: 3.0
+    control_input:
+      command: 0
+      lx: 0.0
+      ly: 0.0
+      rx: 0.0
+      ry: 0.0
+    twist:
+      linear: {x: 0.3, y: 0.0, z: 0.0}
+      angular: {x: 0.0, y: 0.0, z: 0.0}
+  - name: stop
+    duration: 2.0
+    control_input:
+      command: 0
+      lx: 0.0
+      ly: 0.0
+      rx: 0.0
+      ry: 0.0
+    twist:
+      linear: {x: 0.0, y: 0.0, z: 0.0}
+      angular: {x: 0.0, y: 0.0, z: 0.0}

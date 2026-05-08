@@ -272,6 +272,129 @@ touchdown — this is also why the F0 baseline shows 263 design-driven
 early events on every swing) and slows forward progress. **The cost is
 consistent and present whether or not perception noise exists.**
 
+### F4 — formulation property: robust phase TRAVERSES the guard band
+
+A second peer review (`chat5.md`) flagged that the previous wording in
+this note ("anywhere in band contact is acceptable") understated what
+the current formulation actually does. Spelled out:
+
+```
+g(t_a) = +d         foot frame is FORCED to start the robust window
+                     d above the perceived plane
+
+g(t_b) = -d         foot frame is FORCED to end the robust window
+                     d below the perceived plane
+
+ġ ≤ 0               foot must be approaching (descending toward) the
+                     guard plane throughout the window
+
+J = w_v Σ ġ²        impact-velocity softening
+```
+
+The two boundary equalities are **soft penalties**, not "free to be
+within the band". `g(t_a)=+d` and `g(t_b)=-d` actively pull the
+foot-frame trajectory through a `+d → −d` excursion in 100 ms.
+Equivalently, the contact-point trajectory is pulled through
+`(perceived + d) → (perceived − d)`. So even at `Δz = 0` the contact
+target at `t_b` is **3 cm below the actual ground**, by design — this
+is the source of the F0 baseline 263 design-driven early events on
+every swing.
+
+The implications are:
+
+1. **Within `|Δz| ≤ d`** (actual terrain inside the guard band), the
+   robust phase will produce contact at some point inside the window,
+   with reduced impact velocity (per the `Σ ġ²` cost). The
+   "guard-band-permits-contact" intuition holds.
+2. **Outside `|Δz| > d`** (actual terrain outside the guard band),
+   the robust phase still pulls the contact point to `perceived ± d`,
+   committing harder to the wrong perception. F1's −0.05 fall is the
+   manifestation of this: target contact-point z = 0.02 m, actual
+   ground z = 0.10 m, soft penalty pushes leg through the surface.
+
+So robust phase is correctly described as **"actively traverses the
+guard band"**, not "permits contact anywhere in the guard band". The
+two phrasings agree only when the actual terrain lies inside the band.
+
+### F5 — chat5's critical band-inside cell: formulation issue confirmed
+
+`chat5.md` A2 proposed a single decisive cell to distinguish "wrong
+sweep parameters" from "real formulation problem":
+
+```
+Δz = −0.02,  d = 0.03
+   z_perc = 0.08
+   band [z_perc − d, z_perc + d] = [0.05, 0.11]
+   z_actual = 0.10  ∈  [0.05, 0.11]    ← band condition HOLDS
+```
+
+If robust ON does not beat robust OFF here, the issue is formulation /
+weight / implementation, not the sweep matrix. Result (`basic_step_short`,
+`standing_trot_forward_short` (8 s variant), MPC=10 Hz, `--terrain-z-offset
+-0.02 --terrain-z-offset-only-below-z 0.15`):
+
+| | success | dist [m] | pitch_rms [°] | **roll_rms [°]** | base_z_std | early | late |
+|---|---|---|---|---|---|---|---|
+| robust ON  (`crit_band_robON_offM02`)  | True | 0.726 | 8.04 | **7.27** | 0.0647 | 102 | 129 |
+| robust OFF (`crit_band_robOFF_offM02`) | True | 0.740 | 7.78 | **2.34** | 0.0581 | 0   | 28  |
+
+Robust ON's roll RMS is **3× worse** in the band-inside regime where
+the design promise should hold. This triggers chat5's
+"formulation / weight / implementation" verdict.
+
+**Mechanistic diagnosis** (combines F4 and the result above):
+
+```
+robust ON  target_zf(t_b)  =  perceived + foot_offset − d
+                            =  0.08 + 0.06 − 0.03  =  0.11 m
+contact-point target        =  target_zf − foot_offset  =  0.05 m
+                                                       (= perceived − d
+                                                        = lower edge of band)
+actual terrain z            =  0.10 m
+constant residual           =  0.10 − 0.05  =  0.05 m  (foot frame
+                                                       commanded 0.05 m
+                                                       below actual ground)
+soft-penalty gradient at t_b =  2 · w_boundary · residual
+                            =  2 · 1000 · 0.05  =  100   (per leg per
+                                                          affected node)
+```
+
+The 100-unit gradient is a sustained push-down force on the foot at
+every robust-window evaluation, even though ground reaction prevents
+the foot from actually reaching z=0.05. With the diagonal trot pair
+asymmetric (one leg pushed down, the other in stance), the body rolls.
+
+So **the boundary equality `g(t_b) = −d` does not mean "permit landing
+in the band"; it means "land at the LOWER edge of the band"**, which
+remains `d` below perceived terrain regardless of `Δz`. When the
+perceived terrain is itself slightly low (`Δz < 0`, even within `|Δz| ≤ d`),
+the lower band edge is even further below the actual surface, and the
+soft penalty drives a sustained push-through-ground.
+
+Robust OFF avoids this because `positionErrorGain = 0` makes the swing-z
+constraint velocity-only (no terminal foot-z position equality at all),
+so the foot lands wherever ground reaction stops it (~ actual z=0.10),
+and the residual against the swing planner's soft cost is small.
+
+### Formulation candidates to try
+
+To make robust phase actually deliver its design promise within
+`|Δz| ≤ d`, the terminal boundary needs to stop pushing the foot
+below perceived terrain. Options ordered by smallest change:
+
+| # | change | expected effect |
+|---|---|---|
+| **F-a** | `g(t_b) = 0` instead of `-d` (land at perceived, not below) | residual collapses to `Δz` (small) instead of `d − Δz`; robust phase becomes "land at perceived terrain, with `ġ²` softening". Smallest change. |
+| **F-b** | drop terminal equality entirely, keep only `ġ ≤ 0` + `Σ w_v · ġ²` | closest to the original paper's "permit anywhere in band" intent. Swing planner shapes the trajectory, robust phase only softens approach. |
+| **F-c** | `g(t_b) ≥ −d` (one-sided inequality instead of equality) | foot may reach band lower edge but isn't pulled there. Asymmetric: still penalizes overshoot below band. |
+| **F-d** | drop `w_boundary` from 1000 → 50 | weakens but doesn't fix the directional bias; tuning-only. |
+
+**Recommended next experiment**: implement (F-a) (smallest delta) and
+re-run the same critical cell. If robust ON now beats robust OFF in
+roll_rms, formulation issue is the right diagnosis and (F-a) is the
+fix; broader sweep can resume. If (F-a) doesn't move the needle, try
+(F-b).
+
 ## What this report does not yet answer
 
 - **Whether the F2 null result is due to MPC rate or to the test scenario
@@ -296,32 +419,74 @@ reactive layer would contaminate the original-vs-robust OCP comparison;
 WBC override is a separate decision after the OCP-level effect is
 characterized.)
 
-The sweep result motivates further deferring step (b) at least until
-**F1 is resolved by a `d` sweep**. The specific concern: if schedule
-splice is added on top of a configuration where robust phase's guard
-band fails to contain the actual terrain (as in the −0.05 case here),
-the splice will fire on the first measured contact every swing
-(sustained-contact threshold trivially satisfied), and will latch the
-leg to stance after the body has already been rolled by the impact.
-The reactive layer would mask, not fix, the underlying parameter
-mismatch.
+A **second peer review** (`chat5.md`) sharpened the case for adding
+step (b) by pointing out a **fundamental limit of the splice-less
+configuration**, beyond just the band-out-of-range issue F1 highlighted:
 
-The cleaner sequence is:
+> Without splice, the gait schedule is never updated by measured
+> contact. So even when `|Δz| ≤ d` (the actual terrain IS inside the
+> guard band), the OCP keeps planning to traverse all the way to
+> `g(t_b) = -d` even after the foot has actually touched. The WBC
+> keeps following swing motion until the SCHEDULED `t_b`. The robust
+> phase's only deliverable in this regime is "softer impact velocity
+> via `Σ ġ²` cost"; the "land safely anywhere in the band" promise of
+> the original robust-phase paper is **not actually delivered without
+> the event splice**.
 
-1. Sweep `d` at fixed `−offset` (the early-contact regime). Confirm
-   the regime where robust phase actually delivers its design promise
-   (lower fall rate, lower foot impact velocity than original).
-   Reviewer-recommended matrix: `offset ∈ {−0.02, −0.03, −0.05}` ×
-   `d ∈ {0.03, 0.05, 0.07}`.
-2. Treat `+offset` separately as a late-contact stress test, not a
-   robust-phase benefit test.
-3. (chat4 recommendation) Sweep MPC rate at `offset = 0` to confirm
-   the robust phase's `t_b`-tracking effect, if any, is rate-dependent
-   in the predicted direction.
-4. Add multi-seed bars for the cells of interest.
-5. Then decide whether step (b) (schedule splice only, no WBC
-   override) is worth adding, and on what `N` consecutive-tick
-   threshold.
+Two consequences:
+
+1. **The first sweep (this report) is not a fair test of the robust
+   phase's full design intent.** It tests the "OCP-only" sub-component:
+   guard-band traversal + impact-velocity softening. The
+   "event-triggered touchdown" half is missing.
+2. **Even adding step (b) won't rescue the `|Δz| > d` regime.** When
+   actual terrain is outside the band, schedule splice fires after the
+   wrong-place impact, so step (b) is necessary but not sufficient
+   for that regime. Robust phase parameter (`d`) tuning vs perception
+   noise amplitude is a separate axis.
+
+So step (b) is now seen as **necessary for fully validating the
+robust phase's design promise** within `|Δz| ≤ d`, not just a
+follow-up performance refinement. The cleaner sequence becomes:
+
+1. **First critical experiment (chat5 N3)** — single decisive cell:
+   `Δz = -0.02, d = 0.03` × robust ON / OFF × MPC 10 Hz on
+   `basic_step_short`. With these values:
+   - `z_perc = 0.08`, `[z_perc - d, z_perc + d] = [0.05, 0.11]`,
+     `z_actual = 0.10 ∈ [0.05, 0.11]` ✓ **band condition holds**
+   - Contact target at `t_b`: `z_perc - d = 0.05` (5 cm below actual
+     ground) — significant pull but band condition satisfied
+   - Expected if formulation is sound: robust ON shows lower foot
+     impact velocity (less violent contact when foot meets actual
+     ground at z=0.10 instead of commanded 0.05) and either equal or
+     better roll/pitch stability than robust OFF.
+   - If robust ON does NOT beat robust OFF here → formulation /
+     weight / implementation problem, not a sweep-parameter issue
+     (chat5 verdict).
+2. **Band-inside sweep**: `Δz ∈ {-0.02, -0.03, +0.02, +0.03}` ×
+   `d = 0.03`, robust ON / OFF.
+3. **Band-outside (out-of-design) sweep**: `Δz = ±0.05` ×
+   `d ∈ {0.03, 0.05, 0.07}`, robust ON / OFF. Show the boundary
+   between "robust phase helps" and "robust phase commits to wrong
+   plane and hurts".
+4. **Add deeper metrics** (chat5 recommendation):
+   - Foot impact velocity `ġ(t_contact)` at first measured contact
+     per swing — extract from `tick.csv` joint velocities via
+     pinocchio FK.
+   - First-contact lead time `t_b - t_contact` — extract from
+     `[robust_event]` log + scheduled `t_b`.
+   - Plot foot z and contact-point z trajectories per swing for both
+     ON / OFF in the same axes.
+5. **Add multi-seed bars** for the cells of interest.
+6. **Implement step (b)** (schedule splice on sustained measured
+   contact during robust window) and re-run the band-inside cells.
+   This is the moment to test "does robust phase + event splice
+   actually deliver the design promise within band?".
+
+The order is intentional: step (b) is implemented LAST, after the
+splice-less behavior in band is characterized. That way, any
+improvement (or lack thereof) when splice is added can be cleanly
+attributed to the event-triggered transition.
 
 ## Files of record
 
