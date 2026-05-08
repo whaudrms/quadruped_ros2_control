@@ -172,10 +172,9 @@ targets, and the perception pipeline correctly identifies the descent target one
 before touchdown**. The "actual surface" claim is still scoped to horizontal box/step
 terrain because the plane normal `n` is currently hard-wired to `e_z`; inclined surfaces
 need M2.x (extract `n` from `proj.regionPtr->transformPlaneToWorld.linear().col(2)`).
-Body descent quality looks primarily like a base-reference / WBC-tracking issue, but
-attributing it definitively requires a head-to-head comparison against a no-robust M2
-baseline (`task.info: robustPhase.enabled = false` on the same scene), which has not
-been run yet.
+Body descent quality is a separate base-reference / WBC issue (A/B verified — see the
+"Body descent quality — A/B confirmed" subsection above) and is queued under "Next
+milestones" rather than blocking M2.
 
 ## Files (read-or-modify map)
 
@@ -187,28 +186,22 @@ Single-commit change set: `9509863`. Three small edits, no new files.
 | [`src/perceptive/interface/PerceptiveLeggedReferenceManager.cpp`](../controllers/ocs2_quadruped_controller/src/perceptive/interface/PerceptiveLeggedReferenceManager.cpp) | `computeRobustWindows` adds the `convex_region` branch (phase-index projection lookup, null-projection flat fallback). `loadRobustPhaseSettings` parses the new field. |
 | [`descriptions/unitree/go2_description/config/ocs2/task.info`](../descriptions/unitree/go2_description/config/ocs2/task.info) | Default `terrain_source = convex_region`. `terrain_z_M1` retained as fallback. |
 
-## Next milestones — choose one
+## Next milestones — status
 
 After M2 the in-OCP robust phase plumbing is complete enough that the Python `robust_refine`
-external layer is no longer load-bearing. The remaining work splits into four candidates,
-with rough cost / impact estimates:
+external layer is no longer load-bearing. Original four candidates with their current
+status:
 
-| # | candidate | scope | est. cost | impact / why pick this next |
-|---|---|---|---|---|
-| 1 | **Stage 8/9 cleanup** | Delete `RefinedPolicyReader`, `MpcDumpRecorder`, the `mpc_one_shot_*` machinery, the `[robust_refine] override=…` per-cycle log lines; trim `tools/perceptive_dev_v2` of `--enable-refiner-swap` / oneshot scenarios | ~0.5 day | Removes ongoing debug noise (the log lines still print every cycle), shrinks build, eliminates a dead failure-mode path before any hardware bring-up. **Prereq for clean M3 telemetry**. |
-| 2 | **Body descent tuning** | Address the body-z gap exposed by M2 (`min_z = start_z`, `pitch_rms 5.6°` on `basic_step_short`). Touch points: `PerceptiveLeggedReferenceManager.cpp:188-294` base-reference modification (height-blend / pitch-blend / down-step commit distance) and/or WBC tracking weights | ~1–2 days, larger result variance | Most visible quality improvement. M2 already plans box2-targeting feet, so this is the bottleneck preventing the whole "graceful descent" demo. |
-| 3 | **M3 — multi-touchdown + optional impulse cost** | Generalize `computeRobustWindows` to record up to `M_horizon` upcoming touchdowns per leg (not just the first); optionally add the `λ = (J M⁻¹ Jᵀ)⁻¹ J v⁻` pair-impulse cost from the original `robust_refine` formulation, gated on a CppAD differentiability smoke test for `crba`+inverse | ~2–3 days | Closes the gap with the original `robust_refine` capability set; required for any per-step `d_ℓ` perception-confidence work later. |
-| 4 | **M2.x — terrain-normal extraction** | Extract `n` from `proj.regionPtr->transformPlaneToWorld.linear().col(2)` so inclined surfaces (slopes, ramps) use a proper terrain-normal guard rather than world `e_z` | ~0.5 day | Only matters when we actually test on inclined terrain; cheap to do but no immediate sim payoff on box scenes. |
+| # | candidate | scope | status |
+|---|---|---|---|
+| 1 | Stage 8/9 cleanup | Delete `RefinedPolicyReader`, `MpcDumpRecorder`, the `mpc_one_shot_*` machinery, the `[robust_refine] override=…` per-cycle log lines; trim `tools/perceptive_dev_v2` of `--enable-refiner-swap` / oneshot scenarios | **DONE — commit `2c4b986`** (17 files, +25/−2038) |
+| 2 | Body descent A/B | Address (or first attribute) the body-z gap exposed by M2 (`min_z = start_z`, `pitch_rms 5.6°` on `basic_step_short`). Touch points: `PerceptiveLeggedReferenceManager.cpp:188-294` base-reference modification, WBC weights | **A/B DONE — commit `8d6b027`** confirmed gap is *independent* of robust phase (`min_z` and `end_z` identical with robust ON vs OFF). Tuning of base-ref / WBC remains queued separately |
+| ★ | **Track ② — early/late contact event handling** | `chat1.md`'s original ① → ② program. `CtrlComponent::updateState` compares `observation_.mode` (measured) to `referenceManagerPtr_->getContactFlags(t)` (scheduled); on early contact during a robust window, splice a stance phase into the schedule via `gait_schedule_ptr_->setModeSchedule(...)`. Optionally also override the WBC contact flag for the current tick. Two sub-steps: (a) detection + per-event log only (~0.5 d), (b) actual schedule splice + WBC override (~1–2 d). | **NEXT** (per the original ① → ② plan in `chat1.md`) |
+| 3 | M3 — multi-touchdown + optional impulse cost | Generalize `computeRobustWindows` to record up to `M_horizon` upcoming touchdowns per leg (not just the first); optionally add the `λ = (J M⁻¹ Jᵀ)⁻¹ J v⁻` pair-impulse cost from the original `robust_refine` formulation, gated on a CppAD differentiability smoke test for `crba`+inverse | parked (after Track ②) |
+| 4 | M2.x — terrain-normal extraction | Extract `n` from `proj.regionPtr->transformPlaneToWorld.linear().col(2)` so inclined surfaces use a proper terrain-normal guard rather than world `e_z` | parked (only matters with inclined scenes) |
+| 5 | Body descent tuning | Now that A/B confirms the body-z gap is base-ref / WBC, tune `PerceptiveLeggedReferenceManager.cpp:188-294` (height-blend / pitch-blend / down-step commit distance) and/or WBC tracking weights | parked (orthogonal to robust-phase work) |
 
-**Recommended order** (driven by "what unblocks the next thing" and "what gives a visible result soon"):
-
-1. **#1 Stage 8/9 cleanup** — small, removes noise, prereq for clean further telemetry.
-2. **#2 Body descent tuning** — biggest visible quality win on `basic_step_short`; once done the whole "perceptive descent demo" actually works end-to-end.
-3. **#3 M3** — once descent is robust, add multi-touchdown so the robust phase covers more than the first event in horizon.
-4. **#4 M2.x** — defer until we actually have an inclined-terrain scenario to validate against.
-
-Track ② (unscheduled-contact mode-switch in `CtrlComponent::updateState`) is orthogonal
-and remains parked per `plan.md`.
+**Picked order**: #1 → #2 (both done) → ★ Track ② → then re-evaluate.
 
 ---
 
@@ -281,4 +274,125 @@ unchanged; the fixes are doc-only and applied in the same commit as this appendi
 | 1 | medium | "Three unique pz values: floor (null-projection fallback), box2 top, box1 top" — overstated; `pz = 0.0` only appeared on `active = 0` cycles (default-initialised field), not as an exercised fallback. | "Per-leg pz" subsection now restricts the listed values to `active = 1` cycles (`{0.1, 0.2}`), and explicitly notes that the `pz = 0.0` flat fallback path *exists in code but is not exercised in this trial*. |
 | 2 | medium | "switched mid-window from box1 to box2" — actually the projection retargeted **before** the next robust window opened (FL log: `pz` changes to `0.1` at `t = 7.84`, the matching robust window runs `t_a = 8.266 → t_b = 8.366`). | Renamed the subsection to "Pre-window target switch caught mid-descent" and rewrote the description as "during free swing, the future touchdown target was retargeted from box1 to box2; once the robust window for that retargeted touchdown opens, the boundary equality already aims at box2". |
 | 3 | low | "actual surface" was unconditional; `n = e_z` still, so the claim only holds for horizontal box/step surfaces. | Verification summary qualified: "boundary equality is now defined relative to the (horizontal) box/step surface the leg targets". Inclined-terrain support deferred to M2.x as before. |
-| 4 | medium | "not a robust-phase issue" was definitive without an A/B baseline comparison. | "Body descent quality" subsection retitled "(suspected base-ref / WBC issue; needs A/B confirmation)". Reads "the most likely root cause is base-reference + WBC tracking, *not* the robust phase itself, but this attribution is provisional and needs an A/B trial (`robustPhase.enabled = false` on the same scene/scenario) to confirm". The "M2 plumbing as necessary precondition" point is preserved. |
+| 4 | medium | "not a robust-phase issue" was definitive without an A/B baseline comparison. | "Body descent quality" subsection retitled "(suspected base-ref / WBC issue; needs A/B confirmation)". Reads "the most likely root cause is base-reference + WBC tracking, *not* the robust phase itself, but this attribution is provisional and needs an A/B trial (`robustPhase.enabled = false` on the same scene/scenario) to confirm". The "M2 plumbing as necessary precondition" point is preserved. **Status: A/B done in commit `8d6b027`, see Appendix C.** |
+
+## Appendix C — Post-M2 progress (Next milestones #1 + #2)
+
+Two cleanup-class items from the "Next milestones" table executed back-to-back after
+the post-M2 review fixes landed. Both were prerequisites for moving on to Track ②
+(early/late contact event handling per `chat1.md`'s original ① → ② plan).
+
+### C.1 Stage 8/9 cleanup — commit `2c4b986`
+
+`17 files changed, +25 / −2038`. The in-OCP robust phase (M1''/M2) fully replaces the
+external Python `robust_refine` IPC layer and the one-shot OCP variant; with Track ②
+next, leaving the dead paths in place would just add noise to debugging.
+
+Removed C++ (deleted files):
+
+- `controllers/.../control/RefinedPolicyReader.{h,cpp}` — polled `/dev/shm/.../out` for refined plans
+- `controllers/.../control/MpcDumpRecorder.{h,cpp}` — wrote MPC `PrimalSolution` CSV per cycle
+
+Removed C++ (gutted in place):
+
+- `CtrlComponent` fields `refined_policy_reader_`, `refined_seq_`, `refined_mtx_`, `refined_init_time_`, `refined_time_traj_`, `refined_state_traj_`, `refined_input_traj_`, `mpc_dump_recorder_`, `mpc_one_shot_`, `mpc_one_shot_solves_`, `mpc_one_shot_done_`
+- `CtrlComponent::init()` one-shot bootstrap branch (~90 lines) collapsed back to the original receding-horizon path
+- MPC thread loop synchronous IPC + refined-policy polling block (~80 lines) collapsed back to plain `mpc_mrt_interface_->advanceMpc()`
+- `GaitManager::primeForOneShot` (only called by one-shot init)
+- `StateOCS2::run` REFINED POLICY OVERRIDE block + per-cycle `[robust_refine] override=…` status log + `tick.csv` `refined_active` column
+- `StateOCS2::last_refined_log_time_` throttle field
+
+Removed launch params (in `mujoco.launch.py`): `ocs2_dump_dir`, `ocs2_dump_max_cycles`,
+`ocs2_dump_min_interval_sec`, `enable_refiner_swap`, `refined_dir`,
+`refined_timeout_sec`, `mpc_one_shot`, `mpc_one_shot_solves`. CMakeLists entries for
+the two deleted `.cpp` removed.
+
+Removed tooling:
+
+- `tools/perceptive_dev_v2/run_trial.py` CLI: `--ocs2-dump-*`, `--enable-refiner`,
+  `--enable-refiner-swap`, `--refiner-python`, `--refiner-daemon-script`,
+  `--refined-dir`, `--refined-timeout-sec`, `--no-wipe-refine-out`, `--mpc-one-shot`,
+  `--mpc-one-shot-solves`; sidecar refiner spawn block; `/dev/shm/robust_refine` wipe
+  block; `refiner_daemon.py` from `LINGERING_PROCESS_PATTERNS`
+- `tools/perceptive_dev_v2/scenarios/standing_trot_oneshot.yaml`
+- `tools/perceptive_dev_v2/plot_tracking_error.py` (baseline-vs-refined plot)
+- `tools/perceptive_dev_v2/noise_sweep.py` (Stage 8 sweep driver)
+- `tools/perceptive_dev_v2/plot_sweep_summary.py` (Stage 8 sweep summarizer)
+
+Untouched on this branch:
+
+- `contact_timing_uncertainty/robust_refine/` (Python codebase) — kept on the `offline`
+  branch as a research archive; `replan` just stops wiring it into the controller.
+- `tick_log_path` launch param + per-tick CSV emitter — still useful for the in-OCP
+  robust phase plot (`plot_robust_phase.py`).
+
+Smoke trial after cleanup (`basic_step_short` / `standing_trot_forward`):
+`success=True`, no fall, `dist=1.245 m`, `pitch_rms=5.69°` — same ballpark as the M2
+trial (1.17 m, 5.62°). `controller.log` shows zero hits for
+`robust_refine`/`RefinedPolicy`/`refined override` (vs ~80 per trial before); 4664
+`[robust_phase]` log lines confirm the Track ① path is still active. `tick.csv` header
+now starts with `t,opt_x0,…` (no `refined_active` column).
+
+### C.2 Body descent A/B — commit `8d6b027`
+
+Closes the open A/B item from chatM2review fix #4 (Appendix B row 4). Same scene
+(`basic_step_short`), same scenario (`standing_trot_forward`), same controller build,
+only `task.info: robustPhase.enabled` toggled.
+
+| metric          | M2 (robust ON, `9509863`) | A/B (`enabled=false`) | Δ (off vs on) |
+|---|---|---|---|
+| success / fall  | True / none               | True / none           | same |
+| dist [m]        | 1.170                     | **1.573**             | +0.40 (+34 %) |
+| start_z [m]     | 0.317                     | 0.317                 | identical |
+| **end_z [m]**   | **0.463**                 | **0.459**             | **−0.004 (≈)** |
+| **min_z [m]**   | **0.317**                 | **0.317**             | **identical** |
+| pitch_rms [°]   | 5.62                      | 5.78                  | +0.16 (≈) |
+| roll_rms [°]    | 1.21                      | 2.20                  | **+1.00 (worse off)** |
+| base_z_std [m]  | 0.046                     | 0.049                 | ≈ |
+
+Three things this confirms:
+
+1. **Body descent gap is independent of robust phase.** `min_z` and `end_z` are
+   identical with robust ON vs OFF. The straddling and body-z stuck-on-box1 behavior
+   are driven by the perceptive base-reference modification + WBC, not by the M2
+   robust guard. Original (provisional) attribution is correct.
+2. **Robust phase actually improves roll stability.** `roll_rms` is roughly half with
+   the robust phase on (1.21° vs 2.20°). Plausible mechanism: the boundary equality
+   forces a more consistent foot landing height per cycle.
+3. **Robust phase costs ~34 % forward progress.** `dist` drops from 1.57 m (off) to
+   1.17 m (on). Plausible mechanism: the soft penalty pulls foot z toward
+   `p_plane.z + offset ± d`, and the deactivated `NormalVelocityConstraint` removes
+   the strong "land on the nominal touchdown height" signal the swing planner used.
+
+Trial artifacts:
+
+- `tools/perceptive_dev_v2/results/20260507_220657_..._robust_M2_first/` (ON)
+- `tools/perceptive_dev_v2/results/20260508_022845_..._M2_AB_baseline_off/` (OFF)
+
+`task.info: robustPhase.enabled` was restored to `true` in the same commit so the A/B
+toggle was a one-trial flip only.
+
+### C.3 What's next — Track ②
+
+Per Appendix A, M1''/M2 are both Track ① (event handling off). The original ① → ②
+plan in `chat1.md` queues Track ② (early/late contact event handling) immediately after
+Track ① is verified. With the cleanup and the body-descent attribution out of the way,
+Track ② is now next.
+
+Two-step plan inside Track ②:
+
+- **(a) Detection-only first.** `CtrlComponent::updateState` already has both
+  `observation_.mode = estimator_->getMode()` (measured contact, sensor-derived) and
+  the `referenceManagerPtr_->getContactFlags(observation_.time)` query (scheduled
+  contact). Compare per-leg, log unscheduled-contact-during-robust-window events
+  (`[robust_event] leg=… type=early|late t=… t_b=…`) **without** changing the
+  schedule or the WBC. Goal: confirm the events happen in the expected places and
+  that the detector doesn't fire spuriously on flat ground.
+- **(b) Schedule splice + WBC override.** On detected early contact, build a one-leg
+  modification of the active schedule that latches that leg to stance from
+  `observation_.time` and call `gait_schedule_ptr_->setModeSchedule(...)`. Mirror
+  the detection on late contact (scheduled stance with no measured contact). Override
+  the WBC contact flag for the current tick so the leg isn't asked for swing torque.
+
+(a) and (b) split into separate commits keeps the "where did the new behavior come
+from" debugging story clean.
