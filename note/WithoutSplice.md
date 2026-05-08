@@ -407,25 +407,34 @@ early-vs-late count is not a fair ON/OFF metric (in OFF the early-event log
 is gated by `isInRobustWindow`, which is always false, so OFF
 early-count = 0 by construction).
 
-To resolve this, Track ② step (b) — schedule splice on sustained measured
-contact during a robust window, with WBC contact-flag override deliberately
-kept deferred — was implemented and the same critical cell was re-run.
+Track ② step (b) — schedule splice on sustained measured early contact
+inside a robust window, with WBC contact-flag override kept deferred — was
+implemented (with two correctness fixes from a fourth peer review:
+mutation moved to `GaitManager::preSolverRun` for thread safety, and
+stance-bit propagation forward through subsequent phases until natural
+touchdown). The same critical cell was re-run with `n = 7` per condition.
 
-The full implementation, splice algorithm, results, and verdict are in the
-sibling report **[`WithSplice.md`](WithSplice.md)**. Headline:
+The full implementation, results, and verdict are in the sibling report
+**[`WithSplice.md`](WithSplice.md)**. Headline (corrected):
 
-- Splice helps significantly: roll RMS 7.27° → ~4.5° (≈38 % reduction).
-- Splice is **not** by itself sufficient to recover the OFF baseline at
-  10 Hz MPC: ON+splice still ~1.7× the roll of OFF (~4.5° vs ~2.5°). The
-  residual gap is consistent with a 105 ms stale-policy window
-  (5 ms detection latch + ~100 ms next MPC solve at 10 Hz).
-- Chat6's hypothesis (splice is the missing piece) is therefore
-  **partially confirmed**: real and large effect, but at 10 Hz the
-  formulation candidate F-a from §F5 above is not falsified either.
-
-The next planned experiment, also detailed in `WithSplice.md`, is a re-run
-of the critical cell at MPC 50 Hz with splice ON to test whether the
-residual is just re-solve latency before deciding on F-a.
+- **F5's "ON without splice 3× worse than OFF" reading is largely the
+  splice-less artifact chat6 predicted.** With splice on (n = 7):
+  ON+splice mean roll **3.91° ± 0.94°** vs OFF mean roll
+  **4.74° ± 2.27°** — ON+splice is no longer worse, in fact slightly
+  better, with **~2.4× tighter variance**.
+- **The most striking effect is variance reduction**, especially yaw:
+  ON+splice yaw **2.18° ± 1.08°** vs OFF yaw **9.92° ± 6.97°** (~4.6×
+  lower mean, ~6.5× tighter variance).
+- **Earlier draft of §F6 / `WithSplice.md` reported single-trial OFF
+  baseline `2.34°` and concluded "OFF wins by ~1.7×"; that conclusion
+  was wrong** — the OFF distribution is wide and `2.34°` was just the
+  low-end of it. See the §"Errata" block in `WithSplice.md`.
+- **F-a (the formulation tweak from §F5 above) is therefore deferred,
+  not necessarily required.** The motivation for F-a was that
+  splice-less robust ON was 3× worse than OFF; with splice in place
+  that gap is gone. F-a remains an option for a possible secondary
+  improvement after the in-band cell is more thoroughly characterized
+  (larger n + MPC rate sweep + out-of-band test).
 
 ## What this report does not yet answer
 

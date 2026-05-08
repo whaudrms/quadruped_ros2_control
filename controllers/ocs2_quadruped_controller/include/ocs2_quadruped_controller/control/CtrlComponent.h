@@ -75,34 +75,37 @@ namespace ocs2::legged_robot
         void logPerceptiveFootPlacementDebug();
         std::optional<scalar_t> samplePerceptiveTerrainHeight(scalar_t x, scalar_t y) const;
 
-        // Track ② step (a) — detection + log + schedule splice (no WBC override).
-        // Compares per-leg measured contact (estimator → observation_.mode) against
-        // scheduled contact (gait schedule). Logs at most one [robust_event] line per
-        // (leg, type) per robust window. When sustained early contact is detected
-        // (≥ kEventSpliceSustainedTicks consecutive control ticks while inside the
-        // robust window), splices the gait schedule so that leg becomes stance from
-        // observation_.time onwards (so the NEXT MPC solve plans the leg as stance).
-        // The current MPC policy and the WBC are NOT modified — we deliberately do
-        // not add a WBC contact-flag override (per chat4.md / chat6.md) so that the
-        // splice's effect is attributable to the OCP-level event handling alone.
+        // Track ② step (b) — early-contact detection + queued schedule splice
+        // (no WBC override; late contact NOT spliced — log only).
+        //
+        // Detection runs on the controller thread. When sustained early contact
+        // is detected (≥ kEventSpliceSustainedTicks consecutive control ticks of
+        // measured stance during scheduled swing inside the robust window), we
+        // call gait_manager_ptr_->requestStanceSplice(leg, observation_.time).
+        // The actual ModeSchedule mutation is deferred to the next
+        // GaitManager::preSolverRun (MPC thread, synchronized with the rest of
+        // the GaitSchedule reads/writes) — the controller thread NEVER mutates
+        // GaitSchedule directly. WBC is not modified — splice gain is
+        // attributable to the OCP-level schedule change alone (per chat4 /
+        // chat6 staging).
         void detectAndLogContactEvents();
-        void spliceStanceForLeg(size_t leg);
 
         static constexpr int kEventSpliceSustainedTicks = 5;
-        // prev_scheduled_contact_ is the previous-tick scheduled flag per leg, used
-        // to detect rising / falling edges (touchdown / liftoff in the schedule).
-        // early_event_logged_in_swing_ latches once per swing cycle and resets on
-        // the leg's stance→swing transition (liftoff), so a single drawn-out
-        // early-contact condition is logged once. Late events are inherently
-        // rising-edge so they don't need a latch.
-        // sustained_early_ticks_ counts consecutive ticks where the early-contact
-        // condition holds; reset on any tick where the condition is false.
-        // splice_applied_in_swing_ latches once per swing so we splice at most once
-        // per swing cycle; reset on liftoff.
+        // prev_scheduled_contact_     — previous-tick scheduled flag per leg
+        //                                for rising/falling edge detection.
+        // early_event_logged_in_swing_ — latches once per swing cycle so a
+        //                                drawn-out early-contact condition is
+        //                                logged once; resets on liftoff.
+        // sustained_early_ticks_      — consecutive-tick counter for the
+        //                                splice trigger; reset when the
+        //                                early-contact condition breaks.
+        // splice_requested_in_swing_  — latches once per swing so we send at
+        //                                most one splice request per swing
+        //                                cycle; reset on liftoff.
         feet_array_t<bool> prev_scheduled_contact_{};
         feet_array_t<bool> early_event_logged_in_swing_{};
         feet_array_t<int>  sustained_early_ticks_{};
-        feet_array_t<bool> splice_applied_in_swing_{};
+        feet_array_t<bool> splice_requested_in_swing_{};
 
         bool enable_perceptive_ = false;
         bool enable_perceptive_reference_modification_ = true;

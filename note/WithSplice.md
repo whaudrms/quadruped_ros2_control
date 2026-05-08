@@ -1,174 +1,171 @@
 # Robust Phase With Schedule Splice — Midterm Report
 
-Companion to [`WithoutSplice.md`](WithoutSplice.md). This file documents the
-addition of **Track ② step (b) — schedule splice on sustained measured contact
-during a robust window** on top of the M2 robust-phase OCP, the design choices
-made (specifically: schedule splice **only**, with WBC contact-flag override
-deliberately deferred), and the first critical-cell A/B re-run that resulted.
+Companion to [`WithoutSplice.md`](WithoutSplice.md). Documents Track ② step (b)
+— **schedule splice on sustained early measured contact during a robust window**
+— added on top of the M2 robust-phase OCP, with **WBC contact-flag override
+deliberately deferred**, and a 14-trial critical-cell A/B (`Δz = -0.02, d = 0.03`,
+MPC 10 Hz, `basic_step_short`, `standing_trot_forward_short` 8 s) characterizing
+its effect.
 
-The framing is "midterm" because:
+The framing is "midterm" because the splice is implemented and verified, but the
+A/B reads as "comparable-to-better" rather than "decisively better" at the
+sample sizes used; queued follow-ups (higher MPC rate, formulation tweak,
+out-of-band sweeps, WBC override decision) are not yet run.
 
-- The splice is implemented and verified to fire correctly across all four legs.
-- The single critical cell from `WithoutSplice.md` §F5 has been re-run. The
-  result is a real but partial recovery — splice helps significantly but does
-  not close the gap to the no-robust-phase baseline at 10 Hz MPC. Several
-  follow-up experiments (MPC rate, formulation tweak, possibly WBC override)
-  are queued but not yet run.
+> **Errata vs. an earlier draft of this note.**
+> An earlier draft of this report (commit `b278d72`) reported a single-trial
+> A/B (`ON+splice ≈ 4.5°` vs. `OFF ≈ 2.5°`) and concluded "splice helps but
+> doesn't reach OFF baseline." That conclusion was **wrong**: with `n = 7` per
+> condition, the OFF distribution turns out to be very wide
+> (`roll = 4.74° ± 2.27°`), and the `2.5°` baseline was the low-end of that
+> distribution rather than a representative mean. The corrected verdict is in
+> §"Verdict (n = 7 per condition)" below. The implementation also had a
+> thread-safety bug (controller thread directly mutating `GaitSchedule`) that
+> was fixed in this revision before re-running.
 
-## Why splice now (and why splice only)
+## Why splice now, and why splice only (no WBC override)
 
 The third peer review (`chat6.md`, summary in `WithoutSplice.md` §F6) made two
 corrections to the F5 reading:
 
-1. **F5's "formulation 문제 확정" was overreach.** The splice-less F5 cell shows
-   robust ON has 3× the roll RMS of robust OFF inside the band. F5 attributed
-   this to the formulation `g(t_b) = −d` continuing to push the foot below
-   perceived terrain. But "without splice, the schedule never updates on
-   measured contact" is an alternative explanation that doesn't require
-   implicating the formulation: **even with a perfectly correct boundary
-   target, the OCP keeps planning towards `g(t_b) = −d` after the foot has
-   physically touched, because the schedule still says the leg is in swing
-   until the originally scheduled `t_b`.**
-2. **The early/late event count from F0 is not a fair ON/OFF metric.** In OFF,
-   the early-event log is gated by `isInRobustWindow(...)` which is always
-   false, so OFF early-count = 0 by construction (gating, not absence of
-   physical contact).
+1. **F5's "formulation 문제 확정" was overreach.** The splice-less F5 cell
+   shows robust ON has ~3× the roll RMS of robust OFF inside the band. F5
+   attributed this to the formulation `g(t_b) = −d` continuing to push the
+   foot below perceived terrain. But "without splice, the schedule never
+   updates on measured contact" is an alternative explanation that doesn't
+   require implicating the formulation: **even with a perfectly correct
+   boundary target, the OCP keeps planning towards `g(t_b) = −d` after the
+   foot has physically touched, because the schedule still says the leg is in
+   swing until the originally scheduled `t_b`.**
+2. **The early/late event count from F0 is not a fair ON/OFF metric.** In
+   OFF the early-event log is gated by `isInRobustWindow(...)` which is
+   always false, so OFF early-count = 0 by construction (gating, not absence
+   of physical contact).
 
-Resolving (1) means running the same critical cell with an event-triggered
-schedule splice in place. WBC-side override is deliberately kept off so any
-observed gain is attributable to the schedule-side change alone, not a
-WBC reactive shortcut. This matches the staging rule from `chat4.md`
-(no WBC mixing during OCP-attribution experiments) and the staged scope
-in `WithoutSplice.md` §"Implication for Track ②".
+WBC-side override is deliberately kept off so any observed gain is
+attributable to the schedule-side change alone (per `chat4.md`'s staging
+rule).
 
 ## Implementation
 
-### File: [`controllers/ocs2_quadruped_controller/include/ocs2_quadruped_controller/control/CtrlComponent.h`](../controllers/ocs2_quadruped_controller/include/ocs2_quadruped_controller/control/CtrlComponent.h)
+### Architectural decision: splice on the MPC sync path, not the controller thread
 
-Added one method declaration, one constant, and two per-leg latches alongside
-the existing `detectAndLogContactEvents()` plumbing:
+Critical safety invariant: **all `GaitSchedule` mutations must run on the MPC
+thread**. `GaitSchedule` (in
+`ocs2_ros2/basic examples/ocs2_legged_robot/include/ocs2_legged_robot/gait/GaitSchedule.h`)
+has no internal synchronization — both `setModeSchedule` and the misleadingly
+named `getModeSchedule(lo, hi)` (which actually mutates `modeSchedule_` by
+erasing past events and re-tiling) and `insertModeSequenceTemplate` are
+unprotected. Calling any of them from the controller thread races against the
+MPC thread's reads/writes during `preSolverRun` /
+`SwitchedModelReferenceManager::modifyReferences`.
 
-```cpp
-void detectAndLogContactEvents();   // existing (Track ② step (a))
-void spliceStanceForLeg(size_t leg); // new (Track ② step (b))
+The splice therefore uses a **two-stage queue**:
 
-static constexpr int kEventSpliceSustainedTicks = 5;
+1. **Controller thread** (`CtrlComponent::detectAndLogContactEvents`) does
+   detection only and **queues a splice request** via
+   `GaitManager::requestStanceSplice(leg, event_time)`. No `GaitSchedule`
+   access from the controller thread, ever.
+2. **MPC thread** (`GaitManager::preSolverRun`) drains the queue at the start
+   of each solve via `applyPendingSplices(initTime, finalTime)`, which is
+   the only code that touches `gait_schedule_ptr_` for splicing. This is
+   already a `SolverSynchronizedModule`, so it runs serialized with all
+   other gait-schedule reads/writes within preSolverRun.
 
-feet_array_t<bool> prev_scheduled_contact_{};
-feet_array_t<bool> early_event_logged_in_swing_{};
-feet_array_t<int>  sustained_early_ticks_{};   // new
-feet_array_t<bool> splice_applied_in_swing_{}; // new
-```
+A `std::mutex` (`splice_mutex_`) protects the per-leg `splice_pending_` /
+`splice_time_` arrays during cross-thread handoff. Mutex contention is
+negligible (≤ ~few requests per swing per leg, vs. controller's 1 kHz tick).
 
-The header docstring documents the splice intent next to the
-`detectAndLogContactEvents` declaration, and lists the four per-leg state
-arrays with their reset semantics (latches reset on liftoff = stance→swing
-edge in the schedule).
+### Files touched
 
-### File: [`controllers/ocs2_quadruped_controller/src/control/CtrlComponent.cpp`](../controllers/ocs2_quadruped_controller/src/control/CtrlComponent.cpp)
-
-Two new includes:
-
-```cpp
-#include <ocs2_core/misc/Lookup.h>                       // findIndexInTimeArray
-#include <ocs2_legged_robot/gait/MotionPhaseDefinition.h> // modeNumber2StanceLeg / stanceLeg2ModeNumber
-```
-
-`detectAndLogContactEvents()` is extended (CtrlComponent.cpp:206-289) to:
-
-1. Compute `early_now = isInRobustWindow(leg, t) ∧ measured_contact ∧ !scheduled_contact` per leg per tick.
-2. Maintain `sustained_early_ticks_[leg]`: incremented while `early_now`, reset
-   to 0 otherwise.
-3. Reset both `splice_applied_in_swing_[leg]` and `sustained_early_ticks_[leg]`
-   on the leg's liftoff edge (the same edge that already resets the
-   `early_event_logged_in_swing_` latch).
-4. When `early_now ∧ sustained_early_ticks_[leg] ≥ kEventSpliceSustainedTicks
-   ∧ !splice_applied_in_swing_[leg]`, call `spliceStanceForLeg(leg)` and
-   latch `splice_applied_in_swing_[leg]`.
-
-The 5-tick threshold debounces against single-tick contact spikes from sensor
-noise. At the controller's 1000 Hz `update_rate`, that's a 5 ms persistence
-requirement before splice fires — short enough that the splice is still
-useful at 10 Hz MPC (which has ~100 ms between solves) but long enough to
-filter the worst sensor noise.
-
-`spliceStanceForLeg(size_t leg)` (CtrlComponent.cpp:291-343) performs the
-schedule rewrite:
+[`controllers/.../include/ocs2_quadruped_controller/control/GaitManager.h`](../controllers/ocs2_quadruped_controller/include/ocs2_quadruped_controller/control/GaitManager.h):
 
 ```cpp
-const auto& gaitSchedulePtr =
-    legged_interface_->getSwitchedModelReferenceManagerPtr()->getGaitSchedule();
-const scalar_t t = observation_.time;
-const scalar_t timeHorizon = legged_interface_->mpcSettings().timeHorizon_;
-ModeSchedule sched = gaitSchedulePtr->getModeSchedule(t - 0.5, t + timeHorizon + 0.5);
+// Public API used by CtrlComponent — thread-safe.
+void requestStanceSplice(size_t leg, scalar_t event_time);
 
-const int curPhaseInt = lookup::findIndexInTimeArray(sched.eventTimes, t);
-const size_t curPhase = static_cast<size_t>(
-    std::clamp<int>(curPhaseInt, 0, static_cast<int>(sched.modeSequence.size()) - 1));
+// Private — runs on MPC thread inside preSolverRun.
+void applyPendingSplices(scalar_t initTime, scalar_t finalTime);
 
-contact_flag_t curFlags = modeNumber2StanceLeg(sched.modeSequence[curPhase]);
-if (curFlags[leg]) return;                       // already stance — nothing to splice
-curFlags[leg] = true;
-const size_t newMode = stanceLeg2ModeNumber(curFlags);
-
-sched.eventTimes.insert(sched.eventTimes.begin() + curPhase, t);
-sched.modeSequence.insert(sched.modeSequence.begin() + curPhase + 1, newMode);
-
-gaitSchedulePtr->setModeSchedule(sched);
+std::mutex splice_mutex_;
+feet_array_t<bool>     splice_pending_{};
+feet_array_t<scalar_t> splice_time_{};
 ```
 
-Key points:
+[`controllers/.../src/control/GaitManager.cpp`](../controllers/ocs2_quadruped_controller/src/control/GaitManager.cpp)
+— `applyPendingSplices` is called at the **start** of `preSolverRun` so the
+spliced schedule is visible to any subsequent gait-template insertion in the
+same solve. Its responsibilities:
 
-- **Slice width.** `[t − 0.5, t + horizon + 0.5]` is wide enough to keep the
-  whole MPC horizon plus a small past tail. `getModeSchedule` is the
-  GaitSchedule API used to materialize a finite slice from the rolling
-  template.
-- **Phase index lookup.** `lookup::findIndexInTimeArray` is the same lookup
-  used elsewhere in the perceptive code (e.g.
-  `ConvexRegionSelector.cpp:33,39,45`) and respects OCS2's exact-time
-  semantics.
-- **Mode bit flip.** `modeNumber2StanceLeg` decodes the current 4-bit contact
-  pattern, we set the affected leg to stance, and `stanceLeg2ModeNumber`
-  re-encodes. This works for any underlying gait (trot, stand,
-  flying-trot, etc.) because the encoding is gait-agnostic.
-- **Insertion semantics.** `ModeSchedule` invariant is
-  `modeSequence[i]` applies to `[eventTimes[i-1], eventTimes[i])` with
-  `|eventTimes| = |modeSequence| − 1`. Inserting at `(curPhase, curPhase+1)`
-  preserves this invariant and means: phase `curPhase` keeps
-  `[…, t)`, the new phase `curPhase+1` covers `[t, original next)`, and the
-  rest of the sequence shifts right by one. The original `next` mode (and
-  everything after) is preserved exactly.
-- **`setModeSchedule` is the persistent install.** Once installed, the next
-  `MPC_MRT_Interface::advanceMpc()` solve consumes the spliced schedule
-  through the existing reference-manager → constraint pipeline. We do
-  **not** touch the in-flight policy; we only change what the next solve
-  sees.
-- **Idempotence.** The early-return `if (curFlags[leg]) return;` makes splicing
-  an already-stance leg a no-op. This protects against a race where the
-  schedule already updated between detection and splice.
-- **No WBC mutation.** The WBC continues consuming the current MPC policy at
-  1 kHz; only after the next ~100 ms (at 10 Hz MPC) does the spliced
-  schedule manifest in the policy the WBC is tracking. This is the
-  intended scope of step (b).
+1. Drain `splice_pending_` / `splice_time_` under lock; release lock.
+2. Sort drained requests by `event_time` (chronological insert order so
+   subsequent `findIndexInTimeArray` calls see prior inserts).
+3. Pull a single `ModeSchedule` slice covering `[min(initTime, earliest
+   request) − 0.5, finalTime + 0.5]` via `gait_schedule_ptr_->getModeSchedule(...)`.
+4. For each request: locate `curPhase` via `lookup::findIndexInTimeArray`,
+   skip if the leg is already stance there, otherwise insert
+   `(event_time, newMode)` at `(curPhase, curPhase+1)` to preserve the
+   `|eventTimes| = |modeSequence| − 1` invariant, **then propagate the
+   stance bit forward** through subsequent phases until the original
+   schedule's first stance phase for that leg (gait-agnostic "early stance
+   transition until natural touchdown").
+5. Commit the mutated slice via `gait_schedule_ptr_->setModeSchedule(sched)`.
+
+The forward-propagation step is the second important correctness fix from
+peer review: a single inserted phase only correctly captures "early stance"
+when the **next** original phase already has the leg in stance (e.g.
+standing trot's all-stance inter-step phase). For an arbitrary gait, or a
+perceptive schedule with terrain-driven phase modifications, the leg may
+remain in swing for several original phases before the natural touchdown,
+during which the splice's effect would be undone. The propagation walk
+handles this gait-agnostically:
+
+```cpp
+size_t propagatedTo = curPhase + 1;
+for (size_t i = curPhase + 2; i < sched.modeSequence.size(); ++i) {
+    contact_flag_t f = modeNumber2StanceLeg(sched.modeSequence[i]);
+    if (f[leg]) break;            // original schedule already stance — natural touchdown
+    f[leg] = true;
+    sched.modeSequence[i] = stanceLeg2ModeNumber(f);
+    propagatedTo = i;
+}
+```
+
+For the standing-trot critical cell, the `[robust_splice]` log shows
+`propagated_phases=1` for every event — confirming standing trot's
+all-stance inter-step makes single-phase patches sufficient for *this*
+gait, while the propagation infrastructure remains correct for others.
+
+[`controllers/.../include/ocs2_quadruped_controller/control/CtrlComponent.h`](../controllers/ocs2_quadruped_controller/include/ocs2_quadruped_controller/control/CtrlComponent.h)
+— removed `spliceStanceForLeg`; renamed `splice_applied_in_swing_` →
+`splice_requested_in_swing_` to reflect the new "queue request, don't apply"
+semantics. The `kEventSpliceSustainedTicks = 5` threshold (5 ms at 1 kHz
+controller rate) and per-leg latches (`prev_scheduled_contact_`,
+`early_event_logged_in_swing_`, `sustained_early_ticks_`,
+`splice_requested_in_swing_`) are unchanged in intent — they all reset on
+the leg's liftoff edge so each new swing cycle is eligible for a fresh
+log + splice request.
+
+[`controllers/.../src/control/CtrlComponent.cpp`](../controllers/ocs2_quadruped_controller/src/control/CtrlComponent.cpp)
+— `detectAndLogContactEvents` now performs detection + logging + sustained-tick
+counting, and on the trigger condition calls
+`gait_manager_ptr_->requestStanceSplice(leg, observation_.time)`. **No
+`GaitSchedule` access from this file.** Late contact (scheduled stance with
+no measured contact at touchdown) is **detection-only** — no splice action.
 
 ### Logging
 
-Each splice fires one `[robust_splice]` line per (leg, splice_event):
+`GaitManager::applyPendingSplices` emits one line per applied splice:
 
 ```
-[robust_splice] leg=2 t=7.210 mode_old=9 mode_new=11 (splice stance for sustained early contact)
+[robust_splice] leg=2 t=7.452 mode_old=9 mode_new=11 propagated_phases=1 (early stance until natural touchdown)
 ```
 
-`mode_old` is the pre-splice current mode and `mode_new` is the
-stance-flipped variant; both decode through `modeNumber2StanceLeg` if needed
-for verification.
-
-### Build
-
-`colcon build --packages-select ocs2_quadruped_controller --symlink-install` —
-clean build, no warnings introduced. Splice path compiles into the
-`ros2_control_node` plugin loaded by the `ocs2_quadruped_controller`
-controller plugin.
+`mode_old` is `sched.modeSequence[curPhase]` (unchanged by the insert; covers
+`[..., t)`); `mode_new` is the stance-flipped variant covering
+`[t, original next event)`. `propagated_phases = 1` means the propagation walk
+hit a natural-stance phase immediately after the inserted phase (single
+patch); `> 1` means the walk extended through additional swing phases.
 
 ## Experiment
 
@@ -179,132 +176,139 @@ that should expose the splice's effect cleanly:
 
 | parameter | value | rationale |
 | --- | --- | --- |
-| `terrain_z_offset` (Δz) | −0.02 m | inside the robust band (`|Δz| ≤ d`) — the design promise *should* hold here |
+| `terrain_z_offset` (Δz) | −0.02 m | inside the robust band (`abs(Δz) ≤ d`) — design promise *should* hold |
 | `d` (robust half-width) | 0.03 m | so `[z_perc − d, z_perc + d] = [0.05, 0.11]` brackets `z_actual = 0.10` ✓ |
-| `mpcDesiredFrequency` | 10 Hz | matches the F5 baseline; lowest viable rate that still solves in real time |
+| `mpcDesiredFrequency` | 10 Hz | matches F5 baseline; lowest viable rate that still solves in real time |
 | scene | `basic_step_short` (box1 z=0.20 / box2 z=0.10) | descent edge at `x=0.30` |
-| scenario | `standing_trot_forward_short` (8 s) | shortened from 16 s per user request; phases preserved (stand → enter OCS2 → forward 0.3 m/s × 3 s → stop) |
+| scenario | `standing_trot_forward_short` (8 s) | stand → enter OCS2 → forward 0.3 m/s × 3 s → stop |
 | splice threshold | `kEventSpliceSustainedTicks = 5` | 5 ms at 1 kHz controller rate |
-| WBC override | OFF | deliberate, see "Why splice now" above |
+| WBC override | OFF | deliberate, see "Why splice now" |
 
-Two trials per condition (initial + recheck) to surface the simulator
-flakiness already characterized in `WithoutSplice.md` §F0. Driver script
-unchanged from F5: [`tools/perceptive_dev_v2/m2_critical_band_inside.sh`](../tools/perceptive_dev_v2/m2_critical_band_inside.sh).
+Driver script: [`tools/perceptive_dev_v2/m2_critical_band_inside.sh`](../tools/perceptive_dev_v2/m2_critical_band_inside.sh)
+(plus per-pair manual reruns to reach `n = 7` per condition).
 
-### Results
+### Per-trial results (n = 7 per condition)
 
-Aggregated from
-[`tools/perceptive_dev_v2/results/20260509_045312_*_crit_band_robON_offM02/`](../tools/perceptive_dev_v2/results/),
-[`20260509_045405_*_crit_band_robOFF_offM02/`](../tools/perceptive_dev_v2/results/),
-[`20260509_045942_*_crit_band_robOFF_offM02_recheck/`](../tools/perceptive_dev_v2/results/), and
-[`20260509_050048_*_crit_band_robON_offM02_recheck/`](../tools/perceptive_dev_v2/results/).
+All 14 trials are post-split-to-8s-scenario. The first two ON+splice trials
+(tags `robON_offM02` and `robON_offM02_recheck`) used the pre-refactor
+controller-thread splice path; the rest use the corrected MPC-sync-path
+implementation. (See variance discussion below — empirically the bug did not
+visibly bias the per-trial numbers in the cells we ran, but the corrected
+implementation is what should be used going forward.)
 
-| Config | Run | Success | Roll RMS | Pitch RMS | Yaw RMS | Dist xy | Splice events |
-| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| ON-without-splice (F5 baseline, commit 3101e1b) | 1 | ✓ | 7.27° | 8.04° | 9.65° | 0.726 m | n/a |
-| OFF (F5 baseline, commit 3101e1b) | 1 | ✓ | 2.34° | 7.78° | 0.91° | 0.740 m | n/a |
-| **ON+splice** | 1 | ✓ | **4.92°** | 8.78° | 2.51° | 0.772 m | **66** |
-| **ON+splice** | 2 (recheck) | ✓ | **4.19°** | 8.43° | 3.41° | 0.593 m | **94** |
-| OFF | 1 | ✗ fall@7.29 s (roll_limit) | 11.31° | 8.29° | 6.93° | 0.867 m | 0 |
-| OFF | 2 (recheck) | ✓ | 2.63° | 7.68° | 2.31° | 0.701 m | 0 |
+| tag | side | status | dur (s) | dist (m) | roll (°) | pitch (°) | yaw (°) | splice (in scenario window) |
+| --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| `robON_offM02`           | ON+splice | OK         | 8.00 | 0.772 | 4.92 | 8.78 | 2.51 | 9 |
+| `robON_offM02_recheck`   | ON+splice | OK         | 8.00 | 0.593 | 4.19 | 8.43 | 3.41 | 12 |
+| `robON_offM02_refactor`  | ON+splice | OK         | 8.00 | 0.690 | 3.90 | 8.46 | 3.30 | 15 |
+| `robON_offM02_refactor2` | ON+splice | FALL @ 5.9 | 5.92 | 0.837 | 10.85 | 10.28 | 1.32 | 5 |
+| `robON_offM02_var1`      | ON+splice | OK         | 8.00 | 0.413 | 2.23 | 9.28 | 0.80 | 2 |
+| `robON_offM02_var2`      | ON+splice | OK         | 8.00 | 0.661 | 3.64 | 9.54 | 1.25 | 4 |
+| `robON_offM02_var3`      | ON+splice | OK         | 8.00 | 0.684 | 4.60 | 7.87 | 1.80 | — |
+| `robOFF_offM02`          | OFF       | FALL @ 7.3 | 7.30 | 0.867 | 11.31 | 8.29 | 6.93 | 0 |
+| `robOFF_offM02_recheck`  | OFF       | OK         | 8.00 | 0.701 | 2.63 | 7.68 | 2.31 | 0 |
+| `robOFF_offM02_refactor` | OFF       | OK         | 8.00 | 1.010 | 6.23 | 8.76 | 19.37 | 0 |
+| `robOFF_offM02_var1`     | OFF       | OK         | 8.00 | 0.845 | 8.08 | 9.93 | 12.12 | 0 |
+| `robOFF_offM02_var2`     | OFF       | OK         | 8.00 | 0.690 | 4.57 | 9.19 | 14.05 | 0 |
+| `robOFF_offM02_var3`     | OFF       | OK         | 8.00 | 0.621 | 5.00 | 8.60 | 10.37 | 0 |
+| `robOFF_offM02_var4`     | OFF       | OK         | 8.00 | 0.720 | 1.94 | 7.69 | 1.33 | 0 |
 
-Notes on the table:
+### Aggregate (mean ± std over the 6 successful trials per side; falls excluded from RMS stats but counted in fall rate)
 
-- The first OFF trial was a flake. Recheck restored consistency with the F5
-  baseline (2.63° vs 2.34°). The OFF-recheck zero splice count also
-  confirms the splice path is correctly gated by `isInRobustWindow` —
-  always false in OFF, so the splice trigger condition never holds.
-- ON+splice shows roll RMS in the 4–5° range across both trials, distance
-  travelled roughly comparable to OFF (~0.6–0.8 m), and no falls. Yaw RMS
-  drops dramatically (9.65° in F5 baseline → ~3° here).
+| metric | ON+splice (n = 7, 1 fall) | OFF (n = 7, 1 fall) | difference |
+| --- | --- | --- | --- |
+| Roll RMS  | **3.91° ± 0.94°** | **4.74° ± 2.27°** | ON+splice lower mean and ~2.4× tighter variance |
+| Pitch RMS | 8.73° ± 0.61°     | 8.64° ± 0.87°     | comparable |
+| Yaw RMS   | **2.18° ± 1.08°** | **9.92° ± 6.97°** | ON+splice **~4.6× lower** mean, ~6.5× tighter variance |
+| Fall rate | 1/7 (14%)         | 1/7 (14%)         | identical |
+| Distance xy (mean) | 0.62 m | 0.79 m | OFF travels further on average |
 
-### Splice firing characteristics
+### Splice firing characteristics (cropped to active scenario window)
 
-```
-ON+splice run 1: leg0=24, leg1=6,  leg2=9,  leg3=27   (total 66)
-ON+splice run 2: leg0=5,  leg1=26, leg2=45, leg3=18   (total 94)
-```
+The earlier draft reported **66 / 94** splices for the first two ON+splice
+trials, treating that as a "~10 splices/s during active scenario" rate.
+This was wrong: the full controller log spans roughly the full 38 s subprocess
+lifetime, not the 8 s scenario, and `observation_.time` is not aligned to
+scenario time. Cropped to the 5.5 s scenario monitoring window (using
+`tick.csv`'s first time as anchor and `monitoring_start_sec → timeout_sec`
+span), the actual counts are **2–15 per scenario** (table column above), or
+roughly **0.4–2.7 splices per second** during the active descent. Splices
+fire across all four legs; per-leg distribution shifts run-to-run with trot
+phasing relative to the descent edge.
 
-All four legs are exercised. The leg distribution shifts run-to-run with
-trot-cycle phasing relative to the descent edge — this is expected
-because the descent happens at a single `x` coordinate (`x = 0.30`) and
-which leg(s) are mid-swing at that x depends on the cycle phase at the
-edge crossing. At ~10 splices/s averaged over the 8 s scenario, splice
-triggering is **routine, not rare** — early contact happens every time a
-swing foot enters the robust window over the lower step (since
-`z_actual = 0.10 > z_perc − d = 0.05`, the foot meets ground roughly
-half-way through the window).
+## Verdict (n = 7 per condition)
 
-## Verdict
-
-- **Splice helps.** Roll RMS drops from 7.27° (no splice, F5) to ~4.5°
-  (avg of two ON+splice runs). ~38 % reduction in the same critical cell.
-  Yaw RMS drops 9.65° → ~3°.
-- **Splice does NOT fully recover OFF behavior.** ON+splice still has
-  ~1.7× the roll of OFF (~4.5° vs ~2.5°).
-- **Chat6's hypothesis is partially confirmed.** Splice is a real and
-  large effect — necessary, but not by itself sufficient to make the
-  in-band cell match the no-robust-phase baseline at 10 Hz MPC.
-- **Residual gap explanation (provisional).** With splice fired, there is
-  still a `5 ms (detection latch) + ~100 ms (next MPC solve)` ≈ 105 ms
-  window per swing during which the OCP-installed policy continues to
-  push the foot down towards `z = z_perc − d`, even though the leg has
-  physically touched and the schedule has been spliced to "stance from
-  now". The WBC dutifully tracks that stale policy at 1 kHz until the
-  next MPC solve. This window explains why the splice can't fully
-  recover OFF: the formulation's directional bias (F5's diagnosis) is
-  still partially active during this stale-policy interval.
+- **Splice helps in the critical cell, in the corrected reading.** Mean roll
+  drops 4.74° → 3.91° (≈18 % reduction in the mean), and yaw drops 9.92° →
+  2.18° (~4.6× reduction). Fall rate is identical at 14 % (1/7).
+- **The most striking effect is variance reduction, not mean shift.** Roll
+  std drops 2.27° → 0.94° (~2.4× tighter); yaw std drops 6.97° → 1.08° (~6.5×
+  tighter). The robot's run-to-run trajectory is much more predictable with
+  splice on.
+- **The earlier "OFF wins by 2×" claim was wrong.** That was based on
+  cherry-picked single trials (the F5 baseline `2.34°` was the low-end of a
+  wide OFF distribution). With proper sample size, OFF's mean is ~5°, not
+  ~2.5°.
+- **F5's formulation diagnosis is partially defused, not vindicated.** With
+  splice in place, the in-band cell is no longer worse than OFF — so the
+  "`g(t_b) = −d` directional bias makes splice-less robust ON 3× worse than
+  OFF" reading from F5 is largely the splice-less artifact chat6 predicted.
+  A *secondary* concern remains that ON+splice doesn't dominate OFF more
+  decisively (the means overlap inside one combined std), which could be
+  formulation, MPC rate, sample size, or some combination.
 
 ## What this report does not yet answer
 
-- **Whether higher MPC rate alone closes the residual gap.** The simplest
-  follow-up: re-run the same critical cell at MPC 50 Hz with splice ON.
-  If ON+splice@50Hz now matches OFF, the residual gap was indeed about
-  MPC re-solve latency and the formulation can stay as-is.
-- **Whether F5's formulation diagnosis is independently load-bearing.** If
-  ON+splice@50Hz still gaps, then F-a (`g(t_b) = 0` instead of `−d`) is
-  the next test — and the F5 diagnosis is upgraded from "provisional" to
-  "necessary fix".
-- **Whether splice generalizes to `|Δz| > d`.** The cell here is in-band.
-  An out-of-band cell (e.g. Δz = −0.05 with d = 0.03) was already a fall
-  in F1 without splice; whether splice alone rescues it is a separate
-  experiment.
-- **Variance characterization.** Two trials per condition is enough to
-  catch a flake, not enough for a confidence interval. Multi-seed
-  expansion (5–10 trials per cell) is a separate ask.
+- **Sample size for definitive conclusion.** `n = 7` with one fall apiece
+  gives wide CIs. Reaching "ON+splice is significantly better than OFF"
+  with α=0.05 likely needs `n ≥ 15–20` per side given the OFF variance.
+- **Whether the mean-roll gap (4.74° → 3.91°) is real or a noise artifact.**
+  Welch's t test on the two distributions would tell; not run yet.
+- **Why OFF's distance and yaw are so much wider than ON+splice's.** OFF's
+  mean distance is 27 % higher and yaw std is 6.5× larger — possibly the
+  robot is recovering by yawing into the descent, but a per-trial trajectory
+  inspection is needed to confirm.
+- **Whether the picture changes at MPC 50 Hz.** Cleaner MPC re-solve
+  cadence may shift either ON+splice (less stale-policy window) or OFF
+  (faster cost-minimization without robust phase) more.
+- **Out-of-band behavior.** This report is in-band only (`|Δz| ≤ d`). The
+  out-of-band falls F1 reported in `WithoutSplice.md` may or may not be
+  rescued by splice — separate experiment.
 
-## Recommended next experiment
+## Recommended next experiments
 
-A two-cell follow-up, using exactly the same `m2_critical_band_inside.sh`
-driver but with `--mpc-frequency 50` and the splice already in place:
-
-| Cell | Δz | d | MPC rate | Splice | Expected if "MPC rate is the only residual" |
-| --- | ---: | ---: | ---: | --- | --- |
-| 1 | −0.02 | 0.03 | 50 Hz | ON | roll RMS within ~10 % of OFF (~2.5°) |
-| 2 | −0.02 | 0.03 | 50 Hz | OFF | roll RMS unchanged from existing OFF (~2.5°) — control |
-
-If cell 1 hits ~2.5°, the residual was indeed re-solve latency; the
-splice + 50 Hz combination is the M2-onwards default and we can resume
-the broader band-inside / band-outside sweeps from `WithoutSplice.md` §6.
-If cell 1 stays at ~4.5°, F-a (formulation tweak) is the next move.
+1. **Larger n for the in-band cell.** Push `n` to 15 per side to pin down
+   whether the 4.74° → 3.91° gap is statistically significant.
+2. **MPC rate sweep with splice ON.** Cells: `(MPC = 10, 25, 50 Hz) × (Δz =
+   −0.02)` × splice ON. If higher MPC rate further improves ON+splice
+   without hurting OFF, the splice + 50 Hz combination becomes the new M2
+   default.
+3. **Out-of-band re-test.** `Δz = ±0.05, d = 0.03` × splice ON / OFF. F1
+   reported falls without splice; check whether splice rescues.
+4. **F-a formulation tweak (small)**: change `g(t_b) = −d` to `g(t_b) = 0`
+   in the boundary cost, re-run the in-band cell. If the means converge
+   tighter, F5's formulation diagnosis was load-bearing despite the splice
+   recovery; if they don't move, the splice was the only missing piece.
 
 ## Out of scope for this report
 
 - WBC contact-flag override (Track ② step (c)) — still deferred.
-- F-a / F-b / F-c / F-d formulation candidates from `WithoutSplice.md` §F5 —
-  none implemented yet; pending the MPC 50 Hz result above.
 - Multi-touchdown horizon scope — current `computeRobustWindows` is
   first-touchdown-only (M3 scope).
 - Per-step uncertainty `d_l(x, y)` from terrain-confidence map — M3 scope.
+- Late-contact splice — current implementation is **early-only**; late is
+  detection-only.
 
 ## Files of record
 
 | path | role |
 | --- | --- |
-| [`controllers/.../control/CtrlComponent.h`](../controllers/ocs2_quadruped_controller/include/ocs2_quadruped_controller/control/CtrlComponent.h) | splice declarations, latches, threshold constant |
-| [`controllers/.../control/CtrlComponent.cpp`](../controllers/ocs2_quadruped_controller/src/control/CtrlComponent.cpp) | `detectAndLogContactEvents` + new `spliceStanceForLeg` |
-| [`tools/perceptive_dev_v2/m2_critical_band_inside.sh`](../tools/perceptive_dev_v2/m2_critical_band_inside.sh) | 2-trial driver (ON / OFF, Δz=−0.02, d=0.03, 10 Hz) — unchanged from F5 |
-| [`tools/perceptive_dev_v2/scenarios/standing_trot_forward_short.yaml`](../tools/perceptive_dev_v2/scenarios/standing_trot_forward_short.yaml) | 8 s scenario used here and in F5 |
-| [`note/WithoutSplice.md`](WithoutSplice.md) | F5 baseline (no-splice critical cell) and §F6 brief pointer to this report |
+| [`controllers/.../control/CtrlComponent.h`](../controllers/ocs2_quadruped_controller/include/ocs2_quadruped_controller/control/CtrlComponent.h) | detection latches, threshold, no longer owns splice |
+| [`controllers/.../control/CtrlComponent.cpp`](../controllers/ocs2_quadruped_controller/src/control/CtrlComponent.cpp) | `detectAndLogContactEvents` queues splice via `GaitManager::requestStanceSplice` |
+| [`controllers/.../control/GaitManager.h`](../controllers/ocs2_quadruped_controller/include/ocs2_quadruped_controller/control/GaitManager.h) | new `requestStanceSplice` API + `applyPendingSplices` declaration + mutex/queue |
+| [`controllers/.../control/GaitManager.cpp`](../controllers/ocs2_quadruped_controller/src/control/GaitManager.cpp) | `applyPendingSplices` runs at start of `preSolverRun` (MPC thread) |
+| [`tools/perceptive_dev_v2/m2_critical_band_inside.sh`](../tools/perceptive_dev_v2/m2_critical_band_inside.sh) | 2-trial driver |
+| [`tools/perceptive_dev_v2/scenarios/standing_trot_forward_short.yaml`](../tools/perceptive_dev_v2/scenarios/standing_trot_forward_short.yaml) | 8 s scenario |
+| [`note/WithoutSplice.md`](WithoutSplice.md) | F5 baseline + §F6 pointer to here |
 | [`note/m1pp_robust_phase_in_ocs2.md`](m1pp_robust_phase_in_ocs2.md) | M1'' implementation + review |
 | [`note/m2_robust_phase_terrain_aware.md`](m2_robust_phase_terrain_aware.md) | M2 implementation + Track ② step (a) Appendix D |
