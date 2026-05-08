@@ -176,6 +176,12 @@ namespace ocs2::legged_robot
             yaw_last, observation_.state(9));
         observation_.mode = estimator_->getMode();
 
+        // Track ② step (a) — detection-only contact-event logging. Reads
+        // measured-vs-scheduled contact and emits [robust_event] lines on
+        // mismatches inside the robust window; does NOT modify the schedule
+        // or the WBC contact flags. (b) will add the splice + override.
+        detectAndLogContactEvents();
+
         visualizer_->update(observation_);
         if (enable_perceptive_)
         {
@@ -193,6 +199,66 @@ namespace ocs2::legged_robot
         target_manager_->update(observation_);
         // Update the current state of the system
         mpc_mrt_interface_->setCurrentObservation(observation_);
+    }
+
+    void CtrlComponent::detectAndLogContactEvents()
+    {
+        if (legged_interface_ == nullptr) return;
+        const auto refMgrPtr = legged_interface_->getSwitchedModelReferenceManagerPtr();
+        if (!refMgrPtr) return;
+        const auto& refMgr = *refMgrPtr;
+
+        const scalar_t t = observation_.time;
+        // estimator_->getMode() RETURNS a mode number (size_t) — it's already
+        // stanceLeg2ModeNumber(contact_flag_) per StateEstimateBase.h:37. Here we
+        // need the inverse: mode number → per-leg bool array.
+        const contact_flag_t measured  = modeNumber2StanceLeg(observation_.mode);
+        const contact_flag_t scheduled = refMgr.getContactFlags(t);
+
+        for (size_t leg = 0; leg < measured.size(); ++leg)
+        {
+            const bool m      = measured[leg];
+            const bool s      = scheduled[leg];
+            const bool prev_s = prev_scheduled_contact_[leg];
+
+            // Liftoff (stance→swing edge in the schedule) opens a new swing
+            // cycle for this leg. Reset the early-event latch so the next swing
+            // is eligible to log again.
+            const bool liftoff = prev_s && !s;
+            if (liftoff)
+            {
+                early_event_logged_in_swing_[leg] = false;
+            }
+
+            // Early contact: measured stance during scheduled swing inside an
+            // active robust window. Latched per swing cycle (not per-t_b)
+            // because the MPC re-solves every ~10 ms and the touchdown time
+            // t_b drifts slightly each cycle — a t_b-keyed latch would log
+            // ~one line per MPC cycle for the same physical event.
+            if (refMgr.isInRobustWindow(leg, t) && m && !s &&
+                !early_event_logged_in_swing_[leg])
+            {
+                const auto w = refMgr.getRobustWindow(leg);
+                RCLCPP_INFO(node_->get_logger(),
+                            "[robust_event] leg=%zu type=early t=%.3f t_b=%.3f "
+                            "(measured stance during scheduled swing)",
+                            leg, t, w.t_b);
+                early_event_logged_in_swing_[leg] = true;
+            }
+
+            // Late contact: scheduled flipped swing→stance this tick (rising
+            // edge of `s`) but measured still has no contact. Rising-edge by
+            // construction so each scheduled touchdown can fire at most once.
+            if (!prev_s && s && !m)
+            {
+                RCLCPP_INFO(node_->get_logger(),
+                            "[robust_event] leg=%zu type=late t=%.3f "
+                            "(scheduled stance with no measured contact at touchdown)",
+                            leg, t);
+            }
+
+            prev_scheduled_contact_[leg] = s;
+        }
     }
 
     std::optional<scalar_t> CtrlComponent::samplePerceptiveTerrainHeight(const scalar_t x, const scalar_t y) const
