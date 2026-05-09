@@ -63,27 +63,35 @@ namespace ocs2::legged_robot
         bool isInRobustWindow(size_t leg, scalar_t time) const override;
         RobustWindowData getRobustWindow(size_t leg) const override;
 
-        // Track ② step (b/c) — splice requests routed through the reference
-        // manager so that the actual ModeSchedule mutation runs INSIDE
-        // modifyReferences AT THE START, BEFORE getGaitSchedule()->getModeSchedule(...)
-        // on line 180. (Previously these lived in GaitManager::preSolverRun, which
-        // ran AFTER modifyReferences per OCS2 SolverBase::preRun ordering — meaning
-        // splice mutations were invisible to the same solve's reference work.)
+        // Track ② — paper-faithful "robust-window contact event" splice.
         //
-        // Both methods are callable from any thread (typically controller-thread
-        // event detector in CtrlComponent::detectAndLogContactEvents). Queued
-        // requests drain at the start of the next modifyReferences call.
+        // Concept (per Trajectory Optimization under Contact Timing Uncertainties,
+        // §IV-V): inside the robust window t ∈ [t_a, t_b], the foot's normal
+        // displacement g(x) traverses the band [+d, -d]. A measured contact in
+        // this window — regardless of whether g_event is high-side (+d-ish, the
+        // "early" case) or low-side (-d-ish, the "late" case) — is the event
+        // that triggers a stance splice and an MPC replan. There is NO separate
+        // "late→swing splice" in the paper's robust phase; that would be a
+        // missed-touchdown fallback (out-of-band, t > t_b with no contact),
+        // which is intentionally NOT implemented here.
         //
-        //   requestStanceSplice — early contact: leg measured stance during
-        //     scheduled swing; flips leg to stance from event_time forward, with
-        //     forward propagation through subsequent swing phases until the gait
-        //     template's natural touchdown.
-        //   requestSwingSplice — late contact: leg scheduled stance but no
-        //     measured contact; flips leg back to swing from event_time forward
-        //     (touchdown delay), no forward propagation (gait template's natural
-        //     cycle restores stance at next nominal touchdown).
-        void requestStanceSplice(size_t leg, scalar_t event_time);
-        void requestSwingSplice (size_t leg, scalar_t event_time);
+        // Callable from any thread (typically controller-thread event detector
+        // in CtrlComponent::detectAndLogContactEvents). Queued requests drain
+        // at the start of the next modifyReferences call.
+        //
+        //   requestRobustContactSplice — measured contact inside [t_a, t_b]
+        //     while the schedule still says swing; flips leg to stance from
+        //     event_time forward, with forward propagation through subsequent
+        //     swing phases until the gait template's natural touchdown.
+        //
+        // Splice ordering: this method's effect is visible in the SAME MPC
+        // solve because applyPendingSplices runs at the top of modifyReferences,
+        // BEFORE the line-180 getModeSchedule(...) read that feeds terrain
+        // projection / swing planner / robust-window computation.
+        // (Previously this lived in GaitManager::preSolverRun, which runs AFTER
+        // modifyReferences per OCS2 SolverBase::preRun:77-82 ordering — splice
+        // mutations were invisible to the same solve's reference work.)
+        void requestRobustContactSplice(size_t leg, scalar_t event_time);
 
         bool getLatestReferencePaths(
             std::vector<vector3_t, Eigen::aligned_allocator<vector3_t>>& rawBasePath,
@@ -115,14 +123,26 @@ namespace ocs2::legged_robot
         void computeRobustWindows(scalar_t initTime, scalar_t finalTime, const ModeSchedule& modeSchedule,
                                   const vector_t& initState);
 
-        // Drains pending splice requests and applies them to gait_schedule_ptr_.
-        // Called at the START of modifyReferences (MPC thread, BEFORE the
-        // line-180 getGaitSchedule()->getModeSchedule(...) read), so that the
-        // subsequent reference-manager work (terrain projection, swing planner,
-        // robust windows) all see the spliced schedule in the SAME solve cycle.
-        // dt_mpc is needed for the near-touchdown guard (skip splice if event
-        // time is within ~2*dt_mpc of nominal next event for that leg).
-        void applyPendingSplices(scalar_t initTime, scalar_t finalTime);
+        // Drains pending robust-contact-event splice requests and applies them
+        // to gait_schedule_ptr_. Called at the START of modifyReferences (MPC
+        // thread, BEFORE the line-180 getGaitSchedule()->getModeSchedule(...)
+        // read), so the subsequent reference-manager work (terrain projection,
+        // swing planner, robust windows) all see the spliced schedule in the
+        // SAME solve cycle.
+        //
+        // initState is used to compute g_event = n·(p_foot − p_plane) −
+        // foot_frame_offset at splice time for diagnostic logging. g_event > 0
+        // means high-side hit (paper "early"), < 0 means low-side hit (paper
+        // "late"); both go through the same splice path.
+        //
+        // Includes a "merge-to-nominal-touchdown" engineering guard: if the
+        // event time is within ~2*dt_mpc of the leg's next nominal event,
+        // skip the splice — inserting a sub-2-shoot phase destabilizes SQP
+        // and WBC mode transitions. This is NOT part of the paper's robust
+        // OCP — purely a numerical merge guard. Strict event-triggered MPC
+        // would always insert; we trade a tiny modeling deviation for SQP
+        // stability.
+        void applyPendingSplices(scalar_t initTime, scalar_t finalTime, const vector_t& initState);
 
         const CentroidalModelInfo info_;
         feet_array_t<vector3_t> lastLiftoffPos_;
@@ -143,16 +163,13 @@ namespace ocs2::legged_robot
         mutable std::mutex robustWindowsMutex_;
         feet_array_t<RobustWindowData> robustWindows_{};
 
-        // Splice request queue (drained at start of modifyReferences). Two
-        // independent queues: stance (early) and swing (late). Per-leg, at
-        // most one pending request per type at a time (later request with
-        // a later time is dropped — we anchor on the EARLIEST event for
-        // that leg).
+        // Robust-window contact event splice queue (drained at start of
+        // modifyReferences). Per leg, at most one pending request at a time
+        // (later request with a later time is dropped — we anchor on the
+        // EARLIEST event for that leg, the moment of first measured contact).
         std::mutex splice_mutex_;
-        feet_array_t<bool>     stance_splice_pending_{};
-        feet_array_t<scalar_t> stance_splice_time_{};
-        feet_array_t<bool>     swing_splice_pending_{};
-        feet_array_t<scalar_t> swing_splice_time_{};
+        feet_array_t<bool>     robust_contact_splice_pending_{};
+        feet_array_t<scalar_t> robust_contact_splice_time_{};
 
         mutable std::mutex latestReferenceTrajectoriesMutex_;
         std::vector<vector3_t, Eigen::aligned_allocator<vector3_t>> latestRawBasePath_;

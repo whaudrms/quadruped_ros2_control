@@ -75,65 +75,52 @@ namespace ocs2::legged_robot
         void logPerceptiveFootPlacementDebug();
         std::optional<scalar_t> samplePerceptiveTerrainHeight(scalar_t x, scalar_t y) const;
 
-        // Track ② step (b/c) — early & late contact detection + queued schedule
-        // splice (no WBC override).
+        // Track ② — paper-faithful "robust-window contact event" detection +
+        // queued schedule splice (no WBC override).
         //
-        // Detection runs on the controller thread. Splice requests are routed
-        // through the PerceptiveLeggedReferenceManager (NOT GaitManager, which
-        // is a SolverSynchronizedModule that runs AFTER referenceManager in
-        // OCS2 SolverBase::preRun — splicing there delays the schedule by one
-        // MPC cycle). The reference manager drains the queue at the START of
-        // its modifyReferences call, so the same MPC solve sees the spliced
-        // schedule.
+        // Concept (per Trajectory Optimization under Contact Timing
+        // Uncertainties, §IV-V): inside the robust window t ∈ [t_a, t_b], a
+        // measured contact — regardless of whether g_event is high-side
+        // (g > 0, traditionally "early") or low-side (g < 0, traditionally
+        // "late") within [-d, +d] — is the event that triggers a stance
+        // splice and an MPC replan. Both cases are handled by the SAME
+        // path here; they're just different points on the same band. The
+        // [robust_event] log includes g_event so post-hoc you can see where
+        // in the band the contact landed.
         //
-        //   early: measured stance during scheduled swing inside robust window
-        //          → after kEventSpliceSustainedTicks ticks, requestStanceSplice
-        //          → schedule rewritten so leg is stance from event_time onward.
-        //   late : scheduled stance with no measured contact (post-touchdown)
-        //          → after kEventSpliceSustainedTicks ticks, requestSwingSplice
-        //          → schedule rewritten so leg is swing from event_time onward
-        //            (touchdown delay; gait template's natural cycle restores
-        //            stance at the next nominal touchdown). If physical contact
-        //            then arrives during the swing, the early-splice path picks
-        //            it up and re-flips to stance — natural chaining.
+        // NOT implemented here: missed-touchdown fallback (out-of-band,
+        // t > t_b with no measured contact). That's a different concern
+        // outside the paper's robust phase — it would be a separate design
+        // (touchdown delay or similar). Earlier scaffolding for that path
+        // was removed in this iteration to keep the core robust phase clean.
+        //
+        // Splice requests route through PerceptiveLeggedReferenceManager
+        // (NOT GaitManager, which is a SolverSynchronizedModule running
+        // AFTER the reference manager in OCS2 SolverBase::preRun — splicing
+        // there delays the schedule by one MPC cycle). The reference
+        // manager drains the queue at the START of its modifyReferences
+        // call, so the same MPC solve sees the spliced schedule.
         void detectAndLogContactEvents();
 
-        // Sustained-tick thresholds for splice triggers (1 kHz controller).
-        // Early: 5 ticks = 5 ms. Early contact during scheduled swing is an
-        //   abnormal event (foot wasn't supposed to touch yet) — short
-        //   debounce vs sensor noise is enough.
-        // Late: 30 ticks = 30 ms. Late contact (scheduled stance, no measured
-        //   contact) at the moment of touchdown is NORMAL physics — the foot
-        //   may still be in transit from swing peak for several tens of ms
-        //   even on flat terrain. Only AFTER ~30 ms past the rising edge does
-        //   "no contact" become diagnostically meaningful as a real touchdown
-        //   delay (e.g., perception-induced premature stance scheduling).
-        static constexpr int kEventSpliceSustainedTicks     = 5;
-        // ABLATION: late splice temporarily disabled (large threshold) to
-        // isolate the effect of Change 1 (splice ordering) + Change 2 (near-
-        // touchdown guard) before re-enabling Change 3 with a properly-tuned
-        // late threshold.
-        static constexpr int kLateSpliceSustainedTicks      = 100000;
-        // prev_scheduled_contact_         — previous-tick scheduled flag per leg
-        //                                   for rising/falling edge detection.
-        // early_event_logged_in_swing_    — once-per-swing latch for the [robust_event]
-        //                                   early log; resets on liftoff.
-        // sustained_early_ticks_          — consecutive-tick counter for the
-        //                                   stance splice trigger.
-        // splice_requested_in_swing_      — once-per-swing latch for the stance
-        //                                   splice request (resets on liftoff).
-        // sustained_late_ticks_           — consecutive-tick counter for the
-        //                                   swing splice trigger.
-        // late_splice_requested_in_stance_ — once-per-stance latch for the
-        //                                    swing splice request (resets on
-        //                                    liftoff so the next stance is
-        //                                    eligible again).
+        // 5 ticks = 5 ms at 1 kHz controller rate. Contact inside the
+        // robust window while the schedule still says swing is by definition
+        // abnormal (foot wasn't supposed to touch yet) — a short debounce
+        // against single-tick sensor spikes is enough.
+        static constexpr int kRobustContactSpliceSustainedTicks = 5;
+
+        // prev_scheduled_contact_              — previous-tick scheduled flag per
+        //                                        leg for rising/falling edge detection.
+        // robust_contact_logged_in_window_     — once-per-window latch for the
+        //                                        [robust_event] log; resets on liftoff.
+        // sustained_robust_contact_ticks_      — consecutive-tick counter for the
+        //                                        robust-contact splice trigger.
+        // splice_requested_in_window_          — once-per-window latch so we send at
+        //                                        most one splice request per swing
+        //                                        cycle; resets on liftoff.
         feet_array_t<bool> prev_scheduled_contact_{};
-        feet_array_t<bool> early_event_logged_in_swing_{};
-        feet_array_t<int>  sustained_early_ticks_{};
-        feet_array_t<bool> splice_requested_in_swing_{};
-        feet_array_t<int>  sustained_late_ticks_{};
-        feet_array_t<bool> late_splice_requested_in_stance_{};
+        feet_array_t<bool> robust_contact_logged_in_window_{};
+        feet_array_t<int>  sustained_robust_contact_ticks_{};
+        feet_array_t<bool> splice_requested_in_window_{};
 
         bool enable_perceptive_ = false;
         bool enable_perceptive_reference_modification_ = true;

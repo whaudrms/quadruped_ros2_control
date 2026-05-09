@@ -209,11 +209,11 @@ namespace ocs2::legged_robot
         if (!refMgrPtr) return;
         const auto& refMgr = *refMgrPtr;
 
-        // Splice requests now route through the perceptive reference manager
+        // Splice requests route through the perceptive reference manager
         // (NOT GaitManager) so the actual schedule mutation runs at the start
         // of modifyReferences — BEFORE the line-180 getModeSchedule() read
         // that feeds terrain projection / swing planner / robust windows in
-        // the same MPC solve. Falling back gracefully if the reference manager
+        // the same MPC solve. Falls back gracefully if the reference manager
         // isn't perceptive (no robust phase, no splice).
         auto* perceptiveRefMgr = dynamic_cast<PerceptiveLeggedReferenceManager*>(
             legged_interface_->getReferenceManagerPtr().get());
@@ -232,74 +232,62 @@ namespace ocs2::legged_robot
             const bool prev_s = prev_scheduled_contact_[leg];
 
             // Liftoff (stance→swing edge in the schedule) opens a new swing
-            // cycle for this leg. Reset BOTH early- and late-splice latches
-            // and counters so the next cycle is eligible again.
+            // cycle for this leg. Reset robust-contact latches/counters so
+            // the next swing's robust window is eligible to log and request
+            // a fresh splice.
             const bool liftoff = prev_s && !s;
             if (liftoff)
             {
-                early_event_logged_in_swing_[leg] = false;
-                splice_requested_in_swing_[leg] = false;
-                sustained_early_ticks_[leg] = 0;
-                late_splice_requested_in_stance_[leg] = false;
-                sustained_late_ticks_[leg] = 0;
+                robust_contact_logged_in_window_[leg] = false;
+                splice_requested_in_window_[leg]      = false;
+                sustained_robust_contact_ticks_[leg]  = 0;
             }
 
-            const bool early_now = refMgr.isInRobustWindow(leg, t) && m && !s;
-            const bool late_now  = s && !m;  // scheduled stance, no measured
+            // Robust-window contact event: measured contact while the schedule
+            // still says swing AND we are inside the robust window [t_a, t_b].
+            // Both paper-side "early" (g_event > 0) and "late" (g_event < 0)
+            // hits land here.
+            const bool robust_contact_now = refMgr.isInRobustWindow(leg, t) && m && !s;
 
-            // Sustained-tick counters.
-            if (early_now) ++sustained_early_ticks_[leg];
-            else           sustained_early_ticks_[leg] = 0;
-            if (late_now)  ++sustained_late_ticks_[leg];
-            else           sustained_late_ticks_[leg] = 0;
+            if (robust_contact_now) ++sustained_robust_contact_ticks_[leg];
+            else                    sustained_robust_contact_ticks_[leg] = 0;
 
-            // Early-event log (latched per swing).
-            if (early_now && !early_event_logged_in_swing_[leg])
+            // Once-per-window log of the first robust-contact tick. We log the
+            // window context (t_a, t_b, d, p_plane.z) so post-hoc analysis can
+            // determine where in the [-d, +d] band the event landed:
+            //   - If t is closer to t_a (early in window) → likely high-side
+            //     (foot met ground above the perceived plane; perception was
+            //     low; equivalent to paper "early contact").
+            //   - If t is closer to t_b (late in window)  → likely low-side
+            //     (perception was high; equivalent to paper "late contact").
+            // The actual signed g_event = n·(p_foot − p_plane) − foot_frame_offset
+            // is computed inside RobustGuardBoundaryConstraint::getValue at
+            // every MPC evaluation; if needed for diagnostics, enable
+            // robustPhase.verbose_log in task.info to dump per-cycle [robust_phase]
+            // lines from the reference manager.
+            if (robust_contact_now && !robust_contact_logged_in_window_[leg])
             {
                 const auto w = refMgr.getRobustWindow(leg);
                 RCLCPP_INFO(node_->get_logger(),
-                            "[robust_event] leg=%zu type=early t=%.3f t_b=%.3f "
-                            "(measured stance during scheduled swing)",
-                            leg, t, w.t_b);
-                early_event_logged_in_swing_[leg] = true;
+                            "[robust_event] leg=%zu type=robust_contact t=%.3f "
+                            "t_a=%.3f t_b=%.3f d=%.3f p_plane.z=%.3f "
+                            "(contact inside robust window — same path for "
+                            "high-side and low-side hits)",
+                            leg, t, w.t_a, w.t_b, w.d, w.p_plane.z());
+                robust_contact_logged_in_window_[leg] = true;
             }
 
-            // Late-event rising-edge log (kept for diagnostic continuity with
-            // the prior detection-only behavior).
-            if (!prev_s && s && !m)
-            {
-                RCLCPP_INFO(node_->get_logger(),
-                            "[robust_event] leg=%zu type=late t=%.3f "
-                            "(scheduled stance with no measured contact at touchdown)",
-                            leg, t);
-            }
-
-            // EARLY SPLICE REQUEST (stance flip). After 5 consecutive early-
-            // contact ticks, queue a stance splice. The reference manager
-            // applies it at the START of the next modifyReferences (same MPC
-            // solve gets the new schedule).
-            if (early_now &&
-                sustained_early_ticks_[leg] >= kEventSpliceSustainedTicks &&
-                !splice_requested_in_swing_[leg] &&
+            // Robust-contact splice request. After 5 consecutive ticks of the
+            // robust-window contact condition, queue a stance splice. The
+            // reference manager applies it at the START of the next
+            // modifyReferences (same MPC solve gets the new schedule).
+            if (robust_contact_now &&
+                sustained_robust_contact_ticks_[leg] >= kRobustContactSpliceSustainedTicks &&
+                !splice_requested_in_window_[leg] &&
                 perceptiveRefMgr != nullptr)
             {
-                perceptiveRefMgr->requestStanceSplice(leg, t);
-                splice_requested_in_swing_[leg] = true;
-            }
-
-            // LATE SPLICE REQUEST (swing flip = touchdown delay). After
-            // kLateSpliceSustainedTicks (30 ms) of measured-no-contact during
-            // scheduled stance, queue a swing splice so WBC stops applying
-            // stance dynamics to a foot still in air. Larger threshold than
-            // early because some ms of post-rising-edge no-contact is normal
-            // physics (swing-peak-to-touchdown transit).
-            if (late_now &&
-                sustained_late_ticks_[leg] >= kLateSpliceSustainedTicks &&
-                !late_splice_requested_in_stance_[leg] &&
-                perceptiveRefMgr != nullptr)
-            {
-                perceptiveRefMgr->requestSwingSplice(leg, t);
-                late_splice_requested_in_stance_[leg] = true;
+                perceptiveRefMgr->requestRobustContactSplice(leg, t);
+                splice_requested_in_window_[leg] = true;
             }
 
             prev_scheduled_contact_[leg] = s;

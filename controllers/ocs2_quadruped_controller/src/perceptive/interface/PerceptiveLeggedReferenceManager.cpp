@@ -184,7 +184,7 @@ namespace ocs2::legged_robot
         // swing planner, and computeRobustWindows. Splicing later (e.g., from
         // GaitManager::preSolverRun, the previous home for this code) means a
         // one-cycle latency where the reference work runs on stale schedule.
-        applyPendingSplices(initTime, finalTime);
+        applyPendingSplices(initTime, finalTime, initState);
 
         const auto timeHorizon = finalTime - initTime;
         modeSchedule = getGaitSchedule()->getModeSchedule(initTime - timeHorizon, finalTime + timeHorizon);
@@ -392,7 +392,16 @@ namespace ocs2::legged_robot
         if (enteringContact)
         {
             lastLiftoffPos_[leg] = endEffectorKinematicsPtr_->getPosition(initState)[leg];
-            lastLiftoffPos_[leg].z() -= 0.08;  // ankle → contact frame conversion (Go2 ankle is ~0.08 m above contact)
+            // 0.08 m is a perceptive-planner-side touchdown projection bias used
+            // to anchor the swing planner's lift-off / touchdown heights at the
+            // actual contact point (FK foot frame is at the ankle, ~0.08 m
+            // above contact for go2). This is independent of robust phase's
+            // RobustGuardBoundaryConstraint::foot_frame_offset (loaded from
+            // task.info, separate physical quantity used in g(x) = n·(p_foot −
+            // p_plane) − foot_frame_offset). Do not blindly equate the two:
+            // touching this number alters the perceptive planner's stair-down
+            // behavior (0.02 caused stair-down failures in earlier sweeps).
+            lastLiftoffPos_[leg].z() -= 0.08;
             hasLatchedContactPosition_[leg] = true;
         }
 
@@ -627,133 +636,133 @@ namespace ocs2::legged_robot
         }
     }
 
-    void PerceptiveLeggedReferenceManager::requestStanceSplice(const size_t leg, const scalar_t event_time)
+    void PerceptiveLeggedReferenceManager::requestRobustContactSplice(const size_t leg, const scalar_t event_time)
     {
-        // Both splice paths are robust-phase features — they must be no-ops when
-        // robust phase is disabled, so OFF trials remain a clean control.
+        // Robust-window contact event splice is a robust-phase feature — must
+        // be a no-op when robust phase is disabled, so OFF trials remain a
+        // clean control.
         if (!robustPhaseSettings_.enabled) return;
-        if (leg >= stance_splice_pending_.size()) return;
+        if (leg >= robust_contact_splice_pending_.size()) return;
         std::lock_guard lk(splice_mutex_);
-        // If a stance request for this leg is already pending, anchor on the
-        // EARLIEST event_time (the moment the leg actually first touched).
-        if (stance_splice_pending_[leg] && event_time >= stance_splice_time_[leg]) return;
-        stance_splice_pending_[leg] = true;
-        stance_splice_time_[leg] = event_time;
+        // If a request for this leg is already pending, anchor on the EARLIEST
+        // event_time — the moment of first measured contact in the window.
+        if (robust_contact_splice_pending_[leg] && event_time >= robust_contact_splice_time_[leg]) return;
+        robust_contact_splice_pending_[leg] = true;
+        robust_contact_splice_time_[leg] = event_time;
     }
 
-    void PerceptiveLeggedReferenceManager::requestSwingSplice(const size_t leg, const scalar_t event_time)
+    void PerceptiveLeggedReferenceManager::applyPendingSplices(const scalar_t initTime,
+                                                                const scalar_t finalTime,
+                                                                const vector_t& initState)
     {
-        if (!robustPhaseSettings_.enabled) return;
-        if (leg >= swing_splice_pending_.size()) return;
-        std::lock_guard lk(splice_mutex_);
-        if (swing_splice_pending_[leg] && event_time >= swing_splice_time_[leg]) return;
-        swing_splice_pending_[leg] = true;
-        swing_splice_time_[leg] = event_time;
-    }
-
-    void PerceptiveLeggedReferenceManager::applyPendingSplices(const scalar_t initTime, const scalar_t finalTime)
-    {
-        // Drain both queues under lock, then operate without lock.
-        feet_array_t<bool>     stancePending{};
-        feet_array_t<scalar_t> stanceTime{};
-        feet_array_t<bool>     swingPending{};
-        feet_array_t<scalar_t> swingTime{};
+        // Drain queue under lock, then operate without lock.
+        feet_array_t<bool>     pending{};
+        feet_array_t<scalar_t> time{};
         {
             std::lock_guard lk(splice_mutex_);
-            for (size_t i = 0; i < stance_splice_pending_.size(); ++i) {
-                stancePending[i] = stance_splice_pending_[i];
-                stanceTime[i]    = stance_splice_time_[i];
-                stance_splice_pending_[i] = false;
-                swingPending[i] = swing_splice_pending_[i];
-                swingTime[i]    = swing_splice_time_[i];
-                swing_splice_pending_[i] = false;
+            for (size_t i = 0; i < robust_contact_splice_pending_.size(); ++i) {
+                pending[i] = robust_contact_splice_pending_[i];
+                time[i]    = robust_contact_splice_time_[i];
+                robust_contact_splice_pending_[i] = false;
             }
         }
 
-        // Collect all (t, leg, side) requests in chronological order so subsequent
-        // inserts see the prior inserts. Side: true=stance, false=swing.
-        struct SpliceReq { scalar_t t; size_t leg; bool stance; };
-        std::vector<SpliceReq> requests;
-        for (size_t leg = 0; leg < stancePending.size(); ++leg) {
-            if (stancePending[leg]) requests.push_back({stanceTime[leg], leg, true});
-            if (swingPending[leg])  requests.push_back({swingTime[leg],  leg, false});
+        // Collect (t, leg) requests in chronological order so subsequent inserts
+        // see the prior inserts. (Ordering matters because findIndexInTimeArray
+        // depends on the current contents of eventTimes.)
+        std::vector<std::pair<scalar_t, size_t>> requests;
+        for (size_t leg = 0; leg < pending.size(); ++leg) {
+            if (pending[leg]) requests.emplace_back(time[leg], leg);
         }
         if (requests.empty()) return;
-        std::sort(requests.begin(), requests.end(),
-                  [](const SpliceReq& a, const SpliceReq& b){ return a.t < b.t; });
+        std::sort(requests.begin(), requests.end());
 
         // Pull a wide enough slice to cover any splice request; getModeSchedule
         // is allowed to mutate internal state because we are on the MPC thread,
         // serialized with all other GaitSchedule reads/writes (this method runs
         // BEFORE getModeSchedule on line 180 of modifyReferences).
-        const scalar_t loBound = std::min(initTime, requests.front().t) - 0.5;
+        const scalar_t loBound = std::min(initTime, requests.front().first) - 0.5;
         const scalar_t hiBound = finalTime + 0.5;
         ModeSchedule sched = getGaitSchedule()->getModeSchedule(loBound, hiBound);
 
         const scalar_t dt_mpc = robustPhaseSettings_.dt_mpc;
-        const scalar_t kNearTouchdownThreshold = 2.0 * dt_mpc;  // ~0.04 s at default dt=0.02
+        const scalar_t kMergeToNominalThreshold = 2.0 * dt_mpc;  // ~0.04 s at default dt=0.02
 
-        for (const auto& req : requests) {
-            const size_t leg = req.leg;
-            const scalar_t t = req.t;
-            const bool wantStance = req.stance;
-
+        for (const auto& [t, leg] : requests) {
             const int curPhaseInt = lookup::findIndexInTimeArray(sched.eventTimes, t);
             const size_t curPhase = static_cast<size_t>(
                 std::clamp<int>(curPhaseInt, 0, static_cast<int>(sched.modeSequence.size()) - 1));
 
             contact_flag_t curFlags = modeNumber2StanceLeg(sched.modeSequence[curPhase]);
-            const bool currentlyStance = curFlags[leg];
+            if (curFlags[leg]) continue;  // already stance — splice would be a no-op
 
-            // Already in the requested state — splice would be a no-op.
-            if (currentlyStance == wantStance) continue;
-
-            // === Near-touchdown / near-liftoff guard ===
-            // If the splice time `t` is within 2*dt_mpc of the next gait event
-            // for this leg, skip the splice. Reason: inserting `t` would create
-            // a very short phase between `t` and the next event, which
-            // destabilizes SQP shooting and WBC mode transitions. The gait will
-            // reach the desired state at the natural next event in a small
-            // multiple of dt_mpc anyway.
+            // === Engineering "merge-to-nominal-touchdown" guard ===
+            // If t is within 2*dt_mpc of the leg's next nominal event (the
+            // already-scheduled t_b), skip the splice. Inserting a sub-2-shoot
+            // phase destabilizes SQP shooting and WBC mode transitions; the
+            // gait would have reached stance at t_b in a fraction of a dt_mpc
+            // anyway. NOT part of the paper's strict event-triggered MPC —
+            // purely a numerical guard.
             if (curPhase < sched.eventTimes.size()) {
                 const scalar_t nextEventTime = sched.eventTimes[curPhase];
                 const scalar_t timeToNext = nextEventTime - t;
-                if (timeToNext > 0.0 && timeToNext < kNearTouchdownThreshold) {
+                if (timeToNext > 0.0 && timeToNext < kMergeToNominalThreshold) {
                     std::cerr << "[robust_splice_skip] leg=" << leg << " t=" << t
-                              << " want=" << (wantStance ? "stance" : "swing")
                               << " next=" << nextEventTime
-                              << " (within " << kNearTouchdownThreshold << "s — skip)\n";
+                              << " (within " << kMergeToNominalThreshold << "s of nominal — merged)\n";
                     continue;
                 }
             }
 
-            curFlags[leg] = wantStance;
+            curFlags[leg] = true;
             const size_t newMode = stanceLeg2ModeNumber(curFlags);
 
-            // Insert event at t; new mode covers [t, original next event).
+            // Insert stance-flipped phase at t; new mode covers [t, original next event).
+            // ModeSchedule invariant: |eventTimes| = |modeSequence| - 1, with
+            // modeSequence[i] applying to [eventTimes[i-1], eventTimes[i]).
             sched.eventTimes.insert(sched.eventTimes.begin() + curPhase, t);
             sched.modeSequence.insert(sched.modeSequence.begin() + curPhase + 1, newMode);
 
-            // Forward propagation — only for STANCE splice (early contact).
-            // Walk forward, force leg=stance for any consecutive original swing
-            // phases until we hit a phase where the schedule already has the
-            // leg in stance (the natural next touchdown takes over). For SWING
-            // splice (late contact), no propagation: the gait template's
-            // natural cycle restores stance at the original-next-touchdown,
-            // which is what we want — touchdown delay, not removal.
+            // Forward propagation: walk forward and force leg=stance for any
+            // consecutive original swing phases until we hit a phase where the
+            // schedule already has the leg in stance (= the gait template's
+            // natural next touchdown takes over). Without this, the original
+            // gait pattern flips the leg back to swing at the very next event,
+            // undoing the splice — only correct for gaits where the very next
+            // phase already has the leg in stance (e.g. standing trot's
+            // all-stance inter-step phase, where propagated_phases==1).
             size_t propagatedTo = curPhase + 1;
-            if (wantStance) {
-                for (size_t i = curPhase + 2; i < sched.modeSequence.size(); ++i) {
-                    contact_flag_t f = modeNumber2StanceLeg(sched.modeSequence[i]);
-                    if (f[leg]) break;          // original schedule already stance
-                    f[leg] = true;
-                    sched.modeSequence[i] = stanceLeg2ModeNumber(f);
-                    propagatedTo = i;
+            for (size_t i = curPhase + 2; i < sched.modeSequence.size(); ++i) {
+                contact_flag_t f = modeNumber2StanceLeg(sched.modeSequence[i]);
+                if (f[leg]) break;          // original schedule already stance
+                f[leg] = true;
+                sched.modeSequence[i] = stanceLeg2ModeNumber(f);
+                propagatedTo = i;
+            }
+
+            // g_event = n · (p_foot − p_plane) − foot_frame_offset, evaluated
+            // at splice time using the previous cycle's robust window data
+            // (the band the controller was reasoning against when it saw the
+            // contact). Sign tells us where in [-d, +d] the contact landed:
+            //   g_event > 0  → high-side hit (paper "early")
+            //   g_event < 0  → low-side  hit (paper "late")
+            // |g_event| ≤ d in the well-behaved case.
+            scalar_t g_event = std::numeric_limits<scalar_t>::quiet_NaN();
+            {
+                std::lock_guard lock(robustWindowsMutex_);
+                if (leg < robustWindows_.size()) {
+                    const auto& w = robustWindows_[leg];
+                    if (w.active) {
+                        const vector3_t p_foot =
+                            endEffectorKinematicsPtr_->getPosition(initState).at(leg);
+                        g_event = w.n.dot(p_foot - w.p_plane) - w.foot_frame_offset;
+                    }
                 }
             }
 
-            std::cerr << "[robust_splice] leg=" << leg << " t=" << t
-                      << " side=" << (wantStance ? "stance" : "swing")
+            std::cerr << "[robust_contact_splice] leg=" << leg << " t=" << t
+                      << " g_event=" << g_event
+                      << " (>0 high-side / <0 low-side)"
                       << " mode_old=" << sched.modeSequence[curPhase]
                       << " mode_new=" << newMode
                       << " propagated_phases=" << (propagatedTo - curPhase) << "\n";
