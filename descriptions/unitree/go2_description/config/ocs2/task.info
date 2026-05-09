@@ -191,7 +191,7 @@ frictionConeSoftConstraint
 robustPhase
 {
   enabled                  true    ; M2 enabled (terrain_source=convex_region drives p_plane)
-  P                        5       ; window length in nodes (T_robust = P * sqp.dt)
+  P                        10      ; window length in nodes (T_robust = P*sqp.dt). Was 5; bumped per chat7 peer review for physical consistency: d=0.05 + standing_trot swing=0.25s requires T_robust>=2d/v_max. P=10 gives T_robust=0.20s, avg required |ġ|=0.5 m/s, leaves 0.05s normal swing for liftoff.
   d                        0.03    ; uncertainty half-width [m] (M1'' modest)
   w_boundary               1000.0  ; soft penalty weight on boundary equality
   w_v                      1.0     ; soft penalty weight on Σ ġ² running cost
