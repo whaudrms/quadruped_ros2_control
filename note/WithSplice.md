@@ -257,6 +257,136 @@ phasing relative to the descent edge.
   decisively (the means overlap inside one combined std), which could be
   formulation, MPC rate, sample size, or some combination.
 
+## Forward-only scenario follow-up (verdict re-reversed)
+
+The verdict above was based exclusively on `standing_trot_forward_short.yaml`
+(3 s forward at 0.3 m/s + 2 s `twist=0` "stop"). Visual inspection of those
+trials showed an unsettling pattern: after descending to box2, the robot
+during the stop phase often drifts backward and bumps into box1's vertical
+face from below (the descent edge becomes a wall when approached from the
+lower step). This drift correlates with OFF's large yaw RMS (`9.92° ± 6.97°`):
+high yaw drift ⇒ "stop" command (twist = 0 in body frame) results in
+non-trivial world-frame motion ⇒ robot wanders back toward the cliff.
+
+Concern: the stop phase may be **masking** something. During stop the swing
+duty cycle drops to near zero, so the robust window rarely activates and
+splice rarely fires. Most of the trial's metric is dominated by post-descent
+"hold position" behavior, not by what robust phase actually controls
+(the swing→touchdown transition).
+
+### New scenario: [`standing_trot_forward_only.yaml`](../tools/perceptive_dev_v2/scenarios/standing_trot_forward_only.yaml)
+
+Identical setup phases (stand 1.0 + hold 0.5 + enter OCS2 0.5 + stabilize
+1.0 = 3.0 s) followed by **5.0 s of continuous forward at 0.3 m/s**. No
+stop. Total scenario length still 8.0 s. `monitoring_start_sec` shifted
+from 2.5 → 3.0 so the metric window is exactly the 5 s of forward motion.
+Continuous forward keeps the robot moving away from box1 (eliminates the
+backward-drift failure mode) and exercises the swing→touchdown transition
+through the full descent and the subsequent steady-state walk on box2.
+
+### A/B at the same critical cell (Δz = −0.02, d = 0.03, n = 2 per side)
+
+| trial | side | status | dur (s) | dist (m) | roll (°) | pitch (°) | yaw (°) | splice (in window) |
+| --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| `fwdonly_robON_offM02_run1`  | ON+splice | **FALL @ 5.78** | 5.78 | 0.807 | 14.36 | 12.32 | 1.21 | 5 |
+| `fwdonly_robON_offM02_run2`  | ON+splice | **FALL @ 5.56** | 5.56 | 0.695 | 11.22 | 11.20 | 1.77 | 4 |
+| `fwdonly_robOFF_offM02_run1` | OFF       | **FALL @ 6.94** | 6.94 | 0.757 |  7.54 |  9.97 | 9.24 | 0 |
+| `fwdonly_robOFF_offM02_run2` | OFF       | OK              | 8.00 | 0.920 |  4.64 |  8.63 | 11.02 | 0 |
+
+ON+splice fall rate **2/2** (both falls at ~5.6–5.8 s, roll_limit) vs OFF
+**1/2**. Both ON+splice falls happened ~1.6 s after the descent edge
+crossing — i.e., **during the sustained-walk-on-box2 phase**, not during
+the descent itself. With the stop phase removed, the picture from §"Verdict
+(n = 7 per condition)" reverses again: ON+splice now does **worse** than OFF,
+not better.
+
+### Δz = 0 sanity check (no perception noise, n = 2 per side)
+
+To distinguish "scenario is too aggressive" from "robust phase + Δz = −0.02
+combo is broken", same scenario re-run with `terrain_z_offset = 0.0`:
+
+| trial | side | status | dur (s) | dist (m) | roll (°) | pitch (°) | yaw (°) | splice (in window) |
+| --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| `fwdonly_robON_dz0_run1`  | ON+splice | OK | 8.00 | 1.256 | 7.74 | 8.22 | 2.11 | 7 |
+| `fwdonly_robON_dz0_run2`  | ON+splice | OK | 8.00 | 0.690 | 4.71 | 9.49 | 2.69 | 6 |
+| `fwdonly_robOFF_dz0_run1` | OFF       | OK | 8.00 | 1.208 | 3.53 | 7.44 | 1.45 | 0 |
+| `fwdonly_robOFF_dz0_run2` | OFF       | OK | 8.00 | 1.251 | 3.27 | 7.53 | 2.45 | 0 |
+
+Findings:
+
+1. **The scenario itself is fine.** With Δz = 0 the robot completes 4/4
+   trials in both conditions; the distance traveled is consistent with
+   `0.3 m/s × 5 s ≈ 1.2 m` in 3 of 4 cases.
+2. **All Δz = −0.02 falls were perception-noise-driven, not
+   scenario-driven.** Sustained walking on box2 with the +3 cm perception
+   error (foot trying to land at z = 0.07 vs actual z = 0.10) eventually
+   destabilizes the robot regardless of robust phase, but ON+splice fails
+   substantially faster than OFF.
+3. **At Δz = 0, OFF still beats ON+splice on roll mean** (3.40° avg vs
+   6.22° avg). Even with perfectly accurate perception, robust phase ON
+   destabilizes the robot more than OFF does — directly contradicting the
+   robust phase's design intent.
+4. **Splice fires 6–7 times per scenario even at Δz = 0.** This is direct
+   evidence that the robust window's `g(t_b) = −d` boundary is the
+   trouble: with Δz = 0 the perceived terrain matches actual, so foot
+   really is being pushed `d = 3 cm` below the surface, which manifests as
+   sustained early contact ⇒ splice trigger every swing.
+
+### Why the previous "ON+splice ≥ OFF" verdict was an artifact
+
+Putting the two scenarios side by side:
+
+| metric | forward_short (with stop) | forward_only (no stop) |
+| --- | --- | --- |
+| swing duty cycle (active scenario) | low (~3 s walk + 2 s stop) | high (~5 s walk) |
+| splice events per scenario | 2 – 15 | 4 – 7 (Δz = −0.02) / 6 – 7 (Δz = 0) |
+| OFF dominant failure mode | yaw drift → backward-bump → high RMS | continuous-walk roll/perception noise |
+| ON+splice winning on yaw? | yes (2.18° vs 9.92°) | yes (~1.5° vs ~10°) |
+| ON+splice winning on roll? | marginally (3.91° vs 4.74°) | **no** (worse: fall rate 2/2 vs 1/2 at Δz = −0.02; mean roll 6.22° vs 3.40° at Δz = 0) |
+
+The yaw advantage of splice is real and reproducible across both scenarios.
+**The roll/stability advantage was scenario-specific** — in forward_short,
+OFF's roll metric was inflated by the post-descent backward drift / box1
+bumps; once that contamination is removed (forward_only), OFF's roll mean
+drops to ~3.4° and ON+splice's roll mean is ~6.2° (or fall) at Δz = 0,
+worse at Δz = −0.02.
+
+### Implication: F5's formulation diagnosis is back on the table
+
+`WithoutSplice.md` §F5 hypothesized that the boundary equality
+`g(t_b) = −d` is a directional bias that pushes the foot below perceived
+terrain. Chat6 countered that the splice-less F5 result didn't *prove*
+the formulation was wrong — it could just be that without splice the OCP
+keeps tracking `−d` after physical contact. The forward-only sanity check
+falsifies the chat6 weakening: **even with splice in place AND Δz = 0
+(no perception error to bias against)**, robust phase ON has higher roll
+than OFF, and splice still fires every swing — meaning the boundary cost
+is doing something the splice does not fix in time.
+
+The most parsimonious model is now:
+
+- The directional bias `g(t_b) = −d` (regardless of splice) costs roll
+  stability during sustained swing cycles (every-swing penalty acting
+  during a ~100 ms stale-policy window after each early contact).
+- Splice eliminates the worst case (stuck pushing-down for the entire
+  swing, as in F5 splice-less) but does not eliminate the per-swing
+  ~100 ms residual.
+- WBC override would compress the residual to ~1 ms but is still
+  treating a symptom, not the cause.
+
+The cleanest fix is **F-a**: change the boundary target from `−d` to `0`
+(land at perceived terrain, not below it). This eliminates the
+directional bias entirely; the soft `Σ ġ²` running cost still provides
+the impact-velocity softening, and the `ġ ≤ 0` approach inequality still
+prevents overshoot. Implementation is a one-line change in
+`RobustGuardBoundaryConstraint::getValue` (target switches sign-and-
+magnitude). The forward-only Δz = 0 cell is now the cleanest sanity test
+for it: F-a should bring ON+splice roll RMS at Δz = 0 close to OFF's
+~3.4° (currently ~6.2°). If it does, the formulation diagnosis is
+confirmed and the splice + F-a combination becomes the M2-onwards
+default; if not, something else (weight, MPC rate, WBC) is the dominant
+factor.
+
 ## What this report does not yet answer
 
 - **Sample size for definitive conclusion.** `n = 7` with one fall apiece

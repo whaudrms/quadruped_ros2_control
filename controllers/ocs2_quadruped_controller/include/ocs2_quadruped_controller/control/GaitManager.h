@@ -4,11 +4,8 @@
 
 #ifndef GAITMANAGER_H
 #define GAITMANAGER_H
-#include <mutex>
-
 #include <controller_common/CtrlInterfaces.h>
 #include <ocs2_legged_robot/gait/GaitSchedule.h>
-#include <ocs2_legged_robot/gait/MotionPhaseDefinition.h>
 #include <ocs2_oc/synchronized_module/SolverSynchronizedModule.h>
 
 namespace ocs2::legged_robot
@@ -19,6 +16,14 @@ namespace ocs2::legged_robot
         GaitManager(CtrlInterfaces& ctrl_interfaces,
                     std::shared_ptr<GaitSchedule> gait_schedule_ptr);
 
+        // NOTE on splice ordering: in OCS2, SolverBase::preRun calls
+        // referenceManagerPtr_->preSolverRun FIRST, then loops over
+        // synchronized modules. So splicing the gait schedule here would be
+        // invisible to the same-cycle reference work (terrain projection,
+        // swing planner, robust windows). Splice is therefore implemented in
+        // PerceptiveLeggedReferenceManager (drained at the start of
+        // modifyReferences). GaitManager only handles gait-template switches
+        // (joystick command changes) via insertModeSequenceTemplate.
         void preSolverRun(scalar_t initTime, scalar_t finalTime,
                           const vector_t& currentState,
                           const ReferenceManagerInterface& referenceManager) override;
@@ -29,27 +34,8 @@ namespace ocs2::legged_robot
 
         void init(const std::string& gait_file);
 
-        // Track ② step (b): callable from any thread (controller-thread event
-        // detector in CtrlComponent::detectAndLogContactEvents). Queues a
-        // request to splice `leg` to stance starting at `event_time`. The
-        // actual ModeSchedule mutation is deferred to the next preSolverRun
-        // (MPC thread) so it is properly serialized with the other
-        // GaitSchedule reads/writes that already happen there
-        // (insertModeSequenceTemplate, getModeSchedule via the reference
-        // manager). This avoids the data race that direct mutation from the
-        // controller thread would have introduced.
-        void requestStanceSplice(size_t leg, scalar_t event_time);
-
     private:
         void getTargetGait();
-
-        // Drains pending splice requests and applies them to gait_schedule_ptr_.
-        // Called at the start of preSolverRun (MPC thread, synchronized).
-        // For each pending leg, inserts a stance-flipped mode at event_time
-        // AND propagates the stance bit forward through subsequent phases
-        // until the original schedule's first stance phase for that leg
-        // (gait-agnostic "early stance transition until natural touchdown").
-        void applyPendingSplices(scalar_t initTime, scalar_t finalTime);
 
         CtrlInterfaces& ctrl_interfaces_;
         std::shared_ptr<GaitSchedule> gait_schedule_ptr_;
@@ -60,10 +46,6 @@ namespace ocs2::legged_robot
         bool verbose_{false};
         std::vector<ModeSequenceTemplate> gait_list_;
         std::vector<std::string> gait_name_list_;
-
-        std::mutex splice_mutex_;
-        feet_array_t<bool> splice_pending_{};
-        feet_array_t<scalar_t> splice_time_{};
     };
 }
 

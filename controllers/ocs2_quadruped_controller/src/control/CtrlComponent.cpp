@@ -209,6 +209,15 @@ namespace ocs2::legged_robot
         if (!refMgrPtr) return;
         const auto& refMgr = *refMgrPtr;
 
+        // Splice requests now route through the perceptive reference manager
+        // (NOT GaitManager) so the actual schedule mutation runs at the start
+        // of modifyReferences — BEFORE the line-180 getModeSchedule() read
+        // that feeds terrain projection / swing planner / robust windows in
+        // the same MPC solve. Falling back gracefully if the reference manager
+        // isn't perceptive (no robust phase, no splice).
+        auto* perceptiveRefMgr = dynamic_cast<PerceptiveLeggedReferenceManager*>(
+            legged_interface_->getReferenceManagerPtr().get());
+
         const scalar_t t = observation_.time;
         // estimator_->getMode() RETURNS a mode number (size_t) — it's already
         // stanceLeg2ModeNumber(contact_flag_) per StateEstimateBase.h:37. Here we
@@ -223,28 +232,26 @@ namespace ocs2::legged_robot
             const bool prev_s = prev_scheduled_contact_[leg];
 
             // Liftoff (stance→swing edge in the schedule) opens a new swing
-            // cycle for this leg. Reset the per-swing latches and the
-            // sustained-tick counter so the next swing is eligible to log
-            // and request a new splice.
+            // cycle for this leg. Reset BOTH early- and late-splice latches
+            // and counters so the next cycle is eligible again.
             const bool liftoff = prev_s && !s;
             if (liftoff)
             {
                 early_event_logged_in_swing_[leg] = false;
                 splice_requested_in_swing_[leg] = false;
                 sustained_early_ticks_[leg] = 0;
+                late_splice_requested_in_stance_[leg] = false;
+                sustained_late_ticks_[leg] = 0;
             }
 
             const bool early_now = refMgr.isInRobustWindow(leg, t) && m && !s;
+            const bool late_now  = s && !m;  // scheduled stance, no measured
 
-            // Sustained-contact counter.
-            if (early_now)
-            {
-                ++sustained_early_ticks_[leg];
-            }
-            else
-            {
-                sustained_early_ticks_[leg] = 0;
-            }
+            // Sustained-tick counters.
+            if (early_now) ++sustained_early_ticks_[leg];
+            else           sustained_early_ticks_[leg] = 0;
+            if (late_now)  ++sustained_late_ticks_[leg];
+            else           sustained_late_ticks_[leg] = 0;
 
             // Early-event log (latched per swing).
             if (early_now && !early_event_logged_in_swing_[leg])
@@ -257,9 +264,8 @@ namespace ocs2::legged_robot
                 early_event_logged_in_swing_[leg] = true;
             }
 
-            // Late contact log (rising edge of scheduled, no measured). Late
-            // contact is detection-only — no splice action is taken on it
-            // (current Track ② step (b) is early-contact splice only).
+            // Late-event rising-edge log (kept for diagnostic continuity with
+            // the prior detection-only behavior).
             if (!prev_s && s && !m)
             {
                 RCLCPP_INFO(node_->get_logger(),
@@ -268,21 +274,32 @@ namespace ocs2::legged_robot
                             leg, t);
             }
 
-            // SPLICE REQUEST. After kEventSpliceSustainedTicks consecutive
-            // ticks of early contact, queue a stance-splice request to the
-            // GaitManager. Actual ModeSchedule mutation runs from inside
-            // GaitManager::preSolverRun (MPC thread), avoiding a data race
-            // with the MPC-thread reads/writes of GaitSchedule (which is not
-            // mutex-protected). The next MPC solve consequently sees the
-            // spliced schedule. The 5-tick latch (= 5 ms at 1 kHz controller
-            // rate) debounces against single-tick sensor spikes.
+            // EARLY SPLICE REQUEST (stance flip). After 5 consecutive early-
+            // contact ticks, queue a stance splice. The reference manager
+            // applies it at the START of the next modifyReferences (same MPC
+            // solve gets the new schedule).
             if (early_now &&
                 sustained_early_ticks_[leg] >= kEventSpliceSustainedTicks &&
                 !splice_requested_in_swing_[leg] &&
-                gait_manager_ptr_ != nullptr)
+                perceptiveRefMgr != nullptr)
             {
-                gait_manager_ptr_->requestStanceSplice(leg, t);
+                perceptiveRefMgr->requestStanceSplice(leg, t);
                 splice_requested_in_swing_[leg] = true;
+            }
+
+            // LATE SPLICE REQUEST (swing flip = touchdown delay). After
+            // kLateSpliceSustainedTicks (30 ms) of measured-no-contact during
+            // scheduled stance, queue a swing splice so WBC stops applying
+            // stance dynamics to a foot still in air. Larger threshold than
+            // early because some ms of post-rising-edge no-contact is normal
+            // physics (swing-peak-to-touchdown transit).
+            if (late_now &&
+                sustained_late_ticks_[leg] >= kLateSpliceSustainedTicks &&
+                !late_splice_requested_in_stance_[leg] &&
+                perceptiveRefMgr != nullptr)
+            {
+                perceptiveRefMgr->requestSwingSplice(leg, t);
+                late_splice_requested_in_stance_[leg] = true;
             }
 
             prev_scheduled_contact_[leg] = s;

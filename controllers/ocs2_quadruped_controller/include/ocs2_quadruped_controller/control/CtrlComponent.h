@@ -75,37 +75,65 @@ namespace ocs2::legged_robot
         void logPerceptiveFootPlacementDebug();
         std::optional<scalar_t> samplePerceptiveTerrainHeight(scalar_t x, scalar_t y) const;
 
-        // Track ② step (b) — early-contact detection + queued schedule splice
-        // (no WBC override; late contact NOT spliced — log only).
+        // Track ② step (b/c) — early & late contact detection + queued schedule
+        // splice (no WBC override).
         //
-        // Detection runs on the controller thread. When sustained early contact
-        // is detected (≥ kEventSpliceSustainedTicks consecutive control ticks of
-        // measured stance during scheduled swing inside the robust window), we
-        // call gait_manager_ptr_->requestStanceSplice(leg, observation_.time).
-        // The actual ModeSchedule mutation is deferred to the next
-        // GaitManager::preSolverRun (MPC thread, synchronized with the rest of
-        // the GaitSchedule reads/writes) — the controller thread NEVER mutates
-        // GaitSchedule directly. WBC is not modified — splice gain is
-        // attributable to the OCP-level schedule change alone (per chat4 /
-        // chat6 staging).
+        // Detection runs on the controller thread. Splice requests are routed
+        // through the PerceptiveLeggedReferenceManager (NOT GaitManager, which
+        // is a SolverSynchronizedModule that runs AFTER referenceManager in
+        // OCS2 SolverBase::preRun — splicing there delays the schedule by one
+        // MPC cycle). The reference manager drains the queue at the START of
+        // its modifyReferences call, so the same MPC solve sees the spliced
+        // schedule.
+        //
+        //   early: measured stance during scheduled swing inside robust window
+        //          → after kEventSpliceSustainedTicks ticks, requestStanceSplice
+        //          → schedule rewritten so leg is stance from event_time onward.
+        //   late : scheduled stance with no measured contact (post-touchdown)
+        //          → after kEventSpliceSustainedTicks ticks, requestSwingSplice
+        //          → schedule rewritten so leg is swing from event_time onward
+        //            (touchdown delay; gait template's natural cycle restores
+        //            stance at the next nominal touchdown). If physical contact
+        //            then arrives during the swing, the early-splice path picks
+        //            it up and re-flips to stance — natural chaining.
         void detectAndLogContactEvents();
 
-        static constexpr int kEventSpliceSustainedTicks = 5;
-        // prev_scheduled_contact_     — previous-tick scheduled flag per leg
-        //                                for rising/falling edge detection.
-        // early_event_logged_in_swing_ — latches once per swing cycle so a
-        //                                drawn-out early-contact condition is
-        //                                logged once; resets on liftoff.
-        // sustained_early_ticks_      — consecutive-tick counter for the
-        //                                splice trigger; reset when the
-        //                                early-contact condition breaks.
-        // splice_requested_in_swing_  — latches once per swing so we send at
-        //                                most one splice request per swing
-        //                                cycle; reset on liftoff.
+        // Sustained-tick thresholds for splice triggers (1 kHz controller).
+        // Early: 5 ticks = 5 ms. Early contact during scheduled swing is an
+        //   abnormal event (foot wasn't supposed to touch yet) — short
+        //   debounce vs sensor noise is enough.
+        // Late: 30 ticks = 30 ms. Late contact (scheduled stance, no measured
+        //   contact) at the moment of touchdown is NORMAL physics — the foot
+        //   may still be in transit from swing peak for several tens of ms
+        //   even on flat terrain. Only AFTER ~30 ms past the rising edge does
+        //   "no contact" become diagnostically meaningful as a real touchdown
+        //   delay (e.g., perception-induced premature stance scheduling).
+        static constexpr int kEventSpliceSustainedTicks     = 5;
+        // ABLATION: late splice temporarily disabled (large threshold) to
+        // isolate the effect of Change 1 (splice ordering) + Change 2 (near-
+        // touchdown guard) before re-enabling Change 3 with a properly-tuned
+        // late threshold.
+        static constexpr int kLateSpliceSustainedTicks      = 100000;
+        // prev_scheduled_contact_         — previous-tick scheduled flag per leg
+        //                                   for rising/falling edge detection.
+        // early_event_logged_in_swing_    — once-per-swing latch for the [robust_event]
+        //                                   early log; resets on liftoff.
+        // sustained_early_ticks_          — consecutive-tick counter for the
+        //                                   stance splice trigger.
+        // splice_requested_in_swing_      — once-per-swing latch for the stance
+        //                                   splice request (resets on liftoff).
+        // sustained_late_ticks_           — consecutive-tick counter for the
+        //                                   swing splice trigger.
+        // late_splice_requested_in_stance_ — once-per-stance latch for the
+        //                                    swing splice request (resets on
+        //                                    liftoff so the next stance is
+        //                                    eligible again).
         feet_array_t<bool> prev_scheduled_contact_{};
         feet_array_t<bool> early_event_logged_in_swing_{};
         feet_array_t<int>  sustained_early_ticks_{};
         feet_array_t<bool> splice_requested_in_swing_{};
+        feet_array_t<int>  sustained_late_ticks_{};
+        feet_array_t<bool> late_splice_requested_in_stance_{};
 
         bool enable_perceptive_ = false;
         bool enable_perceptive_reference_modification_ = true;
