@@ -200,6 +200,7 @@ robustPhase
   terrain_source           convex_region  ; "flat" (M1'') or "convex_region" (M2 — per-leg stance projection)
   terrain_z_M1             0.0     ; M1'' flat-ground fallback z [m] (used by "flat" mode; also fallback if projection.regionPtr is null)
   foot_frame_offset        0.06    ; URDF FL_foot frame z above contact along n [m] (ankle frame, contact ~6 cm below)
+  v_max                    0.6     ; impact-velocity lower bound [m/s]: -v_max <= ġ <= 0 envelope (chat7 #2). Must satisfy T_robust >= 2d/v_max; with d=0.05, T_robust=0.20s, avg required |ġ|=0.5 — 0.6 leaves 20% margin.
   verbose_log              true    ; emit per-cycle [robust_phase] std::cerr (off for hardware/RT)
 }
 

@@ -20,6 +20,12 @@ struct RobustWindowData {
     // on the terrain plane" (not "foot frame on the terrain plane").
     scalar_t   foot_frame_offset{0.0};
     scalar_t   dt_mpc{0.015};               // for isActive(t) tolerance
+    // Impact-velocity lower bound: -v_max ≤ ġ. Together with the existing
+    // ġ ≤ 0 approach inequality this gives a soft impact-velocity envelope.
+    // Per chat7 priority #2: T_robust ≥ 2d/v_max for feasibility (with d=0.05,
+    // standing_trot swing=0.25s, P=10: T_robust=0.20s, avg required |ġ|=0.5,
+    // so v_max=0.6 leaves a 20% margin).
+    scalar_t   v_max{0.6};
     size_t     k_a_phase_index{0};
     size_t     k_b_phase_index{0};
 };

@@ -7,6 +7,7 @@
 #include "ocs2_quadruped_controller/perceptive/constraint/FootPlacementConstraint.h"
 #include "ocs2_quadruped_controller/perceptive/constraint/RobustGuardApproachConstraint.h"
 #include "ocs2_quadruped_controller/perceptive/constraint/RobustGuardBoundaryConstraint.h"
+#include "ocs2_quadruped_controller/perceptive/constraint/RobustGuardVelocityLowerBoundConstraint.h"
 #include "ocs2_quadruped_controller/perceptive/constraint/SphereSdfConstraint.h"
 
 #include "ocs2_quadruped_controller/perceptive/interface/ConvexRegionSelector.h"
@@ -149,6 +150,18 @@ namespace ocs2::legged_robot
                     std::make_unique<StateInputSoftConstraint>(
                         std::make_unique<RobustGuardApproachConstraint>(*reference_manager_ptr_, *eeKinematicsPtr, i),
                         std::make_unique<QuadraticPenalty>(2.0 * w_v)));
+
+                // (4) Impact-velocity lower bound  ġ + v_max ≥ 0  (i.e. ġ ≥ -v_max)
+                // via RelaxedBarrierPenalty (same config as (2) approach inequality).
+                // Together with (2) this forms the soft envelope -v_max ≤ ġ ≤ 0,
+                // preventing the OCP from satisfying the boundary g(t_a)=+d, g(t_b)=-d
+                // with arbitrarily large descent speed. Per chat7 priority #2.
+                problem_ptr_->softConstraintPtr->add(
+                    footName + "_robustGuardVelocityLowerBound",
+                    std::make_unique<StateInputSoftConstraint>(
+                        std::make_unique<RobustGuardVelocityLowerBoundConstraint>(
+                            *reference_manager_ptr_, *eeKinematicsPtr, i),
+                        std::make_unique<RelaxedBarrierPenalty>(approachBarrierConfig)));
             }
         }
 

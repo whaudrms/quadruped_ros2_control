@@ -55,6 +55,12 @@ namespace ocs2::legged_robot
             scalar_t  terrain_z_M1 = 0.0;       // M1'' flat-ground guard reference
             scalar_t  foot_frame_offset = 0.0;  // FK foot-frame z above contact point along n
             scalar_t  dt_mpc = 0.015;           // SQP shooting interval [s]
+            // Impact-velocity lower bound: -v_max ≤ ġ. Used by
+            // RobustGuardVelocityLowerBoundConstraint. Per chat7 priority #2;
+            // must satisfy T_robust ≥ 2d/v_max (feasibility floor). Stored
+            // per-window in RobustWindowData.v_max so constraints don't need
+            // a separate settings handle.
+            scalar_t  v_max = 0.6;
             bool      verbose_log = false;      // emit per-cycle [robust_phase] std::cerr
         };
         void setRobustPhaseSettings(const RobustPhaseSettings& settings) { robustPhaseSettings_ = settings; }

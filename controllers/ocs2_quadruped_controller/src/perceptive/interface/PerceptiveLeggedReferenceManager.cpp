@@ -523,6 +523,7 @@ namespace ocs2::legged_robot
             w.d = robustPhaseSettings_.d;
             w.n = vector3_t::UnitZ();   // M1''/M2-flat: world-z guard
             w.foot_frame_offset = robustPhaseSettings_.foot_frame_offset;
+            w.v_max = robustPhaseSettings_.v_max;
 
             const auto& flags = contactFlagStocks[leg];
 
@@ -842,6 +843,7 @@ namespace ocs2::legged_robot
         loadData::loadPtreeValue(pt, s.terrain_source,    prefix + "terrain_source",    verbose);
         loadData::loadPtreeValue(pt, s.terrain_z_M1,      prefix + "terrain_z_M1",      verbose);
         loadData::loadPtreeValue(pt, s.foot_frame_offset, prefix + "foot_frame_offset", verbose);
+        loadData::loadPtreeValue(pt, s.v_max,             prefix + "v_max",             verbose);
         loadData::loadPtreeValue(pt, s.verbose_log,       prefix + "verbose_log",       verbose);
         if (verbose)
         {
