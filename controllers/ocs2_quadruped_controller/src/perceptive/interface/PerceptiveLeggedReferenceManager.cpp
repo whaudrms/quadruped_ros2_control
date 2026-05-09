@@ -697,57 +697,17 @@ namespace ocs2::legged_robot
             contact_flag_t curFlags = modeNumber2StanceLeg(sched.modeSequence[curPhase]);
             if (curFlags[leg]) continue;  // already stance — splice would be a no-op
 
-            // === Engineering "merge-to-nominal-touchdown" guard ===
-            // If t is within 2*dt_mpc of the leg's next nominal event (the
-            // already-scheduled t_b), skip the splice. Inserting a sub-2-shoot
-            // phase destabilizes SQP shooting and WBC mode transitions; the
-            // gait would have reached stance at t_b in a fraction of a dt_mpc
-            // anyway. NOT part of the paper's strict event-triggered MPC —
-            // purely a numerical guard.
-            if (curPhase < sched.eventTimes.size()) {
-                const scalar_t nextEventTime = sched.eventTimes[curPhase];
-                const scalar_t timeToNext = nextEventTime - t;
-                if (timeToNext > 0.0 && timeToNext < kMergeToNominalThreshold) {
-                    std::cerr << "[robust_splice_skip] leg=" << leg << " t=" << t
-                              << " next=" << nextEventTime
-                              << " (within " << kMergeToNominalThreshold << "s of nominal — merged)\n";
-                    continue;
-                }
-            }
-
-            curFlags[leg] = true;
-            const size_t newMode = stanceLeg2ModeNumber(curFlags);
-
-            // Insert stance-flipped phase at t; new mode covers [t, original next event).
-            // ModeSchedule invariant: |eventTimes| = |modeSequence| - 1, with
-            // modeSequence[i] applying to [eventTimes[i-1], eventTimes[i]).
-            sched.eventTimes.insert(sched.eventTimes.begin() + curPhase, t);
-            sched.modeSequence.insert(sched.modeSequence.begin() + curPhase + 1, newMode);
-
-            // Forward propagation: walk forward and force leg=stance for any
-            // consecutive original swing phases until we hit a phase where the
-            // schedule already has the leg in stance (= the gait template's
-            // natural next touchdown takes over). Without this, the original
-            // gait pattern flips the leg back to swing at the very next event,
-            // undoing the splice — only correct for gaits where the very next
-            // phase already has the leg in stance (e.g. standing trot's
-            // all-stance inter-step phase, where propagated_phases==1).
-            size_t propagatedTo = curPhase + 1;
-            for (size_t i = curPhase + 2; i < sched.modeSequence.size(); ++i) {
-                contact_flag_t f = modeNumber2StanceLeg(sched.modeSequence[i]);
-                if (f[leg]) break;          // original schedule already stance
-                f[leg] = true;
-                sched.modeSequence[i] = stanceLeg2ModeNumber(f);
-                propagatedTo = i;
-            }
-
+            // === g_event: signed normal displacement at splice apply time ===
             // g_event = n · (p_foot − p_plane) − foot_frame_offset, evaluated
-            // at splice time using the previous cycle's robust window data
-            // (the band the controller was reasoning against when it saw the
-            // contact). Sign tells us where in [-d, +d] the contact landed:
+            // using the previous cycle's robust window data (the band the
+            // controller was reasoning against when it saw the contact).
             //   g_event > 0  → high-side hit (paper "early")
             //   g_event < 0  → low-side  hit (paper "late")
             // |g_event| ≤ d in the well-behaved case.
+            // Computed identically for splice and merge branches so we can log
+            // event-surface statistics without bias toward either branch.
+            // (NOTE: still computed at splice apply time, not first-contact —
+            //  see chat6_eventtrigger.md A1 for the diagnostic-only caveat.)
             scalar_t g_event = std::numeric_limits<scalar_t>::quiet_NaN();
             {
                 std::lock_guard lock(robustWindowsMutex_);
@@ -761,12 +721,71 @@ namespace ocs2::legged_robot
                 }
             }
 
-            std::cerr << "[robust_contact_splice] leg=" << leg << " t=" << t
+            // === Decide: insert tiny phase or merge into nominal touchdown ===
+            // Engineering near-touchdown guard: if t is within 2*dt_mpc of the
+            // leg's next nominal event, MERGE (replace current phase mode in
+            // place) instead of INSERT (add new event). Both branches must
+            // guarantee that initTime is consistent with stance — otherwise
+            // the OCP initial mode says swing while the foot is in contact.
+            bool merge = false;
+            if (curPhase < sched.eventTimes.size()) {
+                const scalar_t nextEventTime = sched.eventTimes[curPhase];
+                const scalar_t timeToNext = nextEventTime - t;
+                if (timeToNext > 0.0 && timeToNext < kMergeToNominalThreshold) {
+                    merge = true;
+                }
+            }
+
+            curFlags[leg] = true;
+            const size_t newMode = stanceLeg2ModeNumber(curFlags);
+            const size_t oldMode = sched.modeSequence[curPhase];
+
+            // Forward propagation start index differs:
+            //   INSERT: new mode lives at curPhase+1, propagation starts at curPhase+2
+            //   MERGE : we replaced modeSequence[curPhase], propagation starts at curPhase+1
+            size_t propStart;
+            if (merge) {
+                // Merge path: replace current phase's mode in place. modeSequence[curPhase]
+                // covers [eventTimes[curPhase-1], eventTimes[curPhase]). Since we're
+                // inside this phase (initTime > eventTimes[curPhase-1]), changing the
+                // mode is consistent with stance from initTime forward. NO new event,
+                // so no tiny SQP/WBC phase fragment.
+                sched.modeSequence[curPhase] = newMode;
+                propStart = curPhase + 1;
+            } else {
+                // Insert path: add new event at t, new mode covers [t, original next event).
+                // ModeSchedule invariant: |eventTimes| = |modeSequence| - 1, with
+                // modeSequence[i] applying to [eventTimes[i-1], eventTimes[i]).
+                sched.eventTimes.insert(sched.eventTimes.begin() + curPhase, t);
+                sched.modeSequence.insert(sched.modeSequence.begin() + curPhase + 1, newMode);
+                propStart = curPhase + 2;
+            }
+
+            // Forward propagation (identical for both branches): walk forward and
+            // force leg=stance for any consecutive original swing phases until
+            // we hit a phase where the schedule already has the leg in stance
+            // (= the gait template's natural next touchdown takes over).
+            size_t propagatedTo = (merge ? curPhase : curPhase + 1);
+            for (size_t i = propStart; i < sched.modeSequence.size(); ++i) {
+                contact_flag_t f = modeNumber2StanceLeg(sched.modeSequence[i]);
+                if (f[leg]) break;          // original schedule already stance
+                f[leg] = true;
+                sched.modeSequence[i] = stanceLeg2ModeNumber(f);
+                propagatedTo = i;
+            }
+
+            // Distinct log tags so post-hoc analysis can separate insert vs
+            // merge. Both include g_event so event-surface statistics aren't
+            // biased toward either branch (per chat6_eventtrigger.md A1).
+            const char* tag = merge ? "[robust_contact_merge]" : "[robust_contact_splice]";
+            std::cerr << tag << " leg=" << leg << " t=" << t
                       << " g_event=" << g_event
                       << " (>0 high-side / <0 low-side)"
-                      << " mode_old=" << sched.modeSequence[curPhase]
+                      << " mode_old=" << oldMode
                       << " mode_new=" << newMode
-                      << " propagated_phases=" << (propagatedTo - curPhase) << "\n";
+                      << " propagated_phases=" << (propagatedTo - curPhase)
+                      << (merge ? " (in-place; no event insert)" : "")
+                      << "\n";
         }
 
         getGaitSchedule()->setModeSchedule(sched);

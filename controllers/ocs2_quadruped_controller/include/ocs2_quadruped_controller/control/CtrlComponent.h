@@ -117,10 +117,21 @@ namespace ocs2::legged_robot
         // splice_requested_in_window_          — once-per-window latch so we send at
         //                                        most one splice request per swing
         //                                        cycle; resets on liftoff.
-        feet_array_t<bool> prev_scheduled_contact_{};
-        feet_array_t<bool> robust_contact_logged_in_window_{};
-        feet_array_t<int>  sustained_robust_contact_ticks_{};
-        feet_array_t<bool> splice_requested_in_window_{};
+        // candidate_event_time_                — observation time at the FIRST tick
+        //                                        of a robust-window contact (saved on
+        //                                        the rising edge of robust_contact_now).
+        //                                        Sent as event_time when the splice
+        //                                        request is later confirmed at 5 ticks,
+        //                                        so the schedule splice anchors on the
+        //                                        actual first-contact time, not the
+        //                                        debounce-confirmed time (~5 ms later).
+        //                                        Per chat6_eventtrigger.md A3 / Q3
+        //                                        improvement #1.
+        feet_array_t<bool>     prev_scheduled_contact_{};
+        feet_array_t<bool>     robust_contact_logged_in_window_{};
+        feet_array_t<int>      sustained_robust_contact_ticks_{};
+        feet_array_t<bool>     splice_requested_in_window_{};
+        feet_array_t<scalar_t> candidate_event_time_{};
 
         bool enable_perceptive_ = false;
         bool enable_perceptive_reference_modification_ = true;

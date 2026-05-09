@@ -241,6 +241,7 @@ namespace ocs2::legged_robot
                 robust_contact_logged_in_window_[leg] = false;
                 splice_requested_in_window_[leg]      = false;
                 sustained_robust_contact_ticks_[leg]  = 0;
+                candidate_event_time_[leg]            = 0.0;
             }
 
             // Robust-window contact event: measured contact while the schedule
@@ -249,8 +250,19 @@ namespace ocs2::legged_robot
             // hits land here.
             const bool robust_contact_now = refMgr.isInRobustWindow(leg, t) && m && !s;
 
-            if (robust_contact_now) ++sustained_robust_contact_ticks_[leg];
-            else                    sustained_robust_contact_ticks_[leg] = 0;
+            // Capture the FIRST contact tick's time for use as event_time when
+            // the splice is later confirmed at 5 ticks. Without this we'd send
+            // the (debounce-confirmed) time ≈ 5 ms after first contact, which
+            // is paper-incorrect (the event time should anchor on first
+            // contact). Per chat6_eventtrigger.md A3 #1.
+            if (robust_contact_now) {
+                if (sustained_robust_contact_ticks_[leg] == 0) {
+                    candidate_event_time_[leg] = t;  // rising edge
+                }
+                ++sustained_robust_contact_ticks_[leg];
+            } else {
+                sustained_robust_contact_ticks_[leg] = 0;
+            }
 
             // Once-per-window log of the first robust-contact tick. We log the
             // window context (t_a, t_b, d, p_plane.z) so post-hoc analysis can
@@ -278,15 +290,16 @@ namespace ocs2::legged_robot
             }
 
             // Robust-contact splice request. After 5 consecutive ticks of the
-            // robust-window contact condition, queue a stance splice. The
-            // reference manager applies it at the START of the next
-            // modifyReferences (same MPC solve gets the new schedule).
+            // robust-window contact condition, queue a stance splice. We send
+            // candidate_event_time_[leg] (the first-contact tick's observation
+            // time), NOT the current `t` — anchors the splice on the actual
+            // event time, paper-faithful.
             if (robust_contact_now &&
                 sustained_robust_contact_ticks_[leg] >= kRobustContactSpliceSustainedTicks &&
                 !splice_requested_in_window_[leg] &&
                 perceptiveRefMgr != nullptr)
             {
-                perceptiveRefMgr->requestRobustContactSplice(leg, t);
+                perceptiveRefMgr->requestRobustContactSplice(leg, candidate_event_time_[leg]);
                 splice_requested_in_window_[leg] = true;
             }
 
