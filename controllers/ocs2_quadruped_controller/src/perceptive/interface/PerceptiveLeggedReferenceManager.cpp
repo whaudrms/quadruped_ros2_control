@@ -392,16 +392,17 @@ namespace ocs2::legged_robot
         if (enteringContact)
         {
             lastLiftoffPos_[leg] = endEffectorKinematicsPtr_->getPosition(initState)[leg];
-            // 0.08 m is a perceptive-planner-side touchdown projection bias used
-            // to anchor the swing planner's lift-off / touchdown heights at the
-            // actual contact point (FK foot frame is at the ankle, ~0.08 m
-            // above contact for go2). This is independent of robust phase's
+            // 0.02 m = foot ball radius (Go2's spherical foot has r ≈ 0.02 m,
+            // so the FK foot frame at the ball center sits 0.02 m above the
+            // ground contact point at touchdown). This is the perceptive
+            // planner's anchor for the swing planner's lift-off / touchdown
+            // heights — separate physical quantity from the robust guard's
             // RobustGuardBoundaryConstraint::foot_frame_offset (loaded from
-            // task.info, separate physical quantity used in g(x) = n·(p_foot −
-            // p_plane) − foot_frame_offset). Do not blindly equate the two:
-            // touching this number alters the perceptive planner's stair-down
-            // behavior (0.02 caused stair-down failures in earlier sweeps).
-            lastLiftoffPos_[leg].z() -= 0.08;
+            // task.info, used in g(x) = n·(p_foot − p_plane) − foot_frame_offset).
+            // Do not conflate the two — they describe different geometric
+            // relationships (FK→contact for the planner; FK→guard-zero for
+            // the OCP constraint).
+            lastLiftoffPos_[leg].z() -= 0.02;
             hasLatchedContactPosition_[leg] = true;
         }
 
