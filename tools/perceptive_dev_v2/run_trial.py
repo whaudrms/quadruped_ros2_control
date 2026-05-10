@@ -358,6 +358,12 @@ def main():
                              "task.info is backed up to *.bak before the trial and restored "
                              "afterward (try/finally guarded). sqp.dt is NOT touched — only the "
                              "MPC re-solve rate changes. Used for the M2 A/B sweep (10/20/50 Hz).")
+    parser.add_argument("--metrics-grace-sec", type=float, default=30.0,
+                        help="How long after scenario timeout_sec to wait for "
+                             "auto_input_metrics to exit cleanly before SIGKILL "
+                             "(default 30 — protective vs the rclpy.shutdown hang). "
+                             "Reduce to 5 for fast batch sweeps when you trust "
+                             "auto_input_metrics shuts down promptly.")
     args = parser.parse_args()
 
     ws_setup = detect_ws_setup(args.ws_setup)
@@ -492,7 +498,7 @@ def main():
             ["zsh", "-lc", metrics_cmd],
             preexec_fn=os.setsid,
         )
-        metrics_timeout = float(scenario_cfg.get("timeout_sec", 16.0)) + 30.0
+        metrics_timeout = float(scenario_cfg.get("timeout_sec", 16.0)) + args.metrics_grace_sec
         try:
             metrics_proc.wait(timeout=metrics_timeout)
         except subprocess.TimeoutExpired:
