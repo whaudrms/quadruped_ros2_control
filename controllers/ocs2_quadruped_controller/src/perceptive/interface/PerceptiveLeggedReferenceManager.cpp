@@ -644,6 +644,12 @@ namespace ocs2::legged_robot
         // be a no-op when robust phase is disabled, so OFF trials remain a
         // clean control.
         if (!robustPhaseSettings_.enabled) return;
+        // Ablation: enable_splice=false keeps robust OCP active (boundary +
+        // ġ envelope + ġ² cost in modifyReferences) but disables the
+        // event-triggered schedule splice itself. Used to isolate per-leg
+        // splice as a source of gait-template disruption (3-leg stance modes,
+        // diagonal-trot break) vs the OCP-side robust formulation alone.
+        if (!robustPhaseSettings_.enable_splice) return;
         if (leg >= robust_contact_splice_pending_.size()) return;
         std::lock_guard lk(splice_mutex_);
         // If a request for this leg is already pending, anchor on the EARLIEST
@@ -844,6 +850,7 @@ namespace ocs2::legged_robot
         loadData::loadPtreeValue(pt, s.terrain_z_M1,      prefix + "terrain_z_M1",      verbose);
         loadData::loadPtreeValue(pt, s.foot_frame_offset, prefix + "foot_frame_offset", verbose);
         loadData::loadPtreeValue(pt, s.v_max,             prefix + "v_max",             verbose);
+        loadData::loadPtreeValue(pt, s.enable_splice,     prefix + "enable_splice",     verbose);
         loadData::loadPtreeValue(pt, s.verbose_log,       prefix + "verbose_log",       verbose);
         if (verbose)
         {

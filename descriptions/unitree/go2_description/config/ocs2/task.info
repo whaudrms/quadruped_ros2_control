@@ -28,7 +28,7 @@ sqp
 {
   nThreads                              3
   dt                                    0.02
-  sqpIteration                          1
+  sqpIteration                          2
   deltaTol                              1e-4
   g_max                                 1e-2
   g_min                                 1e-6
@@ -190,7 +190,7 @@ frictionConeSoftConstraint
 ; M1'' = flat-ground sanity check: n = e_z, p_plane.z = terrain_z_M1.
 robustPhase
 {
-  enabled                  true    ; M2 enabled (terrain_source=convex_region drives p_plane)
+  enabled                  false    ; M2 enabled (terrain_source=convex_region drives p_plane)
   P                        10      ; window length in nodes (T_robust = P*sqp.dt). Was 5; bumped per chat7 peer review for physical consistency: d=0.05 + standing_trot swing=0.25s requires T_robust>=2d/v_max. P=10 gives T_robust=0.20s, avg required |ġ|=0.5 m/s, leaves 0.05s normal swing for liftoff.
   d                        0.03    ; uncertainty half-width [m] (M1'' modest)
   w_boundary               200.0   ; soft penalty weight on boundary equality. Was 1000; lowered per chat7 #4 (Stage 4 sweep): higher value over-constrained the OCP into pathological-descent solutions because ġ envelope from RobustGuardApproach + RobustGuardVelocityLowerBound (Stage 2) already shapes the traversal. 200 leaves boundary tracking firm enough to traverse the band but lets the velocity barriers do the soft-descent work.
@@ -201,6 +201,7 @@ robustPhase
   terrain_z_M1             0.0     ; M1'' flat-ground fallback z [m] (used by "flat" mode; also fallback if projection.regionPtr is null)
   foot_frame_offset        0.06    ; URDF FL_foot frame z above contact along n [m] (ankle frame, contact ~6 cm below)
   v_max                    0.6     ; impact-velocity lower bound [m/s]: -v_max <= ġ <= 0 envelope (chat7 #2). Must satisfy T_robust >= 2d/v_max; with d=0.05, T_robust=0.20s, avg required |ġ|=0.5 — 0.6 leaves 20% margin.
+  enable_splice            true    ; ablation knob: when false, robust OCP stays active (boundary, ġ envelope, ġ² cost) but the event-triggered schedule splice is disabled. Used to isolate splice-induced gait disruption from the OCP-side robust formulation.
   verbose_log              true    ; emit per-cycle [robust_phase] std::cerr (off for hardware/RT)
 }
 

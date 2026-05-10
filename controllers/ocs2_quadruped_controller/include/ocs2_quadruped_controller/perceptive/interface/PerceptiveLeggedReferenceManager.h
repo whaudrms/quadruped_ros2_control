@@ -61,6 +61,13 @@ namespace ocs2::legged_robot
             // per-window in RobustWindowData.v_max so constraints don't need
             // a separate settings handle.
             scalar_t  v_max = 0.6;
+            // Ablation: when false, robust OCP (boundary, ġ envelope, ġ²
+            // cost) stays active but the event-triggered schedule splice is
+            // disabled — requestRobustContactSplice becomes a no-op. Useful
+            // to isolate splice-induced gait disruption (per-leg splice can
+            // create non-trot 3-leg stance modes) from the OCP-side robust
+            // formulation. Default true preserves committed behavior.
+            bool      enable_splice = true;
             bool      verbose_log = false;      // emit per-cycle [robust_phase] std::cerr
         };
         void setRobustPhaseSettings(const RobustPhaseSettings& settings) { robustPhaseSettings_ = settings; }
