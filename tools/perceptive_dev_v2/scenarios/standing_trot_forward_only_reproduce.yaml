@@ -1,17 +1,10 @@
-name: standing_trot_forward_short_dev_v2
-# Critical-band A/B scenario. The original 3 s forward and 2 s stop phases are
-# unchanged; only preparation phases are extended for reliable state changes.
-#
-# Phase budget (total 15.0 s):
-#   stand_only          5.0 s
-#   hold_after_stand    1.0 s
-#   enter_ocs2          1.0 s
-#   stabilize_gait      3.0 s
-#   forward             3.0 s
-#   stop                2.0 s
+name: standing_trot_forward_only_reproduce_dev_v2
+# good_data reproduction variant. Keep the original command sequence and
+# 5 s forward phase, but wait one additional second after FixedStand before
+# requesting the OCS2 transition.
 publish_rate_hz: 50.0
-timeout_sec: 15.0
-monitoring_start_sec: 9.5
+timeout_sec: 9.0
+monitoring_start_sec: 4.0
 initial_window_sec: 1.0
 mujoco_startup_wait_sec: 2.5
 controller_startup_wait_sec: 20.0
@@ -22,7 +15,7 @@ fall_detection:
   max_abs_pitch_deg: 60.0
 steps:
   - name: stand_only
-    duration: 5.0
+    duration: 1.0
     control_input:
       command: 2
       lx: 0.0
@@ -33,7 +26,7 @@ steps:
       linear: {x: 0.0, y: 0.0, z: 0.0}
       angular: {x: 0.0, y: 0.0, z: 0.0}
   - name: hold_after_stand
-    duration: 1.0
+    duration: 1.5
     control_input:
       command: 0
       lx: 0.0
@@ -44,7 +37,7 @@ steps:
       linear: {x: 0.0, y: 0.0, z: 0.0}
       angular: {x: 0.0, y: 0.0, z: 0.0}
   - name: enter_ocs2
-    duration: 1.0
+    duration: 0.5
     control_input:
       command: 4
       lx: 0.0
@@ -55,7 +48,7 @@ steps:
       linear: {x: 0.0, y: 0.0, z: 0.0}
       angular: {x: 0.0, y: 0.0, z: 0.0}
   - name: stabilize_gait
-    duration: 3.0
+    duration: 1.0
     control_input:
       command: 0
       lx: 0.0
@@ -66,7 +59,7 @@ steps:
       linear: {x: 0.0, y: 0.0, z: 0.0}
       angular: {x: 0.0, y: 0.0, z: 0.0}
   - name: forward
-    duration: 3.0
+    duration: 5.0
     control_input:
       command: 0
       lx: 0.0
@@ -75,15 +68,4 @@ steps:
       ry: 0.0
     twist:
       linear: {x: 0.3, y: 0.0, z: 0.0}
-      angular: {x: 0.0, y: 0.0, z: 0.0}
-  - name: stop
-    duration: 2.0
-    control_input:
-      command: 0
-      lx: 0.0
-      ly: 0.0
-      rx: 0.0
-      ry: 0.0
-    twist:
-      linear: {x: 0.0, y: 0.0, z: 0.0}
       angular: {x: 0.0, y: 0.0, z: 0.0}

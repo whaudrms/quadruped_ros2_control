@@ -8,8 +8,15 @@
 // Active only at shooting nodes within dt_mpc/2 of t_a or t_b for the leg's robust
 // window (queried from PerceptiveLeggedReferenceManager via getRobustWindow / isInRobustWindow).
 //
-// Wrapped by StateSoftConstraint + QuadraticPenalty(2*w_boundary) to produce the soft
-// equality cost L = w_boundary * (g - target)^2.
+// In EqualityResidual mode this is wrapped by StateSoftConstraint +
+// QuadraticPenalty(2*w_boundary) to produce the soft equality cost
+// L = w_boundary * (g - target)^2.
+//
+// In TraversalInequality mode the returned h(x) follows OCS2's h >= 0 convention:
+//   near t_a: h =  g - d >= 0
+//   near t_b: h = -g - d >= 0
+// and is registered in stateInequalityConstraintPtr as a hard QP constraint in
+// addition to a separate EqualityResidual instance used for the boundary cost.
 //
 // Per the M1'' plan: skip the t_a boundary entirely when the window was clamped
 // (skip_t_a_boundary == true) — only the t_b boundary is then enforced.
@@ -26,9 +33,15 @@ namespace ocs2::legged_robot {
 
 class RobustGuardBoundaryConstraint final : public StateConstraint {
 public:
+    enum class Formulation {
+        EqualityResidual,
+        TraversalInequality,
+    };
+
     RobustGuardBoundaryConstraint(const SwitchedModelReferenceManager& referenceManager,
                                   const EndEffectorKinematics<scalar_t>& endEffectorKinematics,
-                                  size_t contactPointIndex);
+                                  size_t contactPointIndex,
+                                  Formulation formulation = Formulation::EqualityResidual);
 
     ~RobustGuardBoundaryConstraint() override = default;
     RobustGuardBoundaryConstraint* clone() const override { return new RobustGuardBoundaryConstraint(*this); }
@@ -49,6 +62,7 @@ private:
     const SwitchedModelReferenceManager* referenceManagerPtr_;
     std::unique_ptr<EndEffectorKinematics<scalar_t>> endEffectorKinematicsPtr_;
     const size_t contactPointIndex_;
+    const Formulation formulation_;
 };
 
 }  // namespace ocs2::legged_robot

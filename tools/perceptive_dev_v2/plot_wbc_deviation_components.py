@@ -1,211 +1,275 @@
 #!/usr/bin/env python3
-"""WBC tracking deviation, per-component (x/y/z and roll/pitch/yaw), 2×2 panel.
+"""Plot mean per-component WBC deviations for the configured trial cohorts."""
 
-Mirrors note/sizesample.png layout:
-  rows: position deviation (x/y/z)  /  orientation deviation (roll/pitch/yaw)
-  cols: ON,no-splice  /  OFF
-One figure per Δz.
-
-Same scenario monitoring-window crop (option b) as plot_wbc_tracking_error.py:
-  tick.csv t_rel ∈ [1.0, 6.0]  (monitoring_start_sec=3.0 to timeout_sec=8.0)
-  displayed as x ∈ [0, 5] s.
-
-Single representative trial (run1) per panel — matches sizesample.png style
-(per-tick raw deviation, not aggregated).
-"""
-import csv
-import sys
+import argparse
 from pathlib import Path
 
-import numpy as np
 import matplotlib
+import numpy as np
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
+from plot_wbc_tracking_error import load_tick, select_max_contrast_successful_pair
+from terrain_descent_events import descent_times, load_or_detect_events
+from wbc_plot_utils import (
+    command_window_in_tick_time,
+    discover_trials,
+    group_trials,
+    offset_file_token,
+    offset_label,
+)
 
-RESULTS = Path("/home/cora/GO2_ws/quadruped_ros2_control/tools/perceptive_dev_v2/results")
-OUT_DIR = Path("/home/cora/GO2_ws/quadruped_ros2_control/note")
 
-# Same monitoring-window crop as plot_wbc_tracking_error.py (option b).
-T_REL_MONITOR_START = 1.0
-T_REL_MONITOR_END   = 6.0
-DISPLAY_DURATION    = T_REL_MONITOR_END - T_REL_MONITOR_START  # 5.0 s
-
-# Match sizesample.png aspect (~12 × 7 in); slight width adjust for 2 conditions.
+SCRIPT_DIR = Path(__file__).resolve().parent
+DEFAULT_RESULTS = SCRIPT_DIR / "results"
 FIG_SIZE = (12, 7)
 
 
-# Use run1 of each condition as the representative trial (matches sizesample
-# style of single-trial raw traces).
-TRIAL_RUNS = {
-    ("Δz=-0.03", "ON,no-splice"):
-        "20260510_191632_basic_step_short_v2_perceptive_dev_v2_v2_ablation_n3_ON_nosplice_offM03_d05_P10_sqp2_run1",
-    ("Δz=-0.03", "OFF"):
-        "20260510_191702_basic_step_short_v2_perceptive_dev_v2_v2_ablation_n3_OFF_offM03_d05_P10_sqp2_run1",
-    ("Δz=+0.03", "ON,no-splice"):
-        "20260510_193722_basic_step_short_v2_perceptive_dev_v2_v2_ablation_n3_p03_ON_nosplice_offP03_d05_P10_sqp2_run1",
-    ("Δz=+0.03", "OFF"):
-        "20260510_193752_basic_step_short_v2_perceptive_dev_v2_v2_ablation_n3_p03_OFF_offP03_d05_P10_sqp2_run1",
-}
+def signed_deviations(opt_x, meas_rbd):
+    """Return measured-minus-planned base position and wrapped ZYX orientation."""
+    position = meas_rbd[:, 3:6] - opt_x[:, 6:9]
+    orientation_raw = meas_rbd[:, 0:3] - opt_x[:, 9:12]
+    orientation = np.arctan2(np.sin(orientation_raw), np.cos(orientation_raw))
+    return position, orientation
 
 
-def load_tick(tick_csv: Path):
-    """Return (t, opt_x[24], meas_rbd[36], planned_mode) per tick."""
-    with open(tick_csv) as f:
-        reader = csv.reader(f)
-        header = next(reader)
-        n_expected = len(header)
-        t_col = header.index("t")
-        opt_x_cols = [header.index(f"opt_x{i}") for i in range(24)]
-        meas_cols  = [header.index(f"meas_rbd{i}") for i in range(36)]
-        mode_col = header.index("planned_mode")
-        ts, opt_xs, meas_xs, modes = [], [], [], []
-        for row in reader:
-            if len(row) != n_expected:
-                continue
-            try:
-                vals = [float(x) for x in row]
-            except ValueError:
-                continue
-            ts.append(vals[t_col])
-            opt_xs.append([vals[c] for c in opt_x_cols])
-            meas_xs.append([vals[c] for c in meas_cols])
-            modes.append(int(vals[mode_col]))
-    if not ts:
+def load_trial_deviations(trial: dict):
+    loaded = load_tick(trial["tick_path"])
+    if loaded is None:
         return None
-    return np.array(ts), np.array(opt_xs), np.array(meas_xs), np.array(modes)
-
-
-# Mode encoding (per MotionPhaseDefinition.h:119-123):
-#   mode = LF*8 + RF*4 + LH*2 + RH*1   →   bit i of mode = leg [LF, RF, LH, RH][3-i]
-LEG_NAMES  = ["LF", "RF", "LH", "RH"]
-LEG_COLORS = ["#1f77b4", "#ff7f0e", "#2ca02c", "#d62728"]
-
-
-def mode_to_contacts(mode: int):
-    return np.array([(mode >> (3 - i)) & 1 for i in range(4)], dtype=int)
-
-
-def find_first_box2_touchdown_disp(t, planned_mode, meas_rbd, body_x_threshold=0.4):
-    """Display time of the FIRST scheduled rising-edge touchdown (any leg) AFTER body_x
-    crosses the threshold (front feet onto box2). Returns None if not in window.
-    """
-    body_x = meas_rbd[:, 3]
-    prev = mode_to_contacts(int(planned_mode[0]))
-    for i in range(1, len(planned_mode)):
-        curr = mode_to_contacts(int(planned_mode[i]))
-        if body_x[i] >= body_x_threshold:
-            for leg in range(4):
-                if prev[leg] == 0 and curr[leg] == 1:
-                    t_disp = float(t[i] - t[0]) - T_REL_MONITOR_START
-                    if 0.0 <= t_disp <= DISPLAY_DURATION:
-                        return t_disp
-                    return None
-        prev = curr
-    return None
-
-
-def signed_deviations(t, opt_x, meas_rbd):
-    """Per-tick signed deviations (meas - opt) for position and orientation.
-
-    Layouts:
-      opt_x: [v_com(3), w_c(3), r_b(3), theta_zyx(3), q_j(12)]
-        → r_b at [6:9],  theta_zyx at [9:12]
-      meas_rbd: [theta_zyx(3), r_b(3), q_j(12), w_b(3), r_b_dot(3), q_j_dot(12)]
-        → theta_zyx at [0:3],  r_b at [3:6]
-
-    Returns:
-      pos_err  shape (n, 3)  components [x, y, z]   in meters
-      ori_err  shape (n, 3)  components [yaw, pitch, roll]   in radians
-    """
-    pos_err = meas_rbd[:, 3:6] - opt_x[:, 6:9]
-    ori_err = meas_rbd[:, 0:3] - opt_x[:, 9:12]
-    return pos_err, ori_err
-
-
-def crop_to_monitor_window(t, *series):
-    """Trim each series to t_rel ∈ [T_REL_MONITOR_START, T_REL_MONITOR_END].
-    Re-zero t to start at 0 for display.
-    """
+    t, opt_x, meas_rbd, _planned_mode = loaded
+    if t.size < 5:
+        return None
     t_rel = t - t[0]
-    mask = (t_rel >= T_REL_MONITOR_START) & (t_rel <= T_REL_MONITOR_END)
-    t_disp = t_rel[mask] - T_REL_MONITOR_START
-    out = [t_disp]
-    for s in series:
-        out.append(s[mask])
-    return out
+    start, end = command_window_in_tick_time(trial, float(t_rel[-1]))
+    if end <= start:
+        return None
+    position, orientation = signed_deviations(opt_x, meas_rbd)
+    return t_rel, start, end, position, orientation
 
 
-def plot_one_dz(dz_label: str, on_dir: str, off_dir: str, out_png: Path):
-    fig, axes = plt.subplots(2, 2, figsize=FIG_SIZE, sharex=True)
+def aggregate_deviations(trials: list[dict]):
+    loaded = []
+    for trial in trials:
+        record = load_trial_deviations(trial)
+        if record is not None:
+            loaded.append((trial, record))
+    if not loaded:
+        return None
 
-    # Component colors — match sizesample's default tab cycle (x=blue, y=orange, z=green
-    # for position; roll/pitch/yaw for orientation).
-    pos_components = [("x", "tab:blue"), ("y", "tab:orange"), ("z", "tab:green")]
-    # theta_zyx layout is [yaw, pitch, roll]. Plot in roll/pitch/yaw order with consistent colors.
-    ori_components = [("roll", "tab:blue"), ("pitch", "tab:orange"), ("yaw", "tab:green")]
-    ori_idx_map = {"yaw": 0, "pitch": 1, "roll": 2}
+    duration = max(end - start for _trial, (_time, start, end, _pos, _ori) in loaded)
+    grid = np.arange(0.0, duration + 1e-9, 0.005)
+    position_stack, orientation_stack = [], []
+    for _trial, (time, start, end, position, orientation) in loaded:
+        query = grid + start
+        valid = (query >= time[0]) & (query <= min(time[-1], end))
+        position_values = np.full((grid.size, 3), np.nan)
+        orientation_values = np.full((grid.size, 3), np.nan)
+        for component in range(3):
+            position_values[valid, component] = np.interp(
+                query[valid], time, position[:, component]
+            )
+            orientation_values[valid, component] = np.interp(
+                query[valid], time, orientation[:, component]
+            )
+        position_stack.append(position_values)
+        orientation_stack.append(orientation_values)
 
-    panel_meta = [
-        # (ax_row, ax_col, dir_name, condition_label, panel_letter)
-        (0, 0, on_dir,  "with robust phase",    "(A)"),
-        (0, 1, off_dir, "without robust phase", "(B)"),
-        (1, 0, on_dir,  "with robust phase",    "(C)"),
-        (1, 1, off_dir, "without robust phase", "(D)"),
-    ]
-    for row, col, dname, cond_label, letter in panel_meta:
-        ax = axes[row, col]
-        loaded = load_tick(RESULTS / dname / "tick.csv")
-        if loaded is None:
-            ax.set_title(f"{letter} {cond_label} — (missing tick.csv)")
+    position_stack = np.asarray(position_stack)
+    orientation_stack = np.asarray(orientation_stack)
+    output = {
+        "time": grid,
+        "duration": duration,
+        "n": len(loaded),
+        "sample_count": np.sum(np.isfinite(position_stack[:, :, 0]), axis=0),
+        "position_mean": np.nanmean(position_stack, axis=0),
+        "position_std": np.nanstd(position_stack, axis=0),
+        "orientation_mean": np.nanmean(orientation_stack, axis=0),
+        "orientation_std": np.nanstd(orientation_stack, axis=0),
+    }
+
+    starts, completes = [], []
+    for trial, (_time, command_start, _command_end, _position, _orientation) in loaded:
+        event_start, event_complete = descent_times(load_or_detect_events(trial["trial_dir"]))
+        if event_start is not None:
+            display = event_start - command_start
+            if 0.0 <= display <= duration:
+                starts.append(display)
+        if event_complete is not None:
+            display = event_complete - command_start
+            if 0.0 <= display <= duration:
+                completes.append(display)
+    output.update(
+        {
+            "descent_start_mean": float(np.mean(starts)) if starts else None,
+            "descent_start_std": float(np.std(starts)) if starts else None,
+            "descent_start_n": len(starts),
+            "descent_complete_mean": float(np.mean(completes)) if completes else None,
+            "descent_complete_n": len(completes),
+        }
+    )
+    return output
+
+
+def add_descent_markers(axis, data: dict):
+    start = data.get("descent_start_mean")
+    complete = data.get("descent_complete_mean")
+    if start is not None:
+        axis.axvline(
+            start,
+            color="tab:purple",
+            linestyle="--",
+            linewidth=1.2,
+            label=None,
+        )
+    if complete is not None:
+        axis.axvline(
+            complete,
+            color="tab:green",
+            linestyle=":",
+            linewidth=1.2,
+            label=None,
+        )
+def shared_symmetric_limit(
+    condition_data: tuple[dict | None, ...], mean_key: str, std_key: str
+) -> float:
+    """Return a common ±y limit that contains both conditions and their std bands."""
+    maxima = []
+    for data in condition_data:
+        if data is None:
             continue
-        t, opt_x, meas_rbd, planned_mode = loaded
-        pos_err, ori_err = signed_deviations(t, opt_x, meas_rbd)
-        if row == 0:
-            t_disp, pe = crop_to_monitor_window(t, pos_err)
-            for k, (label, color) in enumerate(pos_components):
-                ax.plot(t_disp, pe[:, k], color=color, label=label, linewidth=0.7)
-            ax.set_ylabel("Position tracking error [m]" if col == 0 else "")
-            ax.set_title(f"{letter} {cond_label}: position deviation (x/y/z)", fontsize=11)
-        else:
-            t_disp, oe = crop_to_monitor_window(t, ori_err)
-            for label, color in ori_components:
-                k = ori_idx_map[label]
-                ax.plot(t_disp, oe[:, k], color=color, label=label, linewidth=0.7)
-            ax.set_ylabel("Orientation tracking error [rad]" if col == 0 else "")
-            ax.set_title(f"{letter} {cond_label}: orientation deviation (roll/pitch/yaw)", fontsize=11)
-            ax.set_xlabel("Time [s]")
-        ax.set_xlim(0, DISPLAY_DURATION)
-        ax.grid(True, alpha=0.3)
-        ax.axhline(0, color="black", linewidth=0.5, alpha=0.5)
-        ax.legend(loc="lower left", fontsize=9)
+        mean = np.asarray(data[mean_key])
+        std = np.asarray(data[std_key])
+        extent = np.abs(mean) + std
+        finite = extent[np.isfinite(extent)]
+        if finite.size:
+            maxima.append(float(np.max(finite)))
+    largest = max(maxima, default=1.0)
+    return max(largest * 1.05, 1e-9)
 
+
+def plot_one_offset(offset: float, on_data: dict | None, off_data: dict | None, cohort: str, output: Path):
+    fig, axes = plt.subplots(2, 2, figsize=FIG_SIZE, sharex=True)
+    component_colors = ("tab:blue", "tab:orange", "tab:green")
+    position_names = ("x", "y", "z")
+    orientation_names = ("yaw", "pitch", "roll")
+    conditions = (
+        (0, on_data, "Proposed"),
+        (1, off_data, "Baseline"),
+    )
+    durations = []
+    selected_pair = cohort == "max_contrast_successful_pair"
+    series_summary_label = "selected-trial" if selected_pair else "mean"
+    row_limits = (
+        shared_symmetric_limit((on_data, off_data), "position_mean", "position_std"),
+        shared_symmetric_limit((on_data, off_data), "orientation_mean", "orientation_std"),
+    )
+
+    for column, data, condition_label in conditions:
+        if data is None:
+            for row in range(2):
+                axes[row, column].set_title(f"{condition_label} — no usable trials")
+            continue
+        durations.append(data["duration"])
+        time = data["time"]
+        panels = (
+            (0, data["position_mean"], data["position_std"], position_names, "position"),
+            (1, data["orientation_mean"], data["orientation_std"], orientation_names, "orientation"),
+        )
+        for row, mean, std, names, quantity in panels:
+            axis = axes[row, column]
+            for component, (name, color) in enumerate(zip(names, component_colors)):
+                axis.plot(time, mean[:, component], color=color, linewidth=1.0, label=name)
+                axis.fill_between(
+                    time,
+                    mean[:, component] - std[:, component],
+                    mean[:, component] + std[:, component],
+                    color=color,
+                    alpha=0.10,
+                    linewidth=0,
+                )
+            add_descent_markers(axis, data)
+            axis.set_title(
+                f"{condition_label}: {series_summary_label} {quantity} deviation",
+                fontsize=10,
+            )
+            if row == 1:
+                axis.set_xlabel("Command-active time [s]")
+
+    display_duration = max(durations) if durations else 1.0
+    for row in range(2):
+        for column in range(2):
+            axis = axes[row, column]
+            axis.set_xlim(0, display_duration)
+            axis.set_ylim(-row_limits[row], row_limits[row])
+            axis.grid(True, alpha=0.3)
+            axis.axhline(0, color="black", linewidth=0.5, alpha=0.5)
+            handles, _labels = axis.get_legend_handles_labels()
+            if handles:
+                axis.legend(loc="best", fontsize=8)
+    axes[0, 0].set_ylabel("Position tracking error [m]")
+    axes[1, 0].set_ylabel("Orientation tracking error [rad]")
+    cohort_title = {
+        "all_trials": "all trials",
+        "successful_only": "successful trials only",
+        "max_contrast_successful_pair": "max-contrast successful pair (selected)",
+    }[cohort]
     fig.suptitle(
-        r"comparison of $\mathbf{WBC}$ tracking error" + f"   —  {dz_label}",
-        fontsize=13, fontweight="bold",
+        f"{'Selected' if selected_pair else 'Mean'} WBC tracking deviation — "
+        f"{offset_label(offset)} — {cohort_title}",
+        fontsize=13,
+        fontweight="bold",
     )
-    fig.tight_layout(rect=[0, 0, 1, 0.94])
-    OUT_DIR.mkdir(parents=True, exist_ok=True)
-    fig.savefig(out_png, dpi=130)
+    fig.tight_layout(rect=(0, 0, 1, 0.94))
+    output.parent.mkdir(parents=True, exist_ok=True)
+    fig.savefig(output, dpi=130)
     plt.close(fig)
-    print(f"saved {out_png}")
+    print(f"saved {output}")
 
 
-def main():
-    plot_one_dz(
-        "Δz = -0.03",
-        TRIAL_RUNS[("Δz=-0.03", "ON,no-splice")],
-        TRIAL_RUNS[("Δz=-0.03", "OFF")],
-        OUT_DIR / "wbc_deviation_components_v2_dz-003.png",
+def select_cohort(trials: list[dict], cohort: str):
+    if cohort == "successful_only":
+        return [trial for trial in trials if bool(trial.get("result", {}).get("success"))]
+    if cohort == "max_contrast_successful_pair":
+        return select_max_contrast_successful_pair(trials)[0]
+    return trials
+
+
+def main(argv=None):
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--results-dir", type=Path, default=DEFAULT_RESULTS)
+    parser.add_argument("--out-dir", type=Path)
+    parser.add_argument(
+        "--cohort",
+        choices=("all", "all_trials", "successful_only", "max_contrast_successful_pair"),
+        default="all",
+        help="Generate all three comparison versions by default.",
     )
-    plot_one_dz(
-        "Δz = +0.03",
-        TRIAL_RUNS[("Δz=+0.03", "ON,no-splice")],
-        TRIAL_RUNS[("Δz=+0.03", "OFF")],
-        OUT_DIR / "wbc_deviation_components_v2_dz+003.png",
+    args = parser.parse_args(argv)
+
+    results_dir = args.results_dir.resolve()
+    out_dir = (args.out_dir or results_dir / "all_visualizations").resolve()
+    all_trials = discover_trials(results_dir)
+    if not all_trials:
+        raise RuntimeError(f"No WBC-compatible trials found in {results_dir}")
+    cohorts = (
+        ("all_trials", "successful_only", "max_contrast_successful_pair")
+        if args.cohort == "all"
+        else (args.cohort,)
     )
+    for cohort in cohorts:
+        groups = group_trials(select_cohort(all_trials, cohort))
+        offsets = sorted({offset for offset, _robust in groups})
+        for offset in offsets:
+            on_data = aggregate_deviations(groups.get((offset, "ON"), []))
+            off_data = aggregate_deviations(groups.get((offset, "OFF"), []))
+            output = out_dir / (
+                f"wbc_deviation_components_{cohort}_v2_dz{offset_file_token(offset)}.png"
+            )
+            plot_one_offset(offset, on_data, off_data, cohort, output)
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())

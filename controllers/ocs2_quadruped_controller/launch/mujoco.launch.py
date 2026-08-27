@@ -145,6 +145,9 @@ def launch_setup(context, *args, **kwargs):
             "ocs2_quadruped_controller",
             "--controller-manager", "/controller_manager",
             "--controller-manager-timeout", "120",
+            # The first perceptive launch compiles missing CppAD models while
+            # load_controller is still servicing this request.
+            "--service-call-timeout", "180",
             "--switch-timeout", "120",
             "-p", controller_override_file,
         ],

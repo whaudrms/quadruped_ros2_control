@@ -8,17 +8,20 @@ namespace ocs2::legged_robot {
 RobustGuardBoundaryConstraint::RobustGuardBoundaryConstraint(
     const SwitchedModelReferenceManager& referenceManager,
     const EndEffectorKinematics<scalar_t>& endEffectorKinematics,
-    size_t contactPointIndex)
+    size_t contactPointIndex,
+    Formulation formulation)
     : StateConstraint(ConstraintOrder::Linear),
       referenceManagerPtr_(&referenceManager),
       endEffectorKinematicsPtr_(endEffectorKinematics.clone()),
-      contactPointIndex_(contactPointIndex) {}
+      contactPointIndex_(contactPointIndex),
+      formulation_(formulation) {}
 
 RobustGuardBoundaryConstraint::RobustGuardBoundaryConstraint(const RobustGuardBoundaryConstraint& rhs)
     : StateConstraint(ConstraintOrder::Linear),
       referenceManagerPtr_(rhs.referenceManagerPtr_),
       endEffectorKinematicsPtr_(rhs.endEffectorKinematicsPtr_->clone()),
-      contactPointIndex_(rhs.contactPointIndex_) {}
+      contactPointIndex_(rhs.contactPointIndex_),
+      formulation_(rhs.formulation_) {}
 
 bool RobustGuardBoundaryConstraint::isActive(scalar_t time) const {
     const auto& w = referenceManagerPtr_->getRobustWindow(contactPointIndex_);
@@ -52,8 +55,12 @@ vector_t RobustGuardBoundaryConstraint::getValue(scalar_t time, const vector_t& 
     const vector3_t p_foot = endEffectorKinematicsPtr_->getPosition(state).front();
     const scalar_t g = w.n.dot(p_foot - w.p_plane) - w.foot_frame_offset;
     const scalar_t target = targetAt(time, w);
+    scalar_t residual = g - target;
+    if (formulation_ == Formulation::TraversalInequality && target < 0.0) {
+        residual = -residual;  // near t_b: -(g - (-d)) = -g - d >= 0
+    }
     vector_t value(1);
-    value(0) = g - target;
+    value(0) = residual;
     return value;
 }
 
@@ -64,8 +71,10 @@ VectorFunctionLinearApproximation RobustGuardBoundaryConstraint::getLinearApprox
     const scalar_t target = targetAt(time, w);
 
     VectorFunctionLinearApproximation approx = VectorFunctionLinearApproximation::Zero(1, state.size(), 0);
-    approx.f(0) = w.n.dot(positionApprox.f - w.p_plane) - w.foot_frame_offset - target;
-    approx.dfdx = w.n.transpose() * positionApprox.dfdx;  // 1 x nx
+    const scalar_t sign =
+        (formulation_ == Formulation::TraversalInequality && target < 0.0) ? -1.0 : 1.0;
+    approx.f(0) = sign * (w.n.dot(positionApprox.f - w.p_plane) - w.foot_frame_offset - target);
+    approx.dfdx = sign * w.n.transpose() * positionApprox.dfdx;  // 1 x nx
     return approx;
 }
 

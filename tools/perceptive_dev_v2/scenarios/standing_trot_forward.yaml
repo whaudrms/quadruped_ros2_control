@@ -1,7 +1,9 @@
 name: standing_trot_forward_dev_v2
+# Keep the original 6 s forward and 3 s stop phases. Only the preparation
+# phases are extended so FixedStand and OCS2 settle before the next command.
 publish_rate_hz: 50.0
-timeout_sec: 16.0
-monitoring_start_sec: 4.0
+timeout_sec: 23.0
+monitoring_start_sec: 11.0
 initial_window_sec: 2.0
 mujoco_startup_wait_sec: 2.5
 controller_startup_wait_sec: 20.0
@@ -12,7 +14,7 @@ fall_detection:
   max_abs_pitch_deg: 60.0
 steps:
   - name: stand_only
-    duration: 2.0
+    duration: 5.0
     control_input:
       command: 2
       lx: 0.0
@@ -23,7 +25,7 @@ steps:
       linear: {x: 0.0, y: 0.0, z: 0.0}
       angular: {x: 0.0, y: 0.0, z: 0.0}
   - name: hold_after_stand
-    duration: 1.0
+    duration: 2.0
     control_input:
       command: 0
       lx: 0.0
@@ -34,7 +36,7 @@ steps:
       linear: {x: 0.0, y: 0.0, z: 0.0}
       angular: {x: 0.0, y: 0.0, z: 0.0}
   - name: enter_ocs2
-    duration: 0.5
+    duration: 1.0
     control_input:
       command: 4
       lx: 0.0
@@ -45,7 +47,7 @@ steps:
       linear: {x: 0.0, y: 0.0, z: 0.0}
       angular: {x: 0.0, y: 0.0, z: 0.0}
   - name: stabilize_gait
-    duration: 1.5
+    duration: 4.0
     control_input:
       command: 0
       lx: 0.0

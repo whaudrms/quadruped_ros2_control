@@ -846,6 +846,7 @@ namespace ocs2::legged_robot
         loadData::loadPtreeValue(pt, s.enabled,           prefix + "enabled",           verbose);
         loadData::loadPtreeValue(pt, s.P,                 prefix + "P",                 verbose);
         loadData::loadPtreeValue(pt, s.d,                 prefix + "d",                 verbose);
+        loadData::loadPtreeValue(pt, s.hard_boundary,     prefix + "hard_boundary",     verbose);
         loadData::loadPtreeValue(pt, s.terrain_source,    prefix + "terrain_source",    verbose);
         loadData::loadPtreeValue(pt, s.terrain_z_M1,      prefix + "terrain_z_M1",      verbose);
         loadData::loadPtreeValue(pt, s.foot_frame_offset, prefix + "foot_frame_offset", verbose);

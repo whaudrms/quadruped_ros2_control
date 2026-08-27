@@ -1,0 +1,29 @@
+{
+  "trial_dir": "/home/tony/GO2_ws/quadruped_ros2_control/tools/perceptive_dev_v2/results/good_data_reproduce/20260824_175206_basic_step_short_v2_perceptive_dev_v2_v2_ablation_n3_p03_ON_nosplice_offP03_d05_P10_sqp2_run3",
+  "scenario": "/home/tony/GO2_ws/quadruped_ros2_control/tools/perceptive_dev_v2/scenarios/standing_trot_forward_only_reproduce.yaml",
+  "scene": "/home/tony/GO2_ws/unitree_mujoco/unitree_robots/go2/basic_step_short_v2.xml",
+  "terrain_z_offset_m": 0.03,
+  "terrain_z_offset_only_below_z_m": 0.15,
+  "terrain_smoothing_radius_m": 0.06,
+  "selected_leg": "FL",
+  "swing_start_time_sec": 10.702,
+  "swing_final_time_sec": 10.952,
+  "swing_duration_sec": 0.25,
+  "lift_off_height_input_m": 0.2,
+  "touch_down_height_input_m": 0.13,
+  "swing_config": {
+    "position_error_gain": 0.0,
+    "lift_off_velocity": 0.05,
+    "touch_down_velocity": -0.1,
+    "swing_height": 0.08,
+    "swing_time_scale": 0.15
+  },
+  "samples": 126,
+  "method": {
+    "planned_and_measured_paths": "Pinocchio FK from tick.csv opt_x and meas_rbd",
+    "planner_reference": "Exact CubicSpline/SplineCpg equations from SwingTrajectoryPlanner.cpp",
+    "selected_swing": "Earliest recorded lower-surface touchdown",
+    "lift_off_height": "Perceived terrain height at the lift-off foothold",
+    "pipeline_figure": "Common x-z cross section: planar regions with footholds, nominal spline, modified spline"
+  }
+}

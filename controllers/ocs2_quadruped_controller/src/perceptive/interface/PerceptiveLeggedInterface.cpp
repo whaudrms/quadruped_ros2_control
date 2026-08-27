@@ -127,15 +127,30 @@ namespace ocs2::legged_robot
                     std::make_unique<StateSoftConstraint>(std::move(footCollisionConstraint), std::move(collisionPenalty)));
             }
 
-            // Robust phase: 3 entries per leg (boundary equality, approach inequality, ġ² cost).
+            // Robust phase boundary cost plus optional hard endpoint constraints,
+            // followed by the soft velocity envelope/rate cost.
             if (robustSettings.enabled)
             {
-                // (1) Boundary g(x_a)=+d, g(x_b)=-d via QuadraticPenalty(2*w_boundary).
+                // (1) Boundary cost is always retained:
+                //     g(x_a)=+d, g(x_b)=-d via QuadraticPenalty(2*w_boundary).
                 problem_ptr_->stateSoftConstraintPtr->add(
                     footName + "_robustGuardBoundary",
                     std::make_unique<StateSoftConstraint>(
-                        std::make_unique<RobustGuardBoundaryConstraint>(*reference_manager_ptr_, *eeKinematicsPtr, i),
+                        std::make_unique<RobustGuardBoundaryConstraint>(
+                            *reference_manager_ptr_, *eeKinematicsPtr, i),
                         std::make_unique<QuadraticPenalty>(2.0 * w_boundary)));
+
+                if (robustSettings.hard_boundary)
+                {
+                    // (1a) Add hard one-sided endpoint constraints without
+                    // replacing the boundary cost above:
+                    //      g(x_a) - d >= 0,  -g(x_b) - d >= 0.
+                    problem_ptr_->stateInequalityConstraintPtr->add(
+                        footName + "_robustGuardBoundaryHard",
+                        std::make_unique<RobustGuardBoundaryConstraint>(
+                            *reference_manager_ptr_, *eeKinematicsPtr, i,
+                            RobustGuardBoundaryConstraint::Formulation::TraversalInequality));
+                }
 
                 // (2) Approach inequality -ġ ≥ 0 via RelaxedBarrierPenalty.
                 problem_ptr_->softConstraintPtr->add(

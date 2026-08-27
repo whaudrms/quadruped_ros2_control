@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""Plot foot z trajectory vs robust-phase window markers for an M1'' trial.
+"""Plot foot z trajectory vs robust-phase window markers for a trial.
 
-Run with the wb-mpc conda env (pinocchio + matplotlib):
-  /home/cora/miniforge3/envs/wb-mpc/bin/python plot_robust_phase.py <trial_dir>
+Run with Python containing pinocchio + matplotlib:
+  python3 plot_robust_phase.py <trial_dir>
 
 Inputs (read from <trial_dir>):
   tick.csv          per-tick OCS2 state/input + measured RBD state
@@ -21,6 +21,7 @@ Measured RBD layout (36 elements in meas_rbd*):
 import argparse
 import re
 import sys
+import textwrap
 from pathlib import Path
 
 import numpy as np
@@ -30,8 +31,15 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import pinocchio as pin
 
+from terrain_descent_events import load_or_detect_events
+
 LEG_NAMES = ["FL", "FR", "RL", "RR"]
 FRAME_NAMES = ["FL_foot", "FR_foot", "RL_foot", "RR_foot"]
+SCRIPT_DIR = Path(__file__).resolve().parent
+PROJECT_ROOT = SCRIPT_DIR.parents[1]
+DEFAULT_URDF = (
+    PROJECT_ROOT / "descriptions/unitree/go2_description/urdf/robot.urdf"
+)
 
 ROBUST_LINE_RE = re.compile(
     r"\[robust_phase\] t=([-\d.e+]+) leg=(\d+) active=(\d+) ta=([-\d.e+]+) tb=([-\d.e+]+) "
@@ -147,9 +155,7 @@ def main(argv=None):
     ap.add_argument(
         "--urdf",
         type=Path,
-        default=Path(
-            "/home/cora/GO2_ws/quadruped_ros2_control/descriptions/unitree/go2_description/urdf/robot.urdf"
-        ),
+        default=DEFAULT_URDF,
     )
     args = ap.parse_args(argv)
 
@@ -198,6 +204,14 @@ def main(argv=None):
     model, data, frame_ids = build_pin_model(args.urdf)
     foot_z_opt = compute_foot_z_trajectory(model, data, frame_ids, q_opt)
     foot_z_meas = compute_foot_z_trajectory(model, data, frame_ids, q_meas)
+    terrain_events = load_or_detect_events(trial_dir)
+    descent = terrain_events.get("descent", {})
+    descent_start_event = descent.get("first_lower_touchdown")
+    descent_complete_event = descent.get("last_hind_lower_touchdown")
+    descent_start = descent_start_event.get("raw_time_sec") if descent_start_event else None
+    descent_complete = (
+        descent_complete_event.get("raw_time_sec") if descent_complete_event else None
+    )
 
     per_leg_log = parse_robust_phase_log(controller_log)
     windows = extract_unique_windows(per_leg_log)
@@ -214,6 +228,24 @@ def main(argv=None):
         ax.plot(t, foot_z_opt[:, leg], color="tab:blue", lw=1.0, label="opt foot frame z")
         ax.plot(t, foot_z_meas[:, leg], color="tab:orange", lw=1.0, alpha=0.7, label="meas foot frame z")
         ax.axhline(0.0, color="k", lw=0.5, alpha=0.3)
+        if descent_start is not None:
+            ax.axvline(
+                descent_start,
+                color="tab:purple",
+                linestyle="--",
+                linewidth=1.2,
+                label=None,
+            )
+        if descent_complete is not None:
+            ax.axvline(
+                descent_complete,
+                color="tab:green",
+                linestyle=":",
+                linewidth=1.2,
+                label=None,
+            )
+        if descent_start is not None and descent_complete is not None:
+            ax.axvspan(descent_start, descent_complete, color="gray", alpha=0.08)
         # Window markers (foot-frame z = p_plane.z + offset ± d)
         for (ta, tb, pz, d, offset, clamped) in windows[leg]:
             color = "tab:red" if not clamped else "tab:purple"
@@ -232,11 +264,13 @@ def main(argv=None):
 
     axes[-1].set_xlabel("time [s]")
     fig.suptitle(
-        f"M1'' robust-phase verification — {trial_dir.name}\n"
+        "Robust-phase verification\n"
+        f"{textwrap.fill(trial_dir.name, width=110)}\n"
         f"red ▲▼ = nominal (t_a, p_plane+offset+d) (t_b, p_plane+offset-d) foot-frame targets; "
-        f"purple = partial-clamped (only t_b)"
+        f"purple = partial-clamped (only t_b); dashed/dotted lines = terrain descent",
+        fontsize=10,
     )
-    fig.tight_layout(rect=(0, 0, 1, 0.97))
+    fig.tight_layout(rect=(0, 0, 1, 0.91))
     fig.savefig(out_png, dpi=110)
     print(f"saved {out_png}")
 

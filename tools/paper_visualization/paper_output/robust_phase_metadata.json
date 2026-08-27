@@ -1,0 +1,20 @@
+{
+  "task_info": "/home/tony/GO2_ws/quadruped_ros2_control/descriptions/unitree/go2_description/config/ocs2/task.info",
+  "show_replan": true,
+  "task_enable_splice": false,
+  "P": 10,
+  "dt_mpc": 0.02,
+  "T_robust": 0.2,
+  "d": 0.05,
+  "v_max": 0.6,
+  "foot_frame_offset": 0.06,
+  "terrain_source": "convex_region",
+  "enable_splice": false,
+  "minimum_traversal_time": 0.16666666666666669,
+  "implementation_mapping": {
+    "window": "PerceptiveLeggedReferenceManager::computeRobustWindows",
+    "boundaries": "RobustGuardBoundaryConstraint: g(t_a)=+d, g(t_b)=-d",
+    "velocity_envelope": "RobustGuardApproachConstraint and RobustGuardVelocityLowerBoundConstraint",
+    "replan": "requestRobustContactSplice/applyPendingSplices when enable_splice=true"
+  }
+}

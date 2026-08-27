@@ -63,8 +63,36 @@ rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn Hardwa
         show_foot_force_ = show_foot_force_param->second == "true";
     }
 
-    RCLCPP_INFO(rclcpp::get_logger("unitree_hardware"), " network_interface: %s, domain: %d", network_interface_.c_str(), domain_);
-    ChannelFactory::Instance()->Init(domain_, network_interface_);
+    // Unitree's Init(domain, interface) helper leaves CycloneDDS participant
+    // selection in "auto" mode with MaxAutoParticipantIndex=9.  This process
+    // also hosts a FastDDS ROS participant and is launched together with RViz,
+    // broadcasters, spawners, and terrain nodes.  Since both DDS vendors use
+    // the standard RTPS port mapping, indices 0..9 can all be occupied during
+    // startup and CycloneDDS then aborts with:
+    //   Failed to find a free participant index for domain 1
+    // Keep automatic selection, but allow CycloneDDS's full valid range.
+    constexpr int kMaxAutoParticipantIndex = 119;
+    const std::string dds_config =
+        "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>"
+        "<CycloneDDS><Domain Id=\"any\"><General><Interfaces>"
+        "<NetworkInterface name=\"" + network_interface_ +
+        "\" priority=\"default\" multicast=\"default\" />"
+        "</Interfaces></General><Discovery>"
+        "<ParticipantIndex>auto</ParticipantIndex>"
+        "<MaxAutoParticipantIndex>" + std::to_string(kMaxAutoParticipantIndex) +
+        "</MaxAutoParticipantIndex></Discovery></Domain></CycloneDDS>";
+
+    unitree::common::JsonMap participant_parameters;
+    participant_parameters[UT_DDS_PARAM_KEY_DOMAINID] = static_cast<uint32_t>(domain_);
+    participant_parameters[UT_DDS_PARAM_KEY_CONFIG] = dds_config;
+    unitree::common::JsonMap dds_parameters;
+    dds_parameters[UT_DDS_PARAM_KEY_PARTICIPANT] = participant_parameters;
+
+    RCLCPP_INFO(
+        rclcpp::get_logger("unitree_hardware"),
+        " network_interface: %s, domain: %d, CycloneDDS max participant index: %d",
+        network_interface_.c_str(), domain_, kMaxAutoParticipantIndex);
+    ChannelFactory::Instance()->Init(dds_parameters);
 
     low_cmd_publisher_ =
         std::make_shared<ChannelPublisher<unitree_go::msg::dds_::LowCmd_>>(

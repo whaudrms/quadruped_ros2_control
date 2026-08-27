@@ -44,6 +44,9 @@ namespace ocs2::legged_robot
             bool      enabled = false;
             int       P = 5;            // window length in nodes
             scalar_t  d = 0.05;         // uncertainty half-width [m]
+            // Add hard one-sided endpoint constraints alongside the boundary cost:
+            // g(t_a) >= d and g(t_b) <= -d. Must be configured before startup.
+            bool      hard_boundary = false;
             // Terrain plane source for the per-leg robust window:
             //   "flat"          M1'' — n = e_z, p_plane.z = terrain_z_M1
             //   "convex_region" M2   — n = e_z (for now), p_plane = stance-side

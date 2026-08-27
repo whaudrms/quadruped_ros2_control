@@ -10,36 +10,51 @@
 set -u
 
 cd "$(dirname "$0")/../.."
-TASK_INFO="descriptions/unitree/go2_description/config/ocs2/task.info"
-BAK="${TASK_INFO}.crit.bak"
-
-cp "$TASK_INFO" "$BAK"
-trap 'echo "[crit] restoring task.info from $BAK"; cp "$BAK" "$TASK_INFO"; rm -f "$BAK"' EXIT INT TERM
-
-set_robust() {
-    sed -i -E "s/^(\s*enabled\s+)(true|false)(.*)$/\1$1\3/" "$TASK_INFO"
-    grep -E "^\s*enabled\s+" "$TASK_INFO" | head -1
-}
+RESULTS_DIR="tools/perceptive_dev_v2/results/critical_band_inside"
+failures=0
 
 run_one() {
     local robust="$1" tag="$2"
-    set_robust "$robust"
     echo
     echo "=========================================================="
     echo "[crit] tag=$tag  robust=$robust  off=-0.02  d=0.03"
     echo "=========================================================="
-    python3 tools/perceptive_dev_v2/run_trial.py \
+    if ! python3 tools/perceptive_dev_v2/run_trial.py \
         --scenario standing_trot_forward_short \
         --terrain basic_step_short \
         --mode perceptive_dev_v2 \
+        --robust "$robust" \
+        --robust-p 10 \
+        --robust-d 0.03 \
+        --robust-v-max 0.6 \
+        --robust-splice on \
+        --robust-verbose on \
         --mpc-frequency 10 \
         --terrain-z-offset -0.02 \
         --terrain-z-offset-only-below-z 0.15 \
-        --tag "$tag" 2>&1 | tail -3
+        --results-dir "$RESULTS_DIR" \
+        --force-cleanup \
+        --tag "$tag"; then
+        echo "[crit] FAILED: $tag" >&2
+        failures=$((failures + 1))
+    fi
+    echo "[crit] DDS cooldown: 3s"
+    sleep 3
 }
 
-run_one true   crit_band_robON_offM02
-run_one false  crit_band_robOFF_offM02
+run_one on  crit_band_robON_offM02
+run_one off crit_band_robOFF_offM02
 
 echo
-echo "[crit] both trials done."
+echo "[crit] generating all_visualizations"
+if ! python3 tools/perceptive_dev_v2/plot_all_results.py \
+    --results-dir "$RESULTS_DIR"; then
+    echo "[crit] FAILED: all_visualizations" >&2
+    failures=$((failures + 1))
+fi
+
+echo
+echo "[crit] both trials attempted; failures=$failures"
+echo "[crit] results: $(pwd)/$RESULTS_DIR"
+echo "[crit] gallery: $(pwd)/$RESULTS_DIR/all_visualizations/index.html"
+exit "$failures"

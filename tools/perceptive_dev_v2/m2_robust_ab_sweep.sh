@@ -21,52 +21,62 @@
 #          0.16 m. Foot trajectory aims through the actual ground; foot meets
 #          actual ground well before scheduled t_b → HARD EARLY contact.
 #
-# task.info: robustPhase.enabled is toggled in-place per trial (backed up to
-# .info.bak by this script and restored at the end, even on Ctrl+C).
-#
 # Run from quadruped_ros2_control/ root:
-#   zsh -c "source /home/cora/GO2_ws/setup_quadruped.sh && \
-#           bash tools/perceptive_dev_v2/m2_robust_ab_sweep.sh"
+#   bash tools/perceptive_dev_v2/m2_robust_ab_sweep.sh
 
-set -u  # don't set -e: we want all 6 trials to attempt even if one falls
+set -u  # Keep attempting the matrix and report a non-zero result at the end.
 
 cd "$(dirname "$0")/../.."
-TASK_INFO="descriptions/unitree/go2_description/config/ocs2/task.info"
-BAK="${TASK_INFO}.absweep.bak"
-
-cp "$TASK_INFO" "$BAK"
-trap 'echo "[sweep] restoring task.info from $BAK"; cp "$BAK" "$TASK_INFO"; rm -f "$BAK"' EXIT INT TERM
-
-set_robust() {
-    local val="$1"  # "true" or "false"
-    sed -i -E "s/^(\s*enabled\s+)(true|false)(.*)$/\1${val}\3/" "$TASK_INFO"
-    grep -E "^\s*enabled\s+" "$TASK_INFO" | head -1
-}
+RESULTS_DIR="tools/perceptive_dev_v2/results/robust_ab_sweep"
+failures=0
 
 run_one() {
     local robust="$1" off="$2" tag="$3"
-    set_robust "$robust"
     echo
     echo "=========================================================="
     echo "[sweep] tag=$tag  robust=$robust  offset=$off"
     echo "=========================================================="
-    python3 tools/perceptive_dev_v2/run_trial.py \
+    if ! python3 tools/perceptive_dev_v2/run_trial.py \
         --scenario standing_trot_forward \
         --terrain basic_step_short \
         --mode perceptive_dev_v2 \
+        --robust "$robust" \
+        --robust-p 10 \
+        --robust-d 0.03 \
+        --robust-v-max 0.6 \
+        --robust-splice on \
+        --robust-verbose on \
         --mpc-frequency 10 \
         --terrain-z-offset "$off" \
         --terrain-z-offset-only-below-z 0.15 \
-        --tag "$tag" 2>&1 | tail -3
+        --results-dir "$RESULTS_DIR" \
+        --force-cleanup \
+        --tag "$tag"; then
+        echo "[sweep] FAILED: $tag" >&2
+        failures=$((failures + 1))
+    fi
+    echo "[sweep] DDS cooldown: 3s"
+    sleep 3
 }
 
 # 6-trial matrix
-run_one true   0.00  m2ab10_robON_off0
-run_one true   0.05  m2ab10_robON_offP05
-run_one true  -0.05  m2ab10_robON_offM05
-run_one false  0.00  m2ab10_robOFF_off0
-run_one false  0.05  m2ab10_robOFF_offP05
-run_one false -0.05  m2ab10_robOFF_offM05
+run_one on   0.00  m2ab10_robON_off0
+run_one on   0.05  m2ab10_robON_offP05
+run_one on  -0.05  m2ab10_robON_offM05
+run_one off  0.00  m2ab10_robOFF_off0
+run_one off  0.05  m2ab10_robOFF_offP05
+run_one off -0.05  m2ab10_robOFF_offM05
 
 echo
-echo "[sweep] all 6 trials done."
+echo "[sweep] generating all_visualizations"
+if ! python3 tools/perceptive_dev_v2/plot_all_results.py \
+    --results-dir "$RESULTS_DIR"; then
+    echo "[sweep] FAILED: all_visualizations" >&2
+    failures=$((failures + 1))
+fi
+
+echo
+echo "[sweep] all 6 trials attempted; failures=$failures"
+echo "[sweep] results: $(pwd)/$RESULTS_DIR"
+echo "[sweep] gallery: $(pwd)/$RESULTS_DIR/all_visualizations/index.html"
+exit "$failures"

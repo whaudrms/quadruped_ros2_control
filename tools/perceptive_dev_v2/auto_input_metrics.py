@@ -76,6 +76,7 @@ class AutoInputMetricsNode(Node):
         self.fall_reason = None
         self.fall_time = None
         self.completed = False
+        self.last_step_name = None
 
         self.command_active_window_start_sec = None
         self.command_active_window_end_sec = None
@@ -222,6 +223,15 @@ class AutoInputMetricsNode(Node):
             self.completed = True
 
         step = self.current_step() or {}
+        step_name = step.get("name", "complete")
+        if step_name != self.last_step_name:
+            twist_x = step.get("twist", {}).get("linear", {}).get("x", 0.0)
+            command = step.get("control_input", {}).get("command", 0)
+            self.get_logger().info(
+                f"scenario step='{step_name}' t={elapsed:.2f}s "
+                f"command={command} cmd_vel.x={twist_x}"
+            )
+            self.last_step_name = step_name
         control_msg = self.build_inputs(step)
         twist_msg = self.build_twist(step)
         self.control_pub.publish(control_msg)
@@ -297,6 +307,7 @@ class AutoInputMetricsNode(Node):
 
         with open(self.result_json, "w", encoding="utf-8") as f:
             json.dump(result, f, indent=2)
+        self.get_logger().info(f"result written to {self.result_json}")
 
 
 def append_summary_row(summary_csv: Path, result_json: Path, terrain: str, mode: str):
