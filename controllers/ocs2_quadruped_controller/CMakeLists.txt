@@ -21,6 +21,7 @@ set(CONTROLLER_INCLUDE_DEPENDS
         ocs2_self_collision
         control_input_msgs
         angles
+        geometry_msgs
         nav_msgs
         qpoases_colcon
         ament_index_cpp
@@ -122,6 +123,20 @@ ament_target_dependencies(planar_terrain_visualizer
         ${CONTROLLER_INCLUDE_DEPENDS}
 )
 
+add_executable(foot_placement_constraint_visualizer
+        src/perceptive/publisher/FootPlacementConstraintVisualizer.cpp
+)
+target_include_directories(foot_placement_constraint_visualizer
+        PUBLIC
+        "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
+        "$<INSTALL_INTERFACE:include/${PROJECT_NAME}>"
+        PRIVATE
+        src
+)
+ament_target_dependencies(foot_placement_constraint_visualizer
+        ${CONTROLLER_INCLUDE_DEPENDS}
+)
+
 install(
         DIRECTORY include/
         DESTINATION include/${PROJECT_NAME}
@@ -129,6 +144,7 @@ install(
 
 install(
         TARGETS ${PROJECT_NAME} planar_terrain_publisher planar_terrain_visualizer
+                foot_placement_constraint_visualizer
         EXPORT export_${PROJECT_NAME}
         ARCHIVE DESTINATION lib/${PROJECT_NAME}
         LIBRARY DESTINATION lib/${PROJECT_NAME}
@@ -145,6 +161,13 @@ ament_export_dependencies(${CONTROLLER_INCLUDE_DEPENDS})
 ament_export_targets(export_${PROJECT_NAME} HAS_LIBRARY_TARGET)
 
 if (BUILD_TESTING)
+    add_executable(perceptive_visualization_smoke_test test/perceptive_visualization_smoke_test.cpp)
+    target_link_libraries(perceptive_visualization_smoke_test ${PROJECT_NAME})
+    ament_target_dependencies(perceptive_visualization_smoke_test ${CONTROLLER_INCLUDE_DEPENDS})
+    add_test(NAME perceptive_visualization_smoke_test COMMAND perceptive_visualization_smoke_test)
+    set_tests_properties(perceptive_visualization_smoke_test PROPERTIES
+        TIMEOUT 30
+        ENVIRONMENT "ROS_DOMAIN_ID=168;ROS_LOCALHOST_ONLY=1;ROS_LOG_DIR=/tmp/perceptive_visualization_test_logs")
     find_package(ament_lint_auto REQUIRED)
     # the following line skips the linter which checks for copyrights
     # comment the line when a copyright and license is added to all source files

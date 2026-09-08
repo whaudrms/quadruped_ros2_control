@@ -9,8 +9,19 @@ import numpy as np
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+from matplotlib.lines import Line2D
 
-from plot_wbc_tracking_error import load_tick, select_max_contrast_successful_pair
+from paper_plot_style import (
+    COMPONENT_COLORS,
+    DESCENT_COMPLETE_COLOR,
+    DESCENT_START_COLOR,
+    SAVE_DPI,
+    apply_paper_style,
+    paper_figsize,
+    paper_legend,
+    style_paper_axis,
+)
+from plot_wbc_tracking_error import load_trial_wbc_analysis, select_max_contrast_successful_pair
 from terrain_descent_events import descent_times, load_or_detect_events
 from wbc_plot_utils import (
     command_window_in_tick_time,
@@ -23,7 +34,10 @@ from wbc_plot_utils import (
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 DEFAULT_RESULTS = SCRIPT_DIR / "results"
-FIG_SIZE = (12, 7)
+FIG_SIZE = paper_figsize(2, 2)
+
+
+apply_paper_style()
 
 
 def signed_deviations(opt_x, meas_rbd):
@@ -35,18 +49,16 @@ def signed_deviations(opt_x, meas_rbd):
 
 
 def load_trial_deviations(trial: dict):
-    loaded = load_tick(trial["tick_path"])
-    if loaded is None:
+    analysis = load_trial_wbc_analysis(trial)
+    if analysis is None:
         return None
-    t, opt_x, meas_rbd, _planned_mode = loaded
-    if t.size < 5:
-        return None
-    t_rel = t - t[0]
-    start, end = command_window_in_tick_time(trial, float(t_rel[-1]))
-    if end <= start:
-        return None
-    position, orientation = signed_deviations(opt_x, meas_rbd)
-    return t_rel, start, end, position, orientation
+    return (
+        analysis["time"],
+        analysis["start"],
+        analysis["end"],
+        analysis["position"],
+        analysis["orientation"],
+    )
 
 
 def aggregate_deviations(trials: list[dict]):
@@ -118,7 +130,7 @@ def add_descent_markers(axis, data: dict):
     if start is not None:
         axis.axvline(
             start,
-            color="tab:purple",
+            color=DESCENT_START_COLOR,
             linestyle="--",
             linewidth=1.2,
             label=None,
@@ -126,7 +138,7 @@ def add_descent_markers(axis, data: dict):
     if complete is not None:
         axis.axvline(
             complete,
-            color="tab:green",
+            color=DESCENT_COMPLETE_COLOR,
             linestyle=":",
             linewidth=1.2,
             label=None,
@@ -151,7 +163,7 @@ def shared_symmetric_limit(
 
 def plot_one_offset(offset: float, on_data: dict | None, off_data: dict | None, cohort: str, output: Path):
     fig, axes = plt.subplots(2, 2, figsize=FIG_SIZE, sharex=True)
-    component_colors = ("tab:blue", "tab:orange", "tab:green")
+    component_colors = COMPONENT_COLORS
     position_names = ("x", "y", "z")
     orientation_names = ("yaw", "pitch", "roll")
     conditions = (
@@ -180,7 +192,7 @@ def plot_one_offset(offset: float, on_data: dict | None, off_data: dict | None, 
         for row, mean, std, names, quantity in panels:
             axis = axes[row, column]
             for component, (name, color) in enumerate(zip(names, component_colors)):
-                axis.plot(time, mean[:, component], color=color, linewidth=1.0, label=name)
+                axis.plot(time, mean[:, component], color=color, linewidth=2.25, label=name)
                 axis.fill_between(
                     time,
                     mean[:, component] - std[:, component],
@@ -192,7 +204,6 @@ def plot_one_offset(offset: float, on_data: dict | None, off_data: dict | None, 
             add_descent_markers(axis, data)
             axis.set_title(
                 f"{condition_label}: {series_summary_label} {quantity} deviation",
-                fontsize=10,
             )
             if row == 1:
                 axis.set_xlabel("Command-active time [s]")
@@ -203,27 +214,37 @@ def plot_one_offset(offset: float, on_data: dict | None, off_data: dict | None, 
             axis = axes[row, column]
             axis.set_xlim(0, display_duration)
             axis.set_ylim(-row_limits[row], row_limits[row])
-            axis.grid(True, alpha=0.3)
+            style_paper_axis(axis)
             axis.axhline(0, color="black", linewidth=0.5, alpha=0.5)
-            handles, _labels = axis.get_legend_handles_labels()
-            if handles:
-                axis.legend(loc="best", fontsize=8)
-    axes[0, 0].set_ylabel("Position tracking error [m]")
-    axes[1, 0].set_ylabel("Orientation tracking error [rad]")
+    axes[0, 0].set_ylabel("Position error [m]")
+    axes[1, 0].set_ylabel("Orientation error [rad]")
     cohort_title = {
         "all_trials": "all trials",
         "successful_only": "successful trials only",
         "max_contrast_successful_pair": "max-contrast successful pair (selected)",
     }[cohort]
     fig.suptitle(
-        f"{'Selected' if selected_pair else 'Mean'} WBC tracking deviation — "
-        f"{offset_label(offset)} — {cohort_title}",
-        fontsize=13,
-        fontweight="bold",
+        f"{'Selected' if selected_pair else 'Mean'} WBC Tracking Deviation - "
+        f"{offset_label(offset)} - {cohort_title.title()}",
+        y=0.995,
     )
-    fig.tight_layout(rect=(0, 0, 1, 0.94))
+    legend_handles = [
+        Line2D([], [], color=color, linewidth=2.25, label=name)
+        for name, color in zip(("x / yaw", "y / pitch", "z / roll"), component_colors)
+    ]
+    legend_handles.extend(
+        (
+            Line2D([], [], color=DESCENT_START_COLOR, linestyle="--", label="First lower touchdown"),
+            Line2D([], [], color=DESCENT_COMPLETE_COLOR, linestyle=":", label="Descent complete"),
+        )
+    )
+    paper_legend(
+        fig, handles=legend_handles, loc="upper center", bbox_to_anchor=(0.5, 0.955),
+        ncol=3,
+    )
+    fig.tight_layout(rect=(0, 0, 1, 0.86))
     output.parent.mkdir(parents=True, exist_ok=True)
-    fig.savefig(output, dpi=130)
+    fig.savefig(output, dpi=SAVE_DPI)
     plt.close(fig)
     print(f"saved {output}")
 

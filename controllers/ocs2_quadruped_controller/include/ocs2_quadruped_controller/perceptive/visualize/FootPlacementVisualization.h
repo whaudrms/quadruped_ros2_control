@@ -21,9 +21,13 @@ namespace ocs2::legged_robot
     public:
         FootPlacementVisualization(const ConvexRegionSelector& convexRegionSelector, size_t numFoot,
                                    const rclcpp_lifecycle::LifecycleNode::SharedPtr& node,
-                                   scalar_t maxUpdateFrequency = 20.0);
+                                   scalar_t maxUpdateFrequency = 20.0,
+                                   scalar_t boundaryMargin = 0.05, bool placementEnabled = true);
 
-        void update(const SystemObservation& observation);
+        // Called only on the MPC thread; selector/splines must belong to the
+        // same completed reference update, not be read by the control thread.
+        void update(scalar_t initTime, scalar_t finalTime, const ModeSchedule& modeSchedule,
+                    const SwingTrajectoryPlanner& swingPlanner);
 
     private:
         visualization_msgs::msg::Marker to3dRosMarker(const convex_plane_decomposition::CgalPolygon2d& polygon,
@@ -41,5 +45,8 @@ namespace ocs2::legged_robot
         rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr marker_publisher_;
         scalar_t last_time_;
         scalar_t min_publish_time_difference_;
+        scalar_t boundary_margin_;
+        bool placement_enabled_;
+        rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr swing_publisher_;
     };
 } // namespace legged

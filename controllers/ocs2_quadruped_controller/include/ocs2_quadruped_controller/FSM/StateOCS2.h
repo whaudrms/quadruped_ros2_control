@@ -6,6 +6,7 @@
 #define STATEOCS2_H
 
 #include <fstream>
+#include <cstdint>
 #include <string>
 
 #include <SafetyChecker.h>
@@ -63,6 +64,16 @@ namespace ocs2::legged_robot
         std::ofstream tick_log_;
         std::string tick_log_path_;
         bool tick_log_header_written_ = false;
+
+        // Long-form MPC foothold-plan snapshots. Each reference-manager
+        // sequence is appended once, so later contact-aware replans cannot
+        // overwrite the plan that existed immediately before contact.
+        std::ofstream foothold_plan_log_;
+        std::string foothold_plan_log_path_;
+        uint64_t last_foothold_plan_sequence_ = 0;
+        bool foothold_plan_log_header_written_ = false;
+
+        void logLatestFootholdPlanSnapshot();
     };
 }
 

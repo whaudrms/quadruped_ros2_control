@@ -27,6 +27,7 @@ import signal
 import shutil
 import subprocess
 import sys
+import threading
 import time
 from pathlib import Path
 
@@ -68,6 +69,7 @@ DEFAULT_WS_SETUP = WORKSPACE_ROOT / "setup_quadruped.sh"
 # processes that ros2 launch double-forks outside its own pgid.
 LINGERING_PROCESS_PATTERNS = (
     "unitree_mujoco",
+    "auto_input_metrics.py",
     "ros2_control_node",
     "ocs2_quadruped_controller",
     "ros2 launch ocs2",
@@ -89,6 +91,31 @@ def launch_process(command: str, log_path: Path):
             preexec_fn=os.setsid,
         )
     return process
+
+
+def stream_matching_log_lines(
+    log_path: Path,
+    stop_event: threading.Event,
+    patterns: tuple[str, ...],
+):
+    """Mirror selected lines from a process log to the runner's terminal."""
+    try:
+        with log_path.open("r", encoding="utf-8", errors="replace") as log_file:
+            while not stop_event.is_set():
+                line = log_file.readline()
+                if line:
+                    if any(pattern in line for pattern in patterns):
+                        print(line.rstrip(), flush=True)
+                else:
+                    stop_event.wait(0.1)
+
+            # Drain lines already written before shutdown so the final timing
+            # sample is not lost when the controller exits with the trial.
+            for line in log_file:
+                if any(pattern in line for pattern in patterns):
+                    print(line.rstrip(), flush=True)
+    except OSError as exc:
+        print(f"[run_trial] could not stream {log_path}: {exc}", file=sys.stderr)
 
 
 def _safe_killpg(pid: int, sig: int) -> bool:
@@ -487,17 +514,36 @@ def effective_task_parameters(text: str) -> dict:
     robust_keys = (
         "enabled", "P", "d", "w_boundary", "w_v", "approach_barrier_mu",
         "approach_barrier_delta", "terrain_source", "terrain_z_M1",
-        "foot_frame_offset", "v_max", "hard_boundary", "enable_splice", "verbose_log",
+        "foot_frame_offset", "v_max", "hard_boundary_start", "hard_boundary_end",
+        "slack_boundary_start", "slack_boundary_end",
+        "slack_boundary_weight_start", "slack_boundary_weight_end",
+        "enable_splice", "verbose_log",
     )
     robust = {
         key: read_task_value(text, key, "robustPhase") for key in robust_keys
     }
-    for key in ("enabled", "hard_boundary", "enable_splice", "verbose_log"):
+    for key in (
+        "enabled", "hard_boundary_start", "hard_boundary_end",
+        "slack_boundary_start", "slack_boundary_end",
+        "enable_splice", "verbose_log",
+    ):
         if robust[key].lower() not in {"true", "false", "0", "1"}:
             raise ValueError(
                 f"Invalid boolean robustPhase.{key}={robust[key]!r} in "
                 f"{TASK_INFO_PATH}; expected true or false"
             )
+    bool_value = lambda key: robust[key].lower() in {"true", "1"}
+    if bool_value("hard_boundary_start") and bool_value("slack_boundary_start"):
+        raise ValueError(
+            "robustPhase start boundary cannot be both hard and slack"
+        )
+    if bool_value("hard_boundary_end") and bool_value("slack_boundary_end"):
+        raise ValueError(
+            "robustPhase end boundary cannot be both hard and slack"
+        )
+    for key in ("slack_boundary_weight_start", "slack_boundary_weight_end"):
+        if float(robust[key]) <= 0.0:
+            raise ValueError(f"robustPhase.{key} must be positive")
     dt = float(read_task_value(text, "dt", "sqp"))
     robust_window = int(robust["P"]) * dt
     minimum_traversal = 2.0 * float(robust["d"]) / float(robust["v_max"])
@@ -507,6 +553,7 @@ def effective_task_parameters(text: str) -> dict:
     return {
         "mpcDesiredFrequency": read_task_value(text, "mpcDesiredFrequency"),
         "sqp.dt": dt,
+        "sqp.sqpIteration": int(read_task_value(text, "sqpIteration", "sqp")),
         "robustPhase": robust,
     }
 
@@ -517,6 +564,10 @@ def task_info_overrides(args) -> dict[str, str]:
         if args.mpc_frequency <= 0.0:
             raise ValueError("--mpc-frequency must be positive")
         overrides["mpcDesiredFrequency"] = f"{args.mpc_frequency:g}"
+    if args.sqp_iterations is not None:
+        if args.sqp_iterations <= 0:
+            raise ValueError("--sqp-iterations must be positive")
+        overrides["sqp.sqpIteration"] = str(args.sqp_iterations)
     if args.robust != "keep":
         overrides["robustPhase.enabled"] = "true" if args.robust == "on" else "false"
     if args.robust_p is not None:
@@ -531,9 +582,33 @@ def task_info_overrides(args) -> dict[str, str]:
         if args.robust_v_max <= 0.0:
             raise ValueError("--robust-v-max must be positive")
         overrides["robustPhase.v_max"] = f"{args.robust_v_max:g}"
-    if args.robust_hard_boundary != "keep":
-        overrides["robustPhase.hard_boundary"] = (
-            "true" if args.robust_hard_boundary == "on" else "false"
+    if args.robust_hard_boundary_start != "keep":
+        overrides["robustPhase.hard_boundary_start"] = (
+            "true" if args.robust_hard_boundary_start == "on" else "false"
+        )
+    if args.robust_hard_boundary_end != "keep":
+        overrides["robustPhase.hard_boundary_end"] = (
+            "true" if args.robust_hard_boundary_end == "on" else "false"
+        )
+    if args.robust_slack_boundary_start != "keep":
+        overrides["robustPhase.slack_boundary_start"] = (
+            "true" if args.robust_slack_boundary_start == "on" else "false"
+        )
+    if args.robust_slack_boundary_end != "keep":
+        overrides["robustPhase.slack_boundary_end"] = (
+            "true" if args.robust_slack_boundary_end == "on" else "false"
+        )
+    if args.robust_slack_weight_start is not None:
+        if args.robust_slack_weight_start <= 0.0:
+            raise ValueError("--robust-slack-weight-start must be positive")
+        overrides["robustPhase.slack_boundary_weight_start"] = (
+            f"{args.robust_slack_weight_start:g}"
+        )
+    if args.robust_slack_weight_end is not None:
+        if args.robust_slack_weight_end <= 0.0:
+            raise ValueError("--robust-slack-weight-end must be positive")
+        overrides["robustPhase.slack_boundary_weight_end"] = (
+            f"{args.robust_slack_weight_end:g}"
         )
     if args.robust_splice != "keep":
         overrides["robustPhase.enable_splice"] = (
@@ -553,6 +628,10 @@ def render_task_info(original_text: str, overrides: dict[str, str]) -> str:
             rendered = replace_task_value(
                 rendered, name.removeprefix("robustPhase."), value, "robustPhase"
             )
+        elif name.startswith("sqp."):
+            rendered = replace_task_value(
+                rendered, name.removeprefix("sqp."), value, "sqp"
+            )
         else:
             rendered = replace_task_value(rendered, name, value)
     return rendered
@@ -564,7 +643,7 @@ def append_trial_summary(summary_path: Path, result: dict, result_path: Path):
     fieldnames = [
         "trial", "tag", "scenario", "terrain", "mode", "robust_enabled",
         "robust_P", "robust_d", "robust_v_max", "robust_splice",
-        "mpc_frequency", "sqp_dt", "terrain_z_offset", "success",
+        "mpc_frequency", "sqp_iterations", "sqp_dt", "terrain_z_offset", "success",
         "fall_reason", "duration_executed", "body_frame_forward_progress",
         "command_active_body_frame_forward_progress", "body_frame_lateral_progress",
         "roll_rms_deg", "pitch_rms_deg", "yaw_rms_deg", "min_base_z",
@@ -582,6 +661,7 @@ def append_trial_summary(summary_path: Path, result: dict, result_path: Path):
         "robust_v_max": robust["v_max"],
         "robust_splice": robust["enable_splice"],
         "mpc_frequency": experiment["effective_task_parameters"]["mpcDesiredFrequency"],
+        "sqp_iterations": experiment["effective_task_parameters"]["sqp.sqpIteration"],
         "sqp_dt": experiment["effective_task_parameters"]["sqp.dt"],
         "terrain_z_offset": experiment["terrain_z_offset"],
         "success": result.get("success"),
@@ -601,6 +681,14 @@ def append_trial_summary(summary_path: Path, result: dict, result_path: Path):
     }
     summary_path.parent.mkdir(parents=True, exist_ok=True)
     file_exists = summary_path.exists()
+    if file_exists:
+        with summary_path.open(newline="", encoding="utf-8") as stream:
+            existing_fieldnames = next(csv.reader(stream), [])
+        # Preserve the schema of an existing result set. New result folders
+        # receive the extended schema, while old summaries remain appendable.
+        if existing_fieldnames:
+            fieldnames = existing_fieldnames
+            row = {key: row.get(key, "") for key in fieldnames}
     with summary_path.open("a", newline="", encoding="utf-8") as stream:
         writer = csv.DictWriter(stream, fieldnames=fieldnames)
         if not file_exists:
@@ -609,7 +697,12 @@ def append_trial_summary(summary_path: Path, result: dict, result_path: Path):
 
 
 def generate_trial_plots(run_dir: Path):
-    for script_name in ("plot_robust_phase.py", "plot_trial_rmse.py"):
+    for script_name in (
+        "trial_metrics.py",
+        "plot_robust_phase.py",
+        "plot_trial_rmse.py",
+        "plot_mpc_timing.py",
+    ):
         script_path = ROOT / script_name
         try:
             proc = subprocess.run(
@@ -720,9 +813,15 @@ def main():
                              "threshold [m]. Default omits the launch arg → all non-floor surfaces "
                              "get the offset. Use 0.15 on basic_step_short to apply only to box2 "
                              "(z=0.10) and leave box1 (z=0.20) unchanged.")
+    parser.add_argument("--foothold-plan-log", choices=["on", "off"], default="off",
+                        help="Record every completed MPC FL optimized-policy and swing-reference snapshot in "
+                             "foothold_plan_snapshots.csv. This preserves pre-contact plans "
+                             "for plan-versus-actual analysis.")
     parser.add_argument("--mpc-frequency", type=float, default=None,
                         help="Override mpcDesiredFrequency in the active task.info for this trial. "
                              "The original file is restored after the trial. sqp.dt is unchanged.")
+    parser.add_argument("--sqp-iterations", type=int, default=None,
+                        help="Override sqp.sqpIteration for this trial")
     parser.add_argument("--robust", choices=["keep", "on", "off"], default="keep",
                         help="Temporarily set robustPhase.enabled (default: keep task.info value)")
     parser.add_argument("--robust-p", type=int, default=None,
@@ -731,8 +830,18 @@ def main():
                         help="Temporarily set robustPhase.d [m]")
     parser.add_argument("--robust-v-max", type=float, default=None,
                         help="Temporarily set robustPhase.v_max [m/s]")
-    parser.add_argument("--robust-hard-boundary", choices=["keep", "on", "off"], default="keep",
-                        help="Temporarily set robustPhase.hard_boundary")
+    parser.add_argument("--robust-hard-boundary-start", choices=["keep", "on", "off"], default="keep",
+                        help="Temporarily set robustPhase.hard_boundary_start (g(t_a) >= d)")
+    parser.add_argument("--robust-hard-boundary-end", choices=["keep", "on", "off"], default="keep",
+                        help="Temporarily set robustPhase.hard_boundary_end (g(t_b) <= -d)")
+    parser.add_argument("--robust-slack-boundary-start", choices=["keep", "on", "off"], default="keep",
+                        help="Temporarily enable quadratic slack for g(t_a) >= d")
+    parser.add_argument("--robust-slack-boundary-end", choices=["keep", "on", "off"], default="keep",
+                        help="Temporarily enable quadratic slack for g(t_b) <= -d")
+    parser.add_argument("--robust-slack-weight-start", type=float, default=None,
+                        help="Override robustPhase.slack_boundary_weight_start")
+    parser.add_argument("--robust-slack-weight-end", type=float, default=None,
+                        help="Override robustPhase.slack_boundary_weight_end")
     parser.add_argument("--robust-splice", choices=["keep", "on", "off"], default="keep",
                         help="Temporarily set robustPhase.enable_splice")
     parser.add_argument("--robust-verbose", choices=["keep", "on", "off"], default="keep",
@@ -824,6 +933,9 @@ def main():
     # Per-tick CSV log saved into the run_dir for offline analysis.
     tick_log_default = run_dir / "tick.csv"
     extra_args.append(f"tick_log_path:={tick_log_default}")
+    foothold_plan_log_default = run_dir / "foothold_plan_snapshots.csv"
+    if args.foothold_plan_log == "on":
+        extra_args.append(f"foothold_plan_log_path:={foothold_plan_log_default}")
     ros_log_dir = run_dir / "ros_logs"
     trial_ros_env_cmd = (
         f"export ROS_LOG_DIR={shlex.quote(str(ros_log_dir))} && {ros_env_cmd}"
@@ -889,10 +1001,15 @@ def main():
         "effective_task_parameters": effective_parameters,
         "terrain_z_offset": args.terrain_z_offset,
         "terrain_z_offset_only_below_z": args.terrain_z_offset_only_below_z,
+        "foothold_plan_log": args.foothold_plan_log,
         "post_trial_hold_sec": args.post_trial_hold_sec,
         "result_files": {
             "metrics": str(run_dir / "result.json"),
             "ticks": str(tick_log_default),
+            "foothold_plan_snapshots": (
+                str(foothold_plan_log_default)
+                if args.foothold_plan_log == "on" else None
+            ),
             "controller_log": str(run_dir / "controller.log"),
             "mujoco_log": str(run_dir / "mujoco.log"),
             "ros_log_dir": str(ros_log_dir),
@@ -904,6 +1021,9 @@ def main():
 
     mujoco = None
     controller = None
+    metrics_proc = None
+    controller_log_stream_stop = threading.Event()
+    controller_log_stream = None
     task_info_changed = effective_task_info != original_task_info
     trial_status = "failed"
     trial_error = None
@@ -917,6 +1037,12 @@ def main():
         time.sleep(float(scenario_cfg.get("mujoco_startup_wait_sec", 2.5)))
         raise_if_process_exited(mujoco, "MuJoCo", mujoco_log_path)
         controller = launch_process(controller_cmd, controller_log_path)
+        controller_log_stream = threading.Thread(
+            target=stream_matching_log_lines,
+            args=(controller_log_path, controller_log_stream_stop, ("[MPC timing]",)),
+            daemon=True,
+        )
+        controller_log_stream.start()
         ready_timeout = (
             args.controller_ready_timeout
             if args.controller_ready_timeout is not None
@@ -993,8 +1119,13 @@ def main():
         trial_error = f"{type(exc).__name__}: {exc}"
         raise
     finally:
+        if metrics_proc is not None:
+            stop_process(metrics_proc, label="metrics", force_cleanup=args.force_cleanup)
         if controller is not None:
             stop_process(controller, label="controller", force_cleanup=args.force_cleanup)
+        controller_log_stream_stop.set()
+        if controller_log_stream is not None:
+            controller_log_stream.join(timeout=2.0)
         if mujoco is not None:
             stop_process(mujoco, label="mujoco", force_cleanup=args.force_cleanup)
         if args.force_cleanup:

@@ -4,8 +4,12 @@
 
 #pragma once
 
+#include <cstdint>
+#include <deque>
+#include <functional>
 #include <memory>
 #include <mutex>
+#include <vector>
 
 #include "ocs2_quadruped_controller/perceptive/interface/ConvexRegionSelector.h"
 
@@ -26,6 +30,24 @@ namespace ocs2::legged_robot
             feet_array_t<scalar_t> initStandFinalTimes{};
         };
 
+        // Immutable copy of one MPC reference update for the first upcoming
+        // FL swing. StateOCS2 appends every new snapshot to a long-form CSV,
+        // so a post-contact replan cannot overwrite the pre-contact plan.
+        struct FootholdPlanSnapshot
+        {
+            uint64_t sequence = 0;
+            scalar_t solveTime = 0.0;
+            scalar_t horizonEndTime = 0.0;
+            scalar_t liftOffTime = 0.0;
+            scalar_t touchDownTime = 0.0;
+            scalar_t touchDownHeight = 0.0;
+            bool robustEnabled = false;
+            RobustWindowData robustWindow{};
+            scalar_array_t sampleTimes;
+            scalar_array_t zReferences;
+            scalar_array_t zVelocityReferences;
+        };
+
         PerceptiveLeggedReferenceManager(CentroidalModelInfo info, std::shared_ptr<GaitSchedule> gaitSchedulePtr,
                                          std::shared_ptr<SwingTrajectoryPlanner> swingTrajectoryPtr,
                                          std::shared_ptr<ConvexRegionSelector> convexRegionSelectorPtr,
@@ -38,15 +60,32 @@ namespace ocs2::legged_robot
 
         void setEnableReferenceModification(bool enable) { enableReferenceModification_ = enable; }
 
+        // Register before starting MPC. Called on the MPC thread after both
+        // terrain selection and swing splines have been updated.
+        void setVisualizationCallback(std::function<void(scalar_t, scalar_t, const ModeSchedule&)> callback)
+        {
+            visualizationCallback_ = std::move(callback);
+        }
+
         // Robust phase configuration (loaded from task.info `robustPhase` block by
         // PerceptiveLeggedInterface). Applied during modifyReferences().
         struct RobustPhaseSettings {
             bool      enabled = false;
             int       P = 5;            // window length in nodes
             scalar_t  d = 0.05;         // uncertainty half-width [m]
-            // Add hard one-sided endpoint constraints alongside the boundary cost:
-            // g(t_a) >= d and g(t_b) <= -d. Must be configured before startup.
-            bool      hard_boundary = false;
+            // Add hard one-sided endpoint constraints independently alongside
+            // the boundary cost, which always remains active at both endpoints.
+            // Must be configured before startup.
+            bool      hard_boundary_start = false;  // g(t_a) >= d
+            bool      hard_boundary_end = false;    // g(t_b) <= -d
+            // Quadratic-slack alternatives for the same one-sided inequalities.
+            // For h >= 0, StateSoftConstraint + SquaredHingePenalty(mu, 0)
+            // is equivalent to min_{s>=0} 0.5*mu*s^2 subject to h+s>=0.
+            // Hard and slack may not both be enabled for the same endpoint.
+            bool      slack_boundary_start = false;
+            bool      slack_boundary_end = false;
+            scalar_t  slack_boundary_weight_start = 200.0;
+            scalar_t  slack_boundary_weight_end = 200.0;
             // Terrain plane source for the per-leg robust window:
             //   "flat"          M1'' — n = e_z, p_plane.z = terrain_z_M1
             //   "convex_region" M2   — n = e_z (for now), p_plane = stance-side
@@ -115,6 +154,13 @@ namespace ocs2::legged_robot
 
         bool getLatestFootPlacementDebugInfo(FootPlacementDebugInfo& debugInfo) const;
 
+        bool getLatestFootholdPlanSnapshot(FootholdPlanSnapshot& snapshot) const;
+
+        // Retrieve the reference snapshot belonging to a completed MPC policy
+        // by the policy's initialization time. A bounded history prevents the
+        // next solve's preSolverRun from racing ahead and replacing metadata.
+        bool getFootholdPlanSnapshot(scalar_t solveTime, FootholdPlanSnapshot& snapshot) const;
+
     protected:
         void modifyReferences(scalar_t initTime, scalar_t finalTime, const vector_t& initState,
                               TargetTrajectories& targetTrajectories,
@@ -139,6 +185,11 @@ namespace ocs2::legged_robot
         void computeRobustWindows(scalar_t initTime, scalar_t finalTime, const ModeSchedule& modeSchedule,
                                   const vector_t& initState);
 
+        // Saves the first upcoming FL swing reference after the swing planner
+        // and robust window have both been updated for the current MPC solve.
+        void updateLatestFootholdPlanSnapshot(scalar_t initTime, scalar_t finalTime,
+                                              const ModeSchedule& modeSchedule);
+
         // Drains pending robust-contact-event splice requests and applies them
         // to gait_schedule_ptr_. Called at the START of modifyReferences (MPC
         // thread, BEFORE the line-180 getGaitSchedule()->getModeSchedule(...)
@@ -151,13 +202,16 @@ namespace ocs2::legged_robot
         // means high-side hit (paper "early"), < 0 means low-side hit (paper
         // "late"); both go through the same splice path.
         //
-        // Includes a "merge-to-nominal-touchdown" engineering guard: if the
-        // event time is within ~2*dt_mpc of the leg's next nominal event,
-        // skip the splice — inserting a sub-2-shoot phase destabilizes SQP
-        // and WBC mode transitions. This is NOT part of the paper's robust
-        // OCP — purely a numerical merge guard. Strict event-triggered MPC
-        // would always insert; we trade a tiny modeling deviation for SQP
-        // stability.
+        // Requests from different legs within one dt_mpc interval are applied
+        // as one atomic mode transition at the latest measured contact time.
+        // This prevents sub-shooting-interval intermediate modes while retaining
+        // the previous SQP solution for trajectory spreading / warm start.
+        //
+        // Includes numerical merge guards for existing schedule events: merge
+        // within dt_mpc after the preceding event (including a robust splice
+        // applied in the previous MPC cycle), or within ~2*dt_mpc before the
+        // next event. This avoids sub-shooting-interval SQP/WBC phases. These
+        // guards are engineering additions, not part of the paper's robust OCP.
         void applyPendingSplices(scalar_t initTime, scalar_t finalTime, const vector_t& initState);
 
         const CentroidalModelInfo info_;
@@ -167,12 +221,14 @@ namespace ocs2::legged_robot
         feet_array_t<bool> activeSwingHeightLatched_{};
         feet_array_t<scalar_t> latchedSwingLiftOffHeights_{};
         feet_array_t<scalar_t> latchedSwingTouchDownHeights_{};
+        feet_array_t<scalar_array_t> latestTouchDownHeightSequence_{};
 
         std::shared_ptr<ConvexRegionSelector> convexRegionSelectorPtr_;
         std::unique_ptr<EndEffectorKinematics<scalar_t>> endEffectorKinematicsPtr_;
 
         scalar_t comHeight_;
         bool enableReferenceModification_ = true;
+        std::function<void(scalar_t, scalar_t, const ModeSchedule&)> visualizationCallback_;
 
         // Robust phase state (one window per leg, recomputed each MPC cycle).
         RobustPhaseSettings robustPhaseSettings_{};
@@ -192,6 +248,12 @@ namespace ocs2::legged_robot
         std::vector<vector3_t, Eigen::aligned_allocator<vector3_t>> latestTerrainAwareBasePath_;
         FootPlacementDebugInfo latestFootPlacementDebugInfo_;
         bool hasLatestReferenceTrajectories_ = false;
+
+        mutable std::mutex footholdPlanSnapshotMutex_;
+        FootholdPlanSnapshot latestFootholdPlanSnapshot_;
+        std::deque<FootholdPlanSnapshot> footholdPlanSnapshotHistory_;
+        uint64_t footholdPlanSnapshotSequence_ = 0;
+        bool hasLatestFootholdPlanSnapshot_ = false;
     };
 
     // Free function: parse `robustPhase` block from task.info.

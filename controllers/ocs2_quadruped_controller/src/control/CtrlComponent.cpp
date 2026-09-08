@@ -6,6 +6,8 @@
 
 #include <ament_index_cpp/get_package_share_directory.hpp>
 #include <angles/angles.h>
+#include <algorithm>
+#include <chrono>
 #include <iomanip>
 #include <optional>
 #include <ocs2_core/misc/LoadData.h>
@@ -48,6 +50,8 @@ namespace ocs2::legged_robot
             node_->declare_parameter("enable_perceptive_body_collision_constraint", enable_perceptive_body_collision_constraint_);
         if (!node_->has_parameter("perceptive_foot_placement_boundary_margin"))
             node_->declare_parameter("perceptive_foot_placement_boundary_margin", perceptive_foot_placement_boundary_margin_);
+        if (!node_->has_parameter("perceptive_foot_collision_clearance"))
+            node_->declare_parameter("perceptive_foot_collision_clearance", perceptive_foot_collision_clearance_);
         robot_pkg_ = node_->get_parameter("robot_pkg").as_string();
         joint_names_ = node_->get_parameter("joints").as_string_array();
         feet_names_ = node_->get_parameter("feet").as_string_array();
@@ -62,6 +66,8 @@ namespace ocs2::legged_robot
             node_->get_parameter("enable_perceptive_body_collision_constraint").as_bool();
         perceptive_foot_placement_boundary_margin_ =
             node_->get_parameter("perceptive_foot_placement_boundary_margin").as_double();
+        perceptive_foot_collision_clearance_ =
+            node_->get_parameter("perceptive_foot_collision_clearance").as_double();
 
 
         const std::string package_share_directory = ament_index_cpp::get_package_share_directory(robot_pkg_);
@@ -186,7 +192,6 @@ namespace ocs2::legged_robot
         visualizer_->update(observation_);
         if (enable_perceptive_)
         {
-            footPlacementVisualizationPtr_->update(observation_);
             sphereVisualizationPtr_->update(observation_);
             
             // Publish perceptive reference paths if there are subscribers
@@ -381,7 +386,7 @@ namespace ocs2::legged_robot
                 enable_perceptive_foot_placement_constraint_,
                 enable_perceptive_foot_collision_constraint_,
                 enable_perceptive_body_collision_constraint_,
-                perceptive_foot_placement_boundary_margin_);
+                perceptive_foot_placement_boundary_margin_, perceptive_foot_collision_clearance_);
         }
         else
         {
@@ -396,7 +401,16 @@ namespace ocs2::legged_robot
             footPlacementVisualizationPtr_ = std::make_unique<FootPlacementVisualization>(
                 *dynamic_cast<PerceptiveLeggedReferenceManager&>(*legged_interface_->getReferenceManagerPtr()).
                 getConvexRegionSelectorPtr(),
-                legged_interface_->getCentroidalModelInfo().numThreeDofContacts, node_);
+                legged_interface_->getCentroidalModelInfo().numThreeDofContacts, node_, 20.0,
+                perceptive_foot_placement_boundary_margin_, enable_perceptive_foot_placement_constraint_);
+            auto& perceptiveReferenceManager =
+                dynamic_cast<PerceptiveLeggedReferenceManager&>(*legged_interface_->getReferenceManagerPtr());
+            const auto swingPlanner = perceptiveReferenceManager.getSwingTrajectoryPlanner();
+            perceptiveReferenceManager.setVisualizationCallback(
+                [this, swingPlanner](scalar_t initTime, scalar_t finalTime, const ModeSchedule& schedule)
+                {
+                    footPlacementVisualizationPtr_->update(initTime, finalTime, schedule, *swingPlanner);
+                });
 
             sphereVisualizationPtr_ = std::make_unique<SphereVisualization>(
                 legged_interface_->getPinocchioInterface(), legged_interface_->getCentroidalModelInfo(),
@@ -455,6 +469,16 @@ namespace ocs2::legged_robot
         controller_running_ = true;
         mpc_thread_ = std::thread([&]
         {
+            using timing_clock_t = std::chrono::steady_clock;
+            auto timingWindowStart = timing_clock_t::now();
+            size_t solvesInWindow = 0;
+            scalar_t solveTimeSumMs = 0.0;
+            scalar_t solveTimeMaxMs = 0.0;
+            size_t sqpIterationsSum = 0;
+            size_t sqpIterationsMax = 0;
+            size_t deadlineHitsInWindow = 0;
+            bool timingWindowStarted = false;
+
             while (controller_running_)
             {
                 try
@@ -464,9 +488,74 @@ namespace ocs2::legged_robot
                         {
                             if (mpc_running_)
                             {
+                                if (!timingWindowStarted)
+                                {
+                                    timingWindowStart = timing_clock_t::now();
+                                    timingWindowStarted = true;
+                                }
+
                                 mpc_timer_.startTimer();
                                 mpc_mrt_interface_->advanceMpc();
                                 mpc_timer_.endTimer();
+
+                                const scalar_t lastSolveMs = mpc_timer_.getLastIntervalInMilliseconds();
+                                const scalar_t targetFrequency =
+                                    legged_interface_->mpcSettings().mpcDesiredFrequency_;
+                                const scalar_t deadlineMs =
+                                    targetFrequency > 0.0 ? 1000.0 / targetFrequency : 0.0;
+                                const size_t lastSqpIterations =
+                                    mpc_->getSolverPtr()->getIterationsLog().size();
+                                ++solvesInWindow;
+                                solveTimeSumMs += lastSolveMs;
+                                solveTimeMaxMs = std::max(solveTimeMaxMs, lastSolveMs);
+                                sqpIterationsSum += lastSqpIterations;
+                                sqpIterationsMax = std::max(sqpIterationsMax, lastSqpIterations);
+                                if (deadlineMs > 0.0 && lastSolveMs <= deadlineMs)
+                                {
+                                    ++deadlineHitsInWindow;
+                                }
+
+                                const auto now = timing_clock_t::now();
+                                const scalar_t elapsedSec =
+                                    std::chrono::duration<scalar_t>(now - timingWindowStart).count();
+                                if (elapsedSec >= 1.0)
+                                {
+                                    const scalar_t solveHz = static_cast<scalar_t>(solvesInWindow) / elapsedSec;
+                                    const scalar_t averageSolveMs =
+                                        solveTimeSumMs / static_cast<scalar_t>(solvesInWindow);
+                                    const scalar_t capacityHz =
+                                        averageSolveMs > 0.0 ? 1000.0 / averageSolveMs : 0.0;
+                                    const scalar_t solverLoadPercent = solveHz * averageSolveMs / 10.0;
+                                    const scalar_t averageSqpIterations =
+                                        static_cast<scalar_t>(sqpIterationsSum) /
+                                        static_cast<scalar_t>(solvesInWindow);
+                                    const scalar_t deadlineRatePercent =
+                                        100.0 * static_cast<scalar_t>(deadlineHitsInWindow) /
+                                        static_cast<scalar_t>(solvesInWindow);
+
+                                    RCLCPP_INFO(
+                                        node_->get_logger(),
+                                        "[MPC timing] target_hz=%.1f solve_hz=%.1f capacity_hz=%.1f "
+                                        "solve_ms(last/avg/max)=%.2f/%.2f/%.2f load=%.1f%% "
+                                        "sqp_iter(last/avg/max/limit)=%zu/%.2f/%zu/%zu "
+                                        "deadline_hit=%zu/%zu deadline_rate=%.1f%%",
+                                        targetFrequency,
+                                        solveHz, capacityHz, lastSolveMs, averageSolveMs,
+                                        solveTimeMaxMs, solverLoadPercent,
+                                        lastSqpIterations, averageSqpIterations,
+                                        sqpIterationsMax,
+                                        legged_interface_->sqpSettings().sqpIteration,
+                                        deadlineHitsInWindow, solvesInWindow,
+                                        deadlineRatePercent);
+
+                                    timingWindowStart = now;
+                                    solvesInWindow = 0;
+                                    solveTimeSumMs = 0.0;
+                                    solveTimeMaxMs = 0.0;
+                                    sqpIterationsSum = 0;
+                                    sqpIterationsMax = 0;
+                                    deadlineHitsInWindow = 0;
+                                }
                             }
                         },
                         legged_interface_->mpcSettings().mpcDesiredFrequency_);

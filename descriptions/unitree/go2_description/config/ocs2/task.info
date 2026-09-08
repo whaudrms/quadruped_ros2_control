@@ -62,7 +62,7 @@ mpc
 
   debugPrint                      false
 
-  mpcDesiredFrequency             10   ; [Hz] — good_data v2 ablation reproduction setting
+  mpcDesiredFrequency             20   ; [Hz] — good_data v2 ablation reproduction setting
   mrtDesiredFrequency             1000 ; [Hz] Useless
 }
 
@@ -183,8 +183,11 @@ frictionConeSoftConstraint
 ; for the first upcoming touchdown event, and the following constraints / costs are
 ; registered per leg in PerceptiveLeggedInterface::setupOptimalControlProblem:
 ;   - g(x_a)=+d, g(x_b)=-d  via QuadraticPenalty(2*w_boundary)
-;   - with hard_boundary=true, additionally enforce g(x_a)>=+d and g(x_b)<=-d
-;     as hard QP inequalities; the boundary cost above remains active
+;   - hard_boundary_start/end independently add g(x_a)>=+d and g(x_b)<=-d
+;     hard QP inequalities
+;   - slack_boundary_start/end independently add quadratic-slack versions of
+;     the same inequalities; hard and slack cannot both be true at one endpoint
+;   - the boundary cost above always remains active in every branch
 ;   - approach inequality   via RelaxedBarrierPenalty(approach_barrier_mu, approach_barrier_delta)
 ;   - soft cost w_v * ġ²    via QuadraticPenalty(2*w_v) on the same approach scalar
 ; Inside the robust window NormalVelocityConstraintCppAd and FootCollisionConstraint
@@ -194,8 +197,13 @@ robustPhase
 {
   enabled                  true   ; toggled ON/OFF per reproduction trial
   P                        10      ; window length in nodes (T_robust = P*sqp.dt). Was 5; bumped per chat7 peer review for physical consistency: d=0.05 + standing_trot swing=0.25s requires T_robust>=2d/v_max. P=10 gives T_robust=0.20s, avg required |ġ|=0.5 m/s, leaves 0.05s normal swing for liftoff.
-  d                        0.02    ; uncertainty half-width [m] for the good_data v2 ablation
-  hard_boundary            true   ; true: add hard g(t_a)>=d, g(t_b)<=-d inequalities alongside the boundary cost (may make the QP infeasible)
+  d                        0.05    ; uncertainty half-width [m] for the good_data v2 ablation
+  hard_boundary_start      false   ; add hard g(t_a)>=d while retaining the boundary cost at both endpoints
+  hard_boundary_end        false  ; add hard g(t_b)<=-d; normally false because this can command terrain penetration
+  slack_boundary_start     true  ; quadratic slack on g(t_a)>=d; mutually exclusive with hard_boundary_start
+  slack_boundary_end       true  ; quadratic slack on g(t_b)<=-d; mutually exclusive with hard_boundary_end
+  slack_boundary_weight_start 20 ; mu in 0.5*mu*max(0, d-g(t_a))^2
+  slack_boundary_weight_end   20 ; mu in 0.5*mu*max(0, g(t_b)+d)^2
   w_boundary               200.0   ; soft penalty weight on boundary equality. Was 1000; lowered per chat7 #4 (Stage 4 sweep): higher value over-constrained the OCP into pathological-descent solutions because ġ envelope from RobustGuardApproach + RobustGuardVelocityLowerBound (Stage 2) already shapes the traversal. 200 leaves boundary tracking firm enough to traverse the band but lets the velocity barriers do the soft-descent work.
   w_v                      1.0     ; soft penalty weight on Σ ġ² running cost. Sweep showed boosting (5, 2) caused regression — fights the boundary. Kept at 1.0; ġ envelope (-v_max, 0) is the load-bearing impact softener.
   approach_barrier_mu      0.01    ; RelaxedBarrierPenalty mu for approach inequality
@@ -204,8 +212,8 @@ robustPhase
   terrain_z_M1             0.0     ; M1'' flat-ground fallback z [m] (used by "flat" mode; also fallback if projection.regionPtr is null)
   foot_frame_offset        0.06    ; URDF FL_foot frame z above contact along n [m] (ankle frame, contact ~6 cm below)
   v_max                    0.6     ; impact-velocity lower bound [m/s]: -v_max <= ġ <= 0 envelope (chat7 #2). Must satisfy T_robust >= 2d/v_max; with d=0.05, T_robust=0.20s, avg required |ġ|=0.5 — 0.6 leaves 20% margin.
-  enable_splice            true   ; good_data ablation: robust OCP ON with schedule splice disabled
-  verbose_log              false   ; emit per-cycle [robust_phase] std::cerr (off for hardware/RT)
+  enable_splice            false   ; good_data ablation: robust OCP ON with schedule splice disabled
+  verbose_log              true   ; emit per-cycle [robust_phase] std::cerr (off for hardware/RT)
 }
 
 selfCollision

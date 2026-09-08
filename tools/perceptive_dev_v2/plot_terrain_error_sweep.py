@@ -165,7 +165,9 @@ def write_summary_tables(records: list[dict], output_dir: Path):
 def plot_response_dashboard(records: list[dict], output: Path):
     groups = offset_groups(records)
     offsets = np.asarray(list(groups)) * 100.0
-    fig, axes = plt.subplots(3, 3, figsize=(17, 12))
+    columns = 3
+    rows = int(np.ceil(len(DASHBOARD_METRICS) / columns))
+    fig, axes = plt.subplots(rows, columns, figsize=(17, 4 * rows), squeeze=False)
     rng = np.random.default_rng(23)
     for axis, (metric, label, _higher) in zip(axes.flat, DASHBOARD_METRICS):
         title, unit = label.rsplit(" [", 1)
@@ -197,6 +199,8 @@ def plot_response_dashboard(records: list[dict], output: Path):
         axis.grid(True, alpha=0.3)
         if metric == "success":
             axis.set_ylim(-5, 105)
+    for axis in axes.flat[len(DASHBOARD_METRICS):]:
+        axis.set_visible(False)
     fig.suptitle(
         "Robust-phase terrain-error response — mean ± population std; dots: trials; red x: failure",
         fontsize=14,

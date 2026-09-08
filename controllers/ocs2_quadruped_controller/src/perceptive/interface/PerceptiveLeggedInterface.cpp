@@ -18,6 +18,7 @@
 #include <ocs2_centroidal_model/CentroidalModelPinocchioMapping.h>
 #include <ocs2_core/penalties/penalties/QuadraticPenalty.h>
 #include <ocs2_core/penalties/penalties/RelaxedBarrierPenalty.h>
+#include <ocs2_core/penalties/penalties/SquaredHingePenalty.h>
 #include <ocs2_core/soft_constraint/StateInputSoftConstraint.h>
 #include <ocs2_core/soft_constraint/StateSoftConstraint.h>
 #include <ocs2_pinocchio_interface/PinocchioEndEffectorKinematicsCppAd.h>
@@ -121,7 +122,7 @@ namespace ocs2::legged_robot
             {
                 std::unique_ptr<FootCollisionConstraint> footCollisionConstraint(
                     new FootCollisionConstraint(*reference_manager_ptr_, *eeKinematicsPtr, signedDistanceFieldPtr_, i,
-                                                0.01));
+                                                footCollisionClearance_));
                 problem_ptr_->stateSoftConstraintPtr->add(
                     footName + "_footCollision",
                     std::make_unique<StateSoftConstraint>(std::move(footCollisionConstraint), std::move(collisionPenalty)));
@@ -140,16 +141,60 @@ namespace ocs2::legged_robot
                             *reference_manager_ptr_, *eeKinematicsPtr, i),
                         std::make_unique<QuadraticPenalty>(2.0 * w_boundary)));
 
-                if (robustSettings.hard_boundary)
+                if (robustSettings.hard_boundary_start)
                 {
-                    // (1a) Add hard one-sided endpoint constraints without
-                    // replacing the boundary cost above:
-                    //      g(x_a) - d >= 0,  -g(x_b) - d >= 0.
+                    // (1a) Optional hard start boundary. This does not replace
+                    // the boundary cost above, which stays active at t_a/t_b.
                     problem_ptr_->stateInequalityConstraintPtr->add(
-                        footName + "_robustGuardBoundaryHard",
+                        footName + "_robustGuardBoundaryHardStart",
                         std::make_unique<RobustGuardBoundaryConstraint>(
                             *reference_manager_ptr_, *eeKinematicsPtr, i,
-                            RobustGuardBoundaryConstraint::Formulation::TraversalInequality));
+                            RobustGuardBoundaryConstraint::Formulation::TraversalInequality,
+                            RobustGuardBoundaryConstraint::EndpointSelection::Start));
+                }
+
+                if (robustSettings.hard_boundary_end)
+                {
+                    // (1b) Optional hard end boundary. Disabled by default so
+                    // physical contact is not forced below the terrain plane.
+                    problem_ptr_->stateInequalityConstraintPtr->add(
+                        footName + "_robustGuardBoundaryHardEnd",
+                        std::make_unique<RobustGuardBoundaryConstraint>(
+                            *reference_manager_ptr_, *eeKinematicsPtr, i,
+                            RobustGuardBoundaryConstraint::Formulation::TraversalInequality,
+                            RobustGuardBoundaryConstraint::EndpointSelection::End));
+                }
+
+                if (robustSettings.slack_boundary_start)
+                {
+                    // Analytically eliminated quadratic slack:
+                    // min 0.5*mu*s^2, s>=0, g(t_a)-d+s>=0.
+                    problem_ptr_->stateSoftConstraintPtr->add(
+                        footName + "_robustGuardBoundarySlackStart",
+                        std::make_unique<StateSoftConstraint>(
+                            std::make_unique<RobustGuardBoundaryConstraint>(
+                                *reference_manager_ptr_, *eeKinematicsPtr, i,
+                                RobustGuardBoundaryConstraint::Formulation::TraversalInequality,
+                                RobustGuardBoundaryConstraint::EndpointSelection::Start),
+                            std::make_unique<SquaredHingePenalty>(
+                                SquaredHingePenalty::Config{
+                                    robustSettings.slack_boundary_weight_start, 0.0})));
+                }
+
+                if (robustSettings.slack_boundary_end)
+                {
+                    // Analytically eliminated quadratic slack:
+                    // min 0.5*mu*s^2, s>=0, -g(t_b)-d+s>=0.
+                    problem_ptr_->stateSoftConstraintPtr->add(
+                        footName + "_robustGuardBoundarySlackEnd",
+                        std::make_unique<StateSoftConstraint>(
+                            std::make_unique<RobustGuardBoundaryConstraint>(
+                                *reference_manager_ptr_, *eeKinematicsPtr, i,
+                                RobustGuardBoundaryConstraint::Formulation::TraversalInequality,
+                                RobustGuardBoundaryConstraint::EndpointSelection::End),
+                            std::make_unique<SquaredHingePenalty>(
+                                SquaredHingePenalty::Config{
+                                    robustSettings.slack_boundary_weight_end, 0.0})));
                 }
 
                 // (2) Approach inequality -ġ ≥ 0 via RelaxedBarrierPenalty.

@@ -5,13 +5,17 @@
 #include "ocs2_quadruped_controller/FSM/StateOCS2.h"
 
 #include <algorithm>
+#include <exception>
+#include <iomanip>
 #include <limits>
 #include <mutex>
 
 #include <angles/angles.h>
 #include <ocs2_ros_interfaces/common/RosMsgConversions.h>
+#include <ocs2_core/misc/LinearInterpolation.h>
 #include <ocs2_core/misc/LoadData.h>
 #include <ocs2_quadruped_controller/wbc/WeightedWbc.h>
+#include <ocs2_quadruped_controller/perceptive/interface/PerceptiveLeggedReferenceManager.h>
 #include <ocs2_sqp/SqpMpc.h>
 
 namespace ocs2::legged_robot
@@ -49,6 +53,26 @@ namespace ocs2::legged_robot
             }
         }
 
+        if (!node_->has_parameter("foothold_plan_log_path"))
+            node_->declare_parameter<std::string>("foothold_plan_log_path", "");
+        foothold_plan_log_path_ = node_->get_parameter("foothold_plan_log_path").as_string();
+        if (!foothold_plan_log_path_.empty())
+        {
+            foothold_plan_log_.open(foothold_plan_log_path_);
+            if (foothold_plan_log_.is_open())
+            {
+                RCLCPP_INFO(node_->get_logger(),
+                            "[StateOCS2] foothold-plan CSV log → '%s'",
+                            foothold_plan_log_path_.c_str());
+            }
+            else
+            {
+                RCLCPP_WARN(node_->get_logger(),
+                            "[StateOCS2] failed to open foothold_plan_log_path '%s' — disabled",
+                            foothold_plan_log_path_.c_str());
+            }
+        }
+
         // selfCollisionVisualization_.reset(new LeggedSelfCollisionVisualization(leggedInterface_->getPinocchioInterface(),
         //                                                                        leggedInterface_->getGeometryInterface(), pinocchioMapping, nh));
 
@@ -76,7 +100,32 @@ namespace ocs2::legged_robot
         }
 
         // Load the latest MPC policy
-        ctrl_component_->mpc_mrt_interface_->updatePolicy();
+        const bool policyUpdated = ctrl_component_->mpc_mrt_interface_->updatePolicy();
+
+        // Append any new MPC-side FL swing plan before evaluating the policy
+        // for WBC. The snapshot sequence changes once per reference update,
+        // not once per high-rate controller tick.
+        if (policyUpdated)
+        {
+            // Optional diagnostics must never stop the control path.
+            try
+            {
+                logLatestFootholdPlanSnapshot();
+            }
+            catch (const std::exception& error)
+            {
+                RCLCPP_ERROR(node_->get_logger(),
+                             "[StateOCS2] foothold-plan logger disabled: %s",
+                             error.what());
+                foothold_plan_log_.close();
+            }
+            catch (...)
+            {
+                RCLCPP_ERROR(node_->get_logger(),
+                             "[StateOCS2] foothold-plan logger disabled by an unknown error");
+                foothold_plan_log_.close();
+            }
+        }
 
         // Evaluate the current policy
         size_t planned_mode = 0; // The mode that is active at the time the policy is evaluated at.
@@ -95,7 +144,8 @@ namespace ocs2::legged_robot
         wbc_timer_.endTimer();
 
         // Per-tick CSV log (only when tick_log_ is open).
-        // Layout: t,opt_state[0..23],opt_input[0..23],meas_rbd[0..23],planned_mode
+        // Layout: t,opt_state[0..23],opt_input[0..23],meas_rbd[0..35],planned_mode,
+        //         measured_mode,wbc_solve_ms,control_period_s
         // measured_rbd_state has shape: [theta_zyx(3), r_b(3), q_j(12), w_b(3), r_b_dot(3), q_j_dot(12)] = 36
         if (tick_log_.is_open())
         {
@@ -107,7 +157,7 @@ namespace ocs2::legged_robot
                 for (int i = 0;
                      i < static_cast<int>(ctrl_component_->measured_rbd_state_.size()); ++i)
                     tick_log_ << ",meas_rbd" << i;
-                tick_log_ << ",planned_mode\n";
+                tick_log_ << ",planned_mode,measured_mode,wbc_solve_ms,control_period_s\n";
                 tick_log_header_written_ = true;
             }
             tick_log_ << ctrl_component_->observation_.time;
@@ -117,7 +167,10 @@ namespace ocs2::legged_robot
                 tick_log_ << "," << optimized_input_(i);
             for (int i = 0; i < ctrl_component_->measured_rbd_state_.size(); ++i)
                 tick_log_ << "," << ctrl_component_->measured_rbd_state_(i);
-            tick_log_ << "," << planned_mode << "\n";
+            tick_log_ << "," << planned_mode
+                      << "," << ctrl_component_->observation_.mode
+                      << "," << wbc_timer_.getLastIntervalInMilliseconds()
+                      << "," << period.seconds() << "\n";
         }
 
         vector_t torque = x.tail(12);
@@ -145,6 +198,99 @@ namespace ocs2::legged_robot
 
     void StateOCS2::exit()
     {
+    }
+
+    void StateOCS2::logLatestFootholdPlanSnapshot()
+    {
+        if (!foothold_plan_log_.is_open())
+        {
+            return;
+        }
+
+        auto* referenceManager = dynamic_cast<PerceptiveLeggedReferenceManager*>(
+            ctrl_component_->legged_interface_->getReferenceManagerPtr().get());
+        if (referenceManager == nullptr)
+        {
+            return;
+        }
+
+        const auto& policy = ctrl_component_->mpc_mrt_interface_->getPolicy();
+        const scalar_t policyStartTime =
+            ctrl_component_->mpc_mrt_interface_->getCommand().mpcInitObservation_.time;
+        if (policy.timeTrajectory_.empty() || policy.stateTrajectory_.empty())
+        {
+            return;
+        }
+
+        PerceptiveLeggedReferenceManager::FootholdPlanSnapshot snapshot;
+        if (!referenceManager->getFootholdPlanSnapshot(policyStartTime, snapshot) ||
+            snapshot.sequence == last_foothold_plan_sequence_)
+        {
+            return;
+        }
+        last_foothold_plan_sequence_ = snapshot.sequence;
+
+        if (!foothold_plan_log_header_written_)
+        {
+            foothold_plan_log_
+                << "snapshot_id,solve_time,horizon_end_time,liftoff_time,touchdown_time,"
+                   "touchdown_height,robust_enabled,window_active,window_ta,window_tb,"
+                   "plane_z,normal_x,normal_y,normal_z,d,foot_frame_offset,"
+                   "policy_start_time,sample_index,sample_time,z_ref,z_dot_ref";
+            for (size_t stateIndex = 0; stateIndex < 24; ++stateIndex)
+            {
+                foothold_plan_log_ << ",opt_x" << stateIndex;
+            }
+            foothold_plan_log_ << ",optimized_mode\n";
+            foothold_plan_log_header_written_ = true;
+        }
+
+        foothold_plan_log_ << std::setprecision(17);
+        const size_t sampleCount = std::min(
+            snapshot.sampleTimes.size(),
+            std::min(snapshot.zReferences.size(), snapshot.zVelocityReferences.size()));
+        for (size_t sampleIndex = 0; sampleIndex < sampleCount; ++sampleIndex)
+        {
+            const auto& window = snapshot.robustWindow;
+            const scalar_t sampleTime = snapshot.sampleTimes[sampleIndex];
+            const vector_t optimizedState = LinearInterpolation::interpolate(
+                sampleTime, policy.timeTrajectory_, policy.stateTrajectory_);
+            const size_t optimizedMode = policy.modeSchedule_.modeAtTime(sampleTime);
+            foothold_plan_log_
+                << snapshot.sequence
+                << "," << snapshot.solveTime
+                << "," << snapshot.horizonEndTime
+                << "," << snapshot.liftOffTime
+                << "," << snapshot.touchDownTime
+                << "," << snapshot.touchDownHeight
+                << "," << (snapshot.robustEnabled ? 1 : 0)
+                << "," << (window.active ? 1 : 0)
+                << "," << window.t_a
+                << "," << window.t_b
+                << "," << window.p_plane.z()
+                << "," << window.n.x()
+                << "," << window.n.y()
+                << "," << window.n.z()
+                << "," << window.d
+                << "," << window.foot_frame_offset
+                << "," << policyStartTime
+                << "," << sampleIndex
+                << "," << sampleTime
+                << "," << snapshot.zReferences[sampleIndex]
+                << "," << snapshot.zVelocityReferences[sampleIndex];
+            for (size_t stateIndex = 0; stateIndex < 24; ++stateIndex)
+            {
+                const scalar_t value = stateIndex < static_cast<size_t>(optimizedState.size())
+                                           ? optimizedState(static_cast<Eigen::Index>(stateIndex))
+                                           : std::numeric_limits<scalar_t>::quiet_NaN();
+                foothold_plan_log_ << "," << value;
+            }
+            foothold_plan_log_ << "," << optimizedMode << "\n";
+        }
+        // This diagnostic is only enabled for focused foothold experiments.
+        // Flush once per MPC update so a forced controller shutdown does not
+        // discard the pre-contact snapshot still buffered in userspace.
+        foothold_plan_log_.flush();
     }
 
     FSMStateName StateOCS2::checkChange()

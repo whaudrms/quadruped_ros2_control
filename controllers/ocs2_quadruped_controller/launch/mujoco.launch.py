@@ -1,3 +1,4 @@
+import math
 import os
 import tempfile
 
@@ -34,7 +35,12 @@ def launch_setup(context, *args, **kwargs):
     enable_perceptive_body_collision_constraint = context.launch_configurations['enable_perceptive_body_collision_constraint'].lower() in ("true", "1", "yes", "on")
     perceptive_foot_placement_boundary_margin = float(
         context.launch_configurations['perceptive_foot_placement_boundary_margin'])
+    perceptive_foot_collision_clearance = float(
+        context.launch_configurations['perceptive_foot_collision_clearance'])
+    if not math.isfinite(perceptive_foot_collision_clearance) or perceptive_foot_collision_clearance < 0.0:
+        raise ValueError('perceptive_foot_collision_clearance must be finite and non-negative (meters)')
     tick_log_path = context.launch_configurations.get('tick_log_path', '')
+    foothold_plan_log_path = context.launch_configurations.get('foothold_plan_log_path', '')
     publish_static_terrain = context.launch_configurations['publish_static_terrain'].lower() in ("true", "1", "yes", "on")
     terrain_smoothing_radius = float(context.launch_configurations['terrain_smoothing_radius'])
     terrain_z_offset = float(context.launch_configurations.get('terrain_z_offset', '0.0'))
@@ -58,7 +64,9 @@ def launch_setup(context, *args, **kwargs):
             f"    enable_perceptive_foot_collision_constraint: {'true' if enable_perceptive_foot_collision_constraint else 'false'}\n"
             f"    enable_perceptive_body_collision_constraint: {'true' if enable_perceptive_body_collision_constraint else 'false'}\n"
             f"    perceptive_foot_placement_boundary_margin: {perceptive_foot_placement_boundary_margin}\n"
+            f"    perceptive_foot_collision_clearance: {perceptive_foot_collision_clearance}\n"
             f"    tick_log_path: \"{tick_log_path}\"\n"
+            f"    foothold_plan_log_path: \"{foothold_plan_log_path}\"\n"
         )
         controller_override_file = controller_param_file.name
 
@@ -228,7 +236,7 @@ def generate_launch_description():
 
     enable_perceptive = DeclareLaunchArgument(
         'enable_perceptive',
-        default_value='false',
+        default_value='true',
         description='Enable perceptive terrain-aware OCS2 controller path'
     )
 
@@ -264,8 +272,14 @@ def generate_launch_description():
 
     perceptive_foot_placement_boundary_margin = DeclareLaunchArgument(
         'perceptive_foot_placement_boundary_margin',
-        default_value='0.05',
+        default_value='0.08',
         description='Inward shrink margin in meters applied to the foot placement admissible polygon'
+    )
+
+    perceptive_foot_collision_clearance = DeclareLaunchArgument(
+        'perceptive_foot_collision_clearance',
+        default_value='0.05',
+        description='Minimum foot FK point SDF distance in meters for the active foot collision soft constraint (finite, non-negative)'
     )
 
     terrain_smoothing_radius = DeclareLaunchArgument(
@@ -291,7 +305,14 @@ def generate_launch_description():
     tick_log_path = DeclareLaunchArgument(
         'tick_log_path',
         default_value='',
-        description='If non-empty, StateOCS2 writes a per-tick CSV (t, opt_state, opt_input, meas_rbd, planned_mode) to this path. Used for post-trial analysis.'
+        description='If non-empty, StateOCS2 writes a per-tick CSV including optimized/measured state, planned/measured contact mode, WBC solve time, and control period. Used for post-trial analysis.'
+    )
+
+    foothold_plan_log_path = DeclareLaunchArgument(
+        'foothold_plan_log_path',
+        default_value='',
+        description='If non-empty, append every completed MPC FL optimized-policy and swing-reference snapshot to CSV. '
+                    'Rows retain pre-contact plans after later replans.'
     )
 
     terrain_scene_file = DeclareLaunchArgument(
@@ -308,11 +329,13 @@ def generate_launch_description():
         enable_perceptive_foot_collision_constraint,
         enable_perceptive_body_collision_constraint,
         perceptive_foot_placement_boundary_margin,
+        perceptive_foot_collision_clearance,
         publish_static_terrain,
         terrain_smoothing_radius,
         terrain_z_offset,
         terrain_z_offset_only_below_z,
         terrain_scene_file,
         tick_log_path,
+        foothold_plan_log_path,
         OpaqueFunction(function=launch_setup),
     ])

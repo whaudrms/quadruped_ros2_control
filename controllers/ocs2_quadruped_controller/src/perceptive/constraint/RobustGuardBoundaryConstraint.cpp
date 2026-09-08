@@ -9,31 +9,42 @@ RobustGuardBoundaryConstraint::RobustGuardBoundaryConstraint(
     const SwitchedModelReferenceManager& referenceManager,
     const EndEffectorKinematics<scalar_t>& endEffectorKinematics,
     size_t contactPointIndex,
-    Formulation formulation)
+    Formulation formulation,
+    EndpointSelection endpointSelection)
     : StateConstraint(ConstraintOrder::Linear),
       referenceManagerPtr_(&referenceManager),
       endEffectorKinematicsPtr_(endEffectorKinematics.clone()),
       contactPointIndex_(contactPointIndex),
-      formulation_(formulation) {}
+      formulation_(formulation),
+      endpointSelection_(endpointSelection) {}
 
 RobustGuardBoundaryConstraint::RobustGuardBoundaryConstraint(const RobustGuardBoundaryConstraint& rhs)
     : StateConstraint(ConstraintOrder::Linear),
       referenceManagerPtr_(rhs.referenceManagerPtr_),
       endEffectorKinematicsPtr_(rhs.endEffectorKinematicsPtr_->clone()),
       contactPointIndex_(rhs.contactPointIndex_),
-      formulation_(rhs.formulation_) {}
+      formulation_(rhs.formulation_),
+      endpointSelection_(rhs.endpointSelection_) {}
 
 bool RobustGuardBoundaryConstraint::isActive(scalar_t time) const {
     const auto& w = referenceManagerPtr_->getRobustWindow(contactPointIndex_);
     if (!w.active) return false;
 
     const scalar_t halfDt = 0.5 * w.dt_mpc;
-    const bool nearTb = std::abs(time - w.t_b) < halfDt;
-    const bool nearTa = !w.skip_t_a_boundary && std::abs(time - w.t_a) < halfDt;
+    const bool enableTa = endpointSelection_ != EndpointSelection::End;
+    const bool enableTb = endpointSelection_ != EndpointSelection::Start;
+    const bool nearTb = enableTb && std::abs(time - w.t_b) < halfDt;
+    const bool nearTa = enableTa && !w.skip_t_a_boundary && std::abs(time - w.t_a) < halfDt;
     return nearTa || nearTb;
 }
 
-scalar_t RobustGuardBoundaryConstraint::targetAt(scalar_t time, const RobustWindowData& w) {
+scalar_t RobustGuardBoundaryConstraint::targetAt(scalar_t time, const RobustWindowData& w) const {
+    if (endpointSelection_ == EndpointSelection::Start) {
+        return +w.d;
+    }
+    if (endpointSelection_ == EndpointSelection::End) {
+        return -w.d;
+    }
     if (w.skip_t_a_boundary) {
         return -w.d;  // only t_b boundary is active
     }

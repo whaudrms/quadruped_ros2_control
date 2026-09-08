@@ -77,7 +77,8 @@ namespace ocs2::legged_robot
                 vector_t activePolytopeB = polytopeB;
                 const Eigen::Matrix<scalar_t, 2, 1> interiorPoint(
                     projection.positionInTerrainFrame.x(), projection.positionInTerrainFrame.y());
-                if (!tryShrinkPolygonConstraint(polytopeA, polytopeB, interiorPoint, activePolytopeA, activePolytopeB))
+                if (!tryShrinkPolygonConstraint(polytopeA, polytopeB, interiorPoint, activePolytopeA, activePolytopeB,
+                                                footPlacementBoundaryMargin_))
                 {
                     activePolytopeA = polytopeA;
                     activePolytopeB = polytopeB;
@@ -104,7 +105,7 @@ namespace ocs2::legged_robot
     }
 
     std::pair<matrix_t, vector_t> PerceptiveLeggedPrecomputation::getPolygonConstraint(
-        const convex_plane_decomposition::CgalPolygon2d& polygon) const
+        const convex_plane_decomposition::CgalPolygon2d& polygon)
     {
         size_t numVertices = polygon.size();
         matrix_t polytopeA = matrix_t::Zero(numVertices, 2);
@@ -140,12 +141,12 @@ namespace ocs2::legged_robot
 
     bool PerceptiveLeggedPrecomputation::tryShrinkPolygonConstraint(const matrix_t& polytopeA, const vector_t& polytopeB,
                                                                     const Eigen::Matrix<scalar_t, 2, 1>& interiorPoint, matrix_t& shrunkA,
-                                                                    vector_t& shrunkB) const
+                                                                    vector_t& shrunkB, scalar_t boundaryMargin)
     {
         shrunkA = polytopeA;
         shrunkB = polytopeB;
 
-        if (footPlacementBoundaryMargin_ <= 0.0)
+        if (boundaryMargin <= 0.0)
         {
             return true;
         }
@@ -157,7 +158,7 @@ namespace ocs2::legged_robot
             {
                 return false;
             }
-            shrunkB(row) -= footPlacementBoundaryMargin_ * normalNorm;
+            shrunkB(row) -= boundaryMargin * normalNorm;
         }
 
         const vector_t slack = shrunkA * interiorPoint + shrunkB;

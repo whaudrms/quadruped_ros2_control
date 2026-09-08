@@ -18,7 +18,19 @@ import numpy as np
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+from matplotlib.lines import Line2D
 
+from paper_plot_style import (
+    DESCENT_COMPLETE_COLOR,
+    DESCENT_START_COLOR,
+    NOMINAL_COLOR,
+    PROPOSED_COLOR,
+    SAVE_DPI,
+    apply_paper_style,
+    paper_figsize,
+    paper_legend,
+    style_paper_axis,
+)
 from wbc_plot_utils import (
     command_window_in_tick_time,
     discover_trials,
@@ -28,8 +40,12 @@ from wbc_plot_utils import (
 from terrain_descent_events import descent_times, load_or_detect_events
 
 
+apply_paper_style()
+
+
 SCRIPT_DIR = Path(__file__).resolve().parent
 DEFAULT_RESULTS = SCRIPT_DIR / "results"
+WBC_CACHE_VERSION = 1
 
 
 def load_tick(tick_csv: Path):
@@ -75,19 +91,96 @@ def compute_errors(opt_x, meas_rbd):
     return base_pos, base_orientation, joint_position
 
 
-def load_trial_errors(trial: dict):
-    loaded = load_tick(trial["tick_path"])
+def load_trial_wbc_analysis(trial: dict):
+    """Load compact derived WBC series, parsing the large tick CSV only once."""
+    tick_path = trial["tick_path"]
+    cache_path = trial["trial_dir"] / "wbc_analysis_cache.npz"
+    tick_stat = tick_path.stat()
+    metadata_paths = [
+        trial["trial_dir"] / "result.json",
+        trial["trial_dir"] / "run_config.json",
+        trial["trial_dir"] / "scenario.yaml",
+    ]
+    metadata_mtime_ns = max(
+        (path.stat().st_mtime_ns for path in metadata_paths if path.is_file()),
+        default=0,
+    )
+    if cache_path.is_file():
+        try:
+            with np.load(cache_path, allow_pickle=False) as cached:
+                valid = (
+                    int(cached["version"]) == WBC_CACHE_VERSION
+                    and int(cached["tick_size"]) == tick_stat.st_size
+                    and int(cached["tick_mtime_ns"]) == tick_stat.st_mtime_ns
+                    and int(cached["metadata_mtime_ns"]) == metadata_mtime_ns
+                )
+                if valid:
+                    return {
+                        "time": cached["time"].copy(),
+                        "start": float(cached["start"]),
+                        "end": float(cached["end"]),
+                        "errors": cached["errors"].copy(),
+                        "position": cached["position"].copy(),
+                        "orientation": cached["orientation"].copy(),
+                    }
+        except (OSError, KeyError, ValueError):
+            pass
+
+    loaded = load_tick(tick_path)
     if loaded is None:
         return None
     t, opt_x, meas_rbd, _planned_mode = loaded
     if t.size < 5:
         return None
-    t_rel = t - t[0]
-    start, end = command_window_in_tick_time(trial, float(t_rel[-1]))
+    time = t - t[0]
+    start, end = command_window_in_tick_time(trial, float(time[-1]))
     if end <= start:
         return None
-    errors = compute_errors(opt_x, meas_rbd)
-    return t_rel, start, end, errors
+    errors = np.asarray(compute_errors(opt_x, meas_rbd))
+    position = meas_rbd[:, 3:6] - opt_x[:, 6:9]
+    orientation_raw = meas_rbd[:, 0:3] - opt_x[:, 9:12]
+    orientation = np.arctan2(np.sin(orientation_raw), np.cos(orientation_raw))
+    analysis = {
+        "time": time,
+        "start": start,
+        "end": end,
+        "errors": errors,
+        "position": position,
+        "orientation": orientation,
+    }
+    temporary_path = cache_path.with_suffix(".npz.tmp")
+    try:
+        with temporary_path.open("wb") as stream:
+            np.savez_compressed(
+                stream,
+                version=np.asarray(WBC_CACHE_VERSION, dtype=np.int64),
+                tick_size=np.asarray(tick_stat.st_size, dtype=np.int64),
+                tick_mtime_ns=np.asarray(tick_stat.st_mtime_ns, dtype=np.int64),
+                metadata_mtime_ns=np.asarray(metadata_mtime_ns, dtype=np.int64),
+                time=time,
+                start=np.asarray(start),
+                end=np.asarray(end),
+                errors=errors,
+                position=position,
+                orientation=orientation,
+            )
+        temporary_path.replace(cache_path)
+    except OSError:
+        if temporary_path.is_file():
+            temporary_path.unlink()
+    return analysis
+
+
+def load_trial_errors(trial: dict):
+    analysis = load_trial_wbc_analysis(trial)
+    if analysis is None:
+        return None
+    return (
+        analysis["time"],
+        analysis["start"],
+        analysis["end"],
+        tuple(analysis["errors"]),
+    )
 
 
 def aggregate_condition(trials: list[dict]):
@@ -241,15 +334,17 @@ def plot_cohort(trials: list[dict], cohort: str, output_path: Path):
         raise RuntimeError(f"No usable WBC tracking data found for cohort={cohort}")
 
     offsets = sorted({key[0] for key in aggregated})
-    fig, axes = plt.subplots(3, len(offsets), figsize=(6.5 * len(offsets), 11), squeeze=False)
+    fig, axes = plt.subplots(
+        3, len(offsets), figsize=paper_figsize(len(offsets), 3), squeeze=False
+    )
     metric_meta = (
-        ("base_pos", "Position tracking error squared norm [m²]"),
-        ("base_orientation", "Orientation tracking error squared norm [deg²]"),
-        ("joint_position", "Joint position tracking error squared norm [rad²]"),
+        ("base_pos", r"$\Vert e_p\Vert_2^2$ [m$^2$]"),
+        ("base_orientation", r"$\Vert e_R\Vert_2^2$ [deg$^2$]"),
+        ("joint_position", r"$\Vert e_q\Vert_2^2$ [rad$^2$]"),
     )
     condition_styles = {
-        "ON": {"color": "tab:blue", "label": "Proposed"},
-        "OFF": {"color": "tab:orange", "label": "Baseline"},
+        "ON": {"color": PROPOSED_COLOR, "label": "Proposed"},
+        "OFF": {"color": NOMINAL_COLOR, "label": "Baseline"},
     }
     event_summary_label = "selected" if cohort == "max_contrast_successful_pair" else "mean"
     for column, offset in enumerate(offsets):
@@ -292,7 +387,7 @@ def plot_cohort(trials: list[dict], cohort: str, output_path: Path):
                     mean,
                     color=style["color"],
                     label=style["label"],
-                    linewidth=1.5,
+                    linewidth=2.25,
                 )
                 axis.fill_between(
                     time, mean - std, mean + std, color=style["color"], alpha=0.18, linewidth=0
@@ -300,7 +395,7 @@ def plot_cohort(trials: list[dict], cohort: str, output_path: Path):
             if descent_start is not None:
                 axis.axvline(
                     descent_start,
-                    color="tab:purple",
+                    color=DESCENT_START_COLOR,
                     linestyle="--",
                     linewidth=1.1,
                     label=None,
@@ -308,21 +403,19 @@ def plot_cohort(trials: list[dict], cohort: str, output_path: Path):
             if descent_complete is not None:
                 axis.axvline(
                     descent_complete,
-                    color="tab:green",
+                    color=DESCENT_COMPLETE_COLOR,
                     linestyle=":",
                     linewidth=1.0,
                     label=None,
                 )
             if row == 0:
-                axis.set_title(offset_label(offset), fontsize=12, fontweight="bold")
+                axis.set_title(offset_label(offset))
             if column == 0:
-                axis.set_ylabel(ylabel, fontsize=10)
+                axis.set_ylabel(ylabel)
             if row == 2:
-                axis.set_xlabel("Command-active time [s]", fontsize=10)
+                axis.set_xlabel("Command-active time [s]")
             axis.set_xlim(0, max_duration)
-            axis.grid(True, alpha=0.3)
-            if row == 0:
-                axis.legend(loc="upper left", fontsize=9)
+            style_paper_axis(axis)
 
     cohort_title = {
         "all_trials": "all trials",
@@ -330,13 +423,22 @@ def plot_cohort(trials: list[dict], cohort: str, output_path: Path):
         "max_contrast_successful_pair": "max-contrast successful pair (selected)",
     }[cohort]
     fig.suptitle(
-        f"Comparison of WBC tracking error — {cohort_title}",
-        fontsize=13,
-        fontweight="bold",
+        f"WBC Tracking Error - {cohort_title.title()}",
+        y=0.995,
     )
-    fig.tight_layout(rect=(0, 0, 1, 0.96))
+    legend_handles = [
+        Line2D([], [], color=PROPOSED_COLOR, linewidth=2.25, label="Proposed mean"),
+        Line2D([], [], color=NOMINAL_COLOR, linewidth=2.25, label="Baseline mean"),
+        Line2D([], [], color=DESCENT_START_COLOR, linestyle="--", label="First lower touchdown"),
+        Line2D([], [], color=DESCENT_COMPLETE_COLOR, linestyle=":", label="Descent complete"),
+    ]
+    paper_legend(
+        fig, handles=legend_handles, loc="upper center", bbox_to_anchor=(0.5, 0.965),
+        ncol=2,
+    )
+    fig.tight_layout(rect=(0, 0, 1, 0.89))
     output_path.parent.mkdir(parents=True, exist_ok=True)
-    fig.savefig(output_path, dpi=130)
+    fig.savefig(output_path, dpi=SAVE_DPI)
     plt.close(fig)
     print(f"saved {output_path}")
 

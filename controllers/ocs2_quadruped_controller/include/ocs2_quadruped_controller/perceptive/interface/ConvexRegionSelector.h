@@ -46,7 +46,7 @@ namespace ocs2::legged_robot
 
         std::shared_ptr<convex_plane_decomposition::PlanarTerrain> getPlanarTerrainPtr() { return planarTerrainPtr_; }
 
-        feet_array_t<scalar_t> getInitStandFinalTimes() { return initStandFinalTime_; }
+        feet_array_t<scalar_t> getInitStandFinalTimes() const { return initStandFinalTime_; }
 
         feet_array_t<std::vector<bool>> extractContactFlags(const std::vector<size_t>& phaseIDsStock) const;
 

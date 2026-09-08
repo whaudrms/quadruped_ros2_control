@@ -5,6 +5,8 @@
 #pragma once
 
 #include <mutex>
+#include <cmath>
+#include <stdexcept>
 
 #include <convex_plane_decomposition/PlanarRegion.h>
 #include <ocs2_quadruped_controller/interface/LeggedInterface.h>
@@ -22,13 +24,19 @@ namespace ocs2::legged_robot
                                        bool enableFootPlacementConstraint,
                                        bool enableFootCollisionConstraint,
                                        bool enableBodyCollisionConstraint,
-                                       scalar_t footPlacementBoundaryMargin)
+                                       scalar_t footPlacementBoundaryMargin,
+                                       scalar_t footCollisionClearance = 0.03)
         {
+            if (!std::isfinite(footCollisionClearance) || footCollisionClearance < 0.0)
+            {
+                throw std::invalid_argument("perceptive_foot_collision_clearance must be finite and non-negative (meters)");
+            }
             enableReferenceModification_ = enableReferenceModification;
             enableFootPlacementConstraint_ = enableFootPlacementConstraint;
             enableFootCollisionConstraint_ = enableFootCollisionConstraint;
             enableBodyCollisionConstraint_ = enableBodyCollisionConstraint;
             footPlacementBoundaryMargin_ = footPlacementBoundaryMargin;
+            footCollisionClearance_ = footCollisionClearance;
         }
 
         void setupOptimalControlProblem(const std::string& taskFile,
@@ -73,6 +81,7 @@ namespace ocs2::legged_robot
         bool enableFootCollisionConstraint_ = true;
         bool enableBodyCollisionConstraint_ = false;
         scalar_t footPlacementBoundaryMargin_ = 0.05;
+        scalar_t footCollisionClearance_ = 0.03;
 
         std::shared_ptr<convex_plane_decomposition::PlanarTerrain> planarTerrainPtr_;
         std::shared_ptr<grid_map::SignedDistanceField> signedDistanceFieldPtr_;
