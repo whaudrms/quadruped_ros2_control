@@ -1,3 +1,4 @@
+#include <grid_map_filters_rsl/lookup.hpp>
 //
 // Created by biao on 3/21/25.
 //
@@ -217,6 +218,28 @@ namespace ocs2::legged_robot
         //  return endEffectorKinematicsPtr_->getPosition(targetTrajectories.getDesiredState(time))[leg] + feedback;
         return endEffectorKinematicsPtr_->getPosition(targetTrajectories.getDesiredState(time))[leg] - R.transpose() *
             offsetVector;
+    }
+
+    std::vector<std::pair<scalar_t, scalar_t>> ConvexRegionSelector::getHeightProfileAlongLine(
+        const vector3_t& from, const vector3_t& to) const
+    {
+        std::vector<std::pair<scalar_t, scalar_t>> profile;
+        const auto& map = planarTerrain_.gridMap;
+        if (!map.exists("elevation") || map.getResolution() <= 0.0) return profile;
+        const Eigen::Vector2d delta = (to - from).head<2>();
+        const scalar_t distanceSquared = delta.squaredNorm();
+        if (distanceSquared > map.getResolution() * map.getResolution()) {
+            // Same cell traversal and cell-center progress as original ANYmal.
+            for (const auto& point : grid_map::lookup::valuesBetweenLocations(
+                    from.head<2>(), to.head<2>(), map, map.get("elevation"))) {
+                const scalar_t progress = (point.head<2>() - from.head<2>()).dot(delta) / distanceSquared;
+                if (progress >= 0.0 && progress <= 1.0) profile.emplace_back(progress, point.z());
+            }
+        } else if (map.isInside(from.head<2>())) {
+            const scalar_t height = map.atPosition("elevation", from.head<2>());
+            if (std::isfinite(height)) profile = {{0.0, height}, {1.0, height}};
+        }
+        return profile;
     }
 
     std::optional<scalar_t> ConvexRegionSelector::sampleTerrainHeight(const scalar_t x, const scalar_t y) const

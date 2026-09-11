@@ -52,6 +52,10 @@ namespace ocs2::legged_robot
 
         size_t getNumVertices() const { return numVertices_; }
 
+        // Raw elevation from the same terrain snapshot used for foothold selection.
+        std::vector<std::pair<scalar_t, scalar_t>> getHeightProfileAlongLine(
+            const vector3_t& from, const vector3_t& to) const;
+
         std::optional<scalar_t> sampleTerrainHeight(scalar_t x, scalar_t y) const;
 
     private:

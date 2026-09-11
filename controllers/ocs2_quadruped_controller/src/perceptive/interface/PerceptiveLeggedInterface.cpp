@@ -27,6 +27,7 @@
 #include <boost/property_tree/ptree.hpp>
 
 #include <memory>
+#include <ocs2_quadruped_controller/perceptive/cost/SwingFootTrackingCost.h>
 #include <ocs2_oc/rollout/TimeTriggeredRollout.h>
 #include "ocs2_quadruped_controller/perceptive/interface/ConstantParameterOcp.h"
 #include "ocs2_quadruped_controller/perceptive/constraint/RobustWidthBounds.h"
@@ -118,6 +119,14 @@ namespace ocs2::legged_robot
                 new RelaxedBarrierPenalty(RelaxedBarrierPenalty::Config(1e-2, 1e-4)));
             std::unique_ptr<PenaltyBase> collisionPenalty(
                 new RelaxedBarrierPenalty(RelaxedBarrierPenalty::Config(1e-2, 1e-3)));
+
+            if (reference_manager_ptr_->getSwingTrajectoryPlanner()->config().terrainAware) {
+                // Register before auxiliary d states are appended so the physical-state
+                // adapter also wraps this cost and pads its derivatives for SQP.
+                problem_ptr_->costPtr->add(footName + "_swingFootTracking",
+                    std::make_unique<SwingFootTrackingCost>(*reference_manager_ptr_,
+                        *reference_manager_ptr_->getSwingTrajectoryPlanner(), *eeKinematicsPtr, i));
+            }
 
             // For foot placement Soft Constraint
             if (enableFootPlacementConstraint_)

@@ -28,6 +28,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ******************************************************************************/
 
 #pragma once
+#include <ocs2_quadruped_controller/perceptive/foot_planner/TerrainSwing.h>
 
 #include <ocs2_core/reference/ModeSchedule.h>
 
@@ -42,6 +43,11 @@ namespace ocs2::legged_robot {
             scalar_t touchDownVelocity = 0.0;
             scalar_t swingHeight = 0.1;
             scalar_t swingTimeScale = 0.15;
+            bool terrainAware = false; // Enabled explicitly for Go2 perceptive mode.
+            scalar_t footRadius = 0.02;
+            scalar_t positionWeight = 30.0;
+            scalar_t velocityWeight = 15.0;
+            scalar_t normalPositionErrorGain = 20.0;
             // swing phases shorter than this time will be scaled down in height and velocity
         };
 
@@ -60,7 +66,17 @@ namespace ocs2::legged_robot {
 
         scalar_t getZpositionConstraint(size_t leg, scalar_t time) const;
 
+        const Config& config() const { return config_; }
+        using TerrainSwings = feet_array_t<std::vector<std::shared_ptr<const TerrainSwing>>>;
+        void setTerrainSwings(TerrainSwings swings) { terrainSwings_ = std::move(swings); }
+        const TerrainSwing* getTerrainSwing(size_t leg, scalar_t time) const {
+            for (const auto& swing : terrainSwings_[leg])
+                if (time >= swing->startTime && time <= swing->endTime) return swing.get();
+            return nullptr;
+        }
+
     private:
+        TerrainSwings terrainSwings_;
         /**
          * Extracts for each leg the contact sequence over the motion phase sequence.
          * @param phaseIDsStock

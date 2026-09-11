@@ -198,6 +198,10 @@ namespace ocs2::legged_robot
                         // event timestamp can select the stance-side spline.
                         const scalar_t epsilon = std::min<scalar_t>(1e-7, 0.01 * (touchDown - liftOff));
                         point.z = swingPlanner.getZpositionConstraint(leg, std::clamp(t, liftOff + epsilon, touchDown - epsilon));
+                        if (const auto* swing = swingPlanner.getTerrainSwing(leg, t)) {
+                            const vector3_t position = swing->spline.position(t);
+                            point.x = position.x(); point.y = position.y(); point.z = position.z();
+                        }
                         marker.points.push_back(point);
                     }
                     swingArray.markers.push_back(std::move(marker));

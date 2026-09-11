@@ -72,6 +72,14 @@ namespace ocs2::legged_robot {
         // lambda to set config for normal velocity constraints
         auto eeNormalVelConConfig = [&](size_t footIndex) {
             EndEffectorLinearConstraint::Config config;
+            if (const auto* swing = swingTrajectoryPlannerPtr_->getTerrainSwing(footIndex, t)) {
+                const vector3_t normal = swing->normal(t);
+                const scalar_t gain = swingTrajectoryPlannerPtr_->config().normalPositionErrorGain;
+                config.Av = normal.transpose();
+                config.Ax = gain * normal.transpose();
+                config.b = vector_t::Constant(1, -normal.dot(swing->spline.velocity(t) + gain * swing->spline.position(t)));
+                return config;
+            }
             config.b = (vector_t(1) << -swingTrajectoryPlannerPtr_->getZvelocityConstraint(footIndex, t)).
                     finished();
             config.Av = (matrix_t(1, 3) << 0.0, 0.0, 1.0).finished();

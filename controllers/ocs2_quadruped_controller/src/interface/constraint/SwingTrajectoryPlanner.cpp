@@ -251,6 +251,17 @@ namespace ocs2::legged_robot {
         loadData::loadPtreeValue(pt, config.swingHeight, prefix + "swingHeight", verbose);
         loadData::loadPtreeValue(pt, config.swingTimeScale, prefix + "swingTimeScale", verbose);
 
+        config.terrainAware = pt.get<bool>(prefix + "terrainAware", config.terrainAware);
+        config.footRadius = pt.get<scalar_t>(prefix + "footRadius", config.footRadius);
+        config.positionWeight = pt.get<scalar_t>(prefix + "positionWeight", config.positionWeight);
+        config.velocityWeight = pt.get<scalar_t>(prefix + "velocityWeight", config.velocityWeight);
+        config.normalPositionErrorGain = pt.get<scalar_t>(prefix + "normalPositionErrorGain", config.normalPositionErrorGain);
+        for (scalar_t value : {config.footRadius, config.positionWeight, config.velocityWeight,
+                               config.normalPositionErrorGain, config.swingHeight})
+            if (!std::isfinite(value) || value < 0.0) throw std::invalid_argument("Invalid swing trajectory setting");
+        if (!std::isfinite(config.swingTimeScale) || config.swingTimeScale <= 0.0)
+            throw std::invalid_argument("swingTimeScale must be positive and finite");
+
         if (verbose) {
             std::cerr << " #### =============================================================================" <<
                     std::endl;

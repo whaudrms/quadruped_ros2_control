@@ -21,6 +21,15 @@ swing_trajectory_config
   touchDownVelocity            -0.1
   swingHeight                   0.08
   swingTimeScale                0.15
+  ; Perceptive only: ANYmal-style terrain-aware XYZ quintic swing + MPC foot tracking.
+  terrainAware                  true
+  footRadius                    0.02  ; terrain contact -> FK foot frame, independent of robust guard offset
+  positionWeight                30.0  ; 0.5*w*||p_foot-p_ref||^2 (XYZ), original ANYmal foot weights
+  velocityWeight                15.0  ; 0.5*w*||v_foot-v_ref||^2 (XYZ)
+  normalPositionErrorGain        20.0  ; n'*(v-v_ref+gain*(p-p_ref))=0, ordinary swing only
+  ; Robust window: tracking cost keeps only tangent components; stance: tracking disabled.
+  ; Midpoint: phase=0.5, progress=0.6, velocity=2*(touchdown-liftoff)/T.
+  ; Extra terrain height is capped at 2*swingHeight, as in original ANYmal.
 }
 
 ; Multiple_Shooting SQP settings

@@ -31,6 +31,7 @@ set(CONTROLLER_INCLUDE_DEPENDS
         grid_map_ros
         grid_map_msgs
         grid_map_sdf
+        grid_map_filters_rsl
         ocs2_sphere_approximation
 )
 
@@ -77,6 +78,10 @@ add_library(${PROJECT_NAME} SHARED
         src/control/TargetManager.cpp
         src/control/CtrlComponent.cpp
 
+        src/perceptive/foot_planner/QuinticSplineSwing.cpp
+        src/perceptive/foot_planner/SwingSpline3d.cpp
+        src/perceptive/foot_planner/TerrainSwing.cpp
+        src/perceptive/cost/SwingFootTrackingCost.cpp
         src/perceptive/constraint/FootCollisionConstraint.cpp
         src/perceptive/constraint/FootPlacementConstraint.cpp
         src/perceptive/constraint/RobustGuardApproachConstraint.cpp
@@ -172,6 +177,10 @@ ament_export_dependencies(${CONTROLLER_INCLUDE_DEPENDS})
 ament_export_targets(export_${PROJECT_NAME} HAS_LIBRARY_TARGET)
 
 if (BUILD_TESTING)
+    add_executable(terrain_swing_test test/terrain_swing_test.cpp)
+    target_link_libraries(terrain_swing_test ${PROJECT_NAME})
+    ament_target_dependencies(terrain_swing_test ${CONTROLLER_INCLUDE_DEPENDS})
+    add_test(NAME terrain_swing_test COMMAND terrain_swing_test)
     add_executable(visible_terrain_test test/visible_terrain_test.cpp)
     target_link_libraries(visible_terrain_test perceptive_terrain)
     ament_target_dependencies(visible_terrain_test ${CONTROLLER_INCLUDE_DEPENDS})

@@ -348,6 +348,8 @@ namespace ocs2::legged_robot
     {
         const auto contactFlagStocks = convexRegionSelectorPtr_->extractContactFlags(modeSchedule.modeSequence);
         feet_array_t<scalar_array_t> liftOffHeightSequence, touchDownHeightSequence;
+        SwingTrajectoryPlanner::TerrainSwings terrainSwings;
+        const auto& swingConfig = swingTrajectoryPtr_->config();
 
         for (size_t leg = 0; leg < info_.numThreeDofContacts; leg++)
         {
@@ -382,12 +384,46 @@ namespace ocs2::legged_robot
                 activeSwingHeightLatched_[leg] = false;
             }
 
+            if (swingConfig.terrainAware) {
+                for (size_t phase = 1; phase + 1 < contactFlagStocks[leg].size(); ++phase) {
+                    if (contactFlagStocks[leg][phase] || !contactFlagStocks[leg][phase - 1]) continue;
+                    size_t touchdown = phase + 1;
+                    while (touchdown < contactFlagStocks[leg].size() && !contactFlagStocks[leg][touchdown]) ++touchdown;
+                    if (touchdown == contactFlagStocks[leg].size()) break;
+                    const scalar_t start = modeSchedule.eventTimes[phase - 1];
+                    const scalar_t end = modeSchedule.eventTimes[touchdown - 1];
+                    const auto& from = projections[phase - 1];
+                    const auto& to = projections[touchdown];
+                    if (!from.regionPtr || !to.regionPtr) continue;
+                    const vector3_t fromNormal = from.regionPtr->transformPlaneToWorld.linear().col(2);
+                    const vector3_t toNormal = to.regionPtr->transformPlaneToWorld.linear().col(2);
+                    // Current/last contact anchor was measured in FK then lowered along world Z.
+                    // Future contacts use the selected surface normal and the physical foot radius.
+                    const bool activeSwing = phase <= initIndex && initIndex < touchdown;
+                    const bool fromCurrentStance = currentContact && phase > initIndex &&
+                        std::all_of(contactFlagStocks[leg].begin() + initIndex,
+                                    contactFlagStocks[leg].begin() + phase, [](bool contact) { return contact; });
+                    const bool measuredAnchor = hasLatchedContactPosition_[leg] && (activeSwing || fromCurrentStance);
+                    const vector3_t startPosition = measuredAnchor
+                        ? vector3_t(lastLiftoffPos_[leg] + swingConfig.footRadius * vector3_t::UnitZ())
+                        : vector3_t(from.positionInWorld + swingConfig.footRadius * fromNormal);
+                    const vector3_t endPosition = to.positionInWorld + swingConfig.footRadius * toNormal;
+                    auto trajectory = std::make_shared<TerrainSwing>(start, end, startPosition, endPosition,
+                        fromNormal, toNormal, swingConfig.liftOffVelocity, swingConfig.touchDownVelocity,
+                        swingConfig.swingHeight, swingConfig.swingTimeScale,
+                        convexRegionSelectorPtr_->getHeightProfileAlongLine(startPosition, endPosition));
+                    terrainSwings[leg].push_back(std::move(trajectory));
+                    phase = touchdown - 1;
+                }
+            }
+
             liftOffHeightSequence[leg] = liftOffHeights;
             touchDownHeightSequence[leg] = touchDownHeights;
             previousContactFlags_[leg] = currentContact;
         }
         latestTouchDownHeightSequence_ = touchDownHeightSequence;
         swingTrajectoryPtr_->update(modeSchedule, liftOffHeightSequence, touchDownHeightSequence);
+        swingTrajectoryPtr_->setTerrainSwings(std::move(terrainSwings));
     }
 
     void PerceptiveLeggedReferenceManager::updateLatestFootholdPlanSnapshot(
@@ -480,6 +516,16 @@ namespace ocs2::legged_robot
         snapshot.zReferences.push_back(snapshot.touchDownHeight);
         snapshot.zVelocityReferences.push_back(0.0);
 
+        // Keep the existing CSV/plot contract: logged z_ref + guard offset is
+        // the FK foot-frame reference, even when radius and guard offset differ.
+        if (const auto* swing = swingTrajectoryPtr_->getTerrainSwing(kFlLeg, 0.5 * (liftOffTime + touchDownTime))) {
+            snapshot.touchDownHeight = swing->endPosition.z() - robustPhaseSettings_.foot_frame_offset;
+            for (size_t k = 0; k < snapshot.sampleTimes.size(); ++k) {
+                snapshot.zReferences[k] = swing->spline.position(snapshot.sampleTimes[k]).z() - robustPhaseSettings_.foot_frame_offset;
+                snapshot.zVelocityReferences[k] = swing->spline.velocity(snapshot.sampleTimes[k]).z();
+            }
+        }
+
         {
             std::lock_guard lock(footholdPlanSnapshotMutex_);
             snapshot.sequence = ++footholdPlanSnapshotSequence_;
@@ -505,20 +551,12 @@ namespace ocs2::legged_robot
         const bool enteringContact =
             currentContact && (!hasLatchedContactPosition_[leg] || !previousContactFlags_[leg]);
 
-        if (enteringContact)
+        if (enteringContact || (currentContact && swingTrajectoryPtr_->config().terrainAware))
         {
             lastLiftoffPos_[leg] = endEffectorKinematicsPtr_->getPosition(initState)[leg];
-            // 0.02 m = foot ball radius (Go2's spherical foot has r ≈ 0.02 m,
-            // so the FK foot frame at the ball center sits 0.02 m above the
-            // ground contact point at touchdown). This is the perceptive
-            // planner's anchor for the swing planner's lift-off / touchdown
-            // heights — separate physical quantity from the robust guard's
-            // RobustGuardBoundaryConstraint::foot_frame_offset (loaded from
-            // task.info, used in g(x) = n·(p_foot − p_plane) − foot_frame_offset).
-            // Do not conflate the two — they describe different geometric
-            // relationships (FK→contact for the planner; FK→guard-zero for
-            // the OCP constraint).
-            lastLiftoffPos_[leg].z() -= 0.02;
+            // Legacy height arrays use a contact-surface anchor. The 3D planner
+            // restores this physical radius and therefore starts at measured FK.
+            lastLiftoffPos_[leg].z() -= swingTrajectoryPtr_->config().footRadius;
             hasLatchedContactPosition_[leg] = true;
         }
 

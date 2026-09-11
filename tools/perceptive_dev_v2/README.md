@@ -65,6 +65,43 @@ python3 tools/perceptive_dev_v2/run_trial.py \
   일부 기존 그래프는 이 파라미터를 접촉 높이선에도 더하므로, 해당 선만으로
   좌표계 보정 성공 여부를 판단하지 않는다.
 
+## 원본 ANYmal 방식의 3D swing / MPC 발 추종
+
+Go2 `task.info`의 `swing_trajectory_config.terrainAware=true`를 사용하면
+perceptive 모드에서 다음 경로를 사용한다.
+
+- 원본 `ocs2_switched_model_interface`의 `SwingSpline3d` / `QuinticSplineSwing`을
+  같은 보간 조건으로 이식했다. `FootPhase::setFullSwing`처럼 측정한 이륙점과
+  선택한 착지점 사이의 raw `elevation`을 읽어 이동 방향에 수직인 방향으로
+  중간점을 올린다. 지형 조회도 원본의 `grid_map::lookup::valuesBetweenLocations`를
+  사용한다. 중간 phase는 0.5, 이동 진행률은 0.6, 속도는 평균 이동속도의 2배다.
+  추가 장애물 높이는 `2*swingHeight`까지 허용하며 짧은 swing은 원본처럼 축소한다.
+- 이륙점은 stance에서 측정한 FK 위치를 유지한다. 착지 XYZ는 매 MPC 주기의
+  선택 결과로 갱신한다. `footRadius=0.02`는 지형 접촉점에서 FK 발 프레임으로
+  올리는 물리 오프셋이며 `robustPhase.foot_frame_offset`과 독립이다.
+- MPC에 `0.5*(positionWeight*||p-p_ref||² + velocityWeight*||v-v_ref||²)`를
+  추가했다. 기본값은 원본 `ocs2_anymal_loopshaping_mpc/config/c_series/task.info`의
+  발 추종 가중치 30 / 15다. 일반 swing에는 원본처럼
+  `nᵀ(v-v_ref + normalPositionErrorGain*(p-p_ref))=0`도 적용하며 gain은 20이다.
+  법선은 이륙 지형에서 착지 지형으로 swing의 25~75% 구간에 부드럽게 바뀐다.
+- Go2의 robust 구간에서는 새 추종 cost의 법선 성분과 기존 normal equality를
+  끄고 접선 성분만 추종한다. 법선 이동은 기존 robust guard가 결정한다.
+  splice로 stance가 시작되면 새 swing 추종 cost도 꺼진다. WBC는 이 MPC가
+  최적화한 발 위치·속도를 기존 방식으로 받는다.
+- RViz `/perceptive_reference/swing_trajectories`와 foothold-plan 로그는 새 spline을
+  표시한다. 로그의 `z_ref`는 기존 플롯 형식을 유지하기 위해 FK 기준 z에서
+  해당 로그의 `foot_frame_offset`을 뺀 값이며, 플롯에서 이를 다시 더한다.
+
+비교 실험은 동일한 계단 높이·명령 속도·인식 오차 0에서 먼저 Robust OFF로 한다.
+위 계단 실행 명령의 tag를 `xyz_swing_step_up`으로 바꾸면 된다. 기존 방식과
+비교하려면 `terrainAware=false`로만 바꾸고 같은 조건을 반복한다. 이후 Robust
+ON을 확인한다. 플롯에서 모서리 통과 시 참조→MPC 최적화→측정 발 위치 순서로
+차이를 확인한다. 최고점 높이보다 FR/FL/RL/RR 각각의 모서리 통과 여유가 중요하다.
+
+이 변경은 XYZ swing 생성과 추종 항을 이식한 것이다. 원본의 별도 foothold
+필터·충돌 clearance 스케줄 전체는 포함하지 않는다. spline과 추종 cost는
+충돌 없는 실주행을 보장하지 않으므로 MuJoCo 반복 실험으로 통과율을 확인한다.
+
 ## 2. 단일 실험
 
 `task.info` 설정으로 **Robust ON만 1회** 실행하는 전용 스크립트:
