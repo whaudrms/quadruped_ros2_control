@@ -57,7 +57,7 @@ run_one() {
         --mode perceptive_dev_v2 \
         --robust "$robust" \
         --terrain-z-offset "$offset" \
-        --terrain-z-offset-only-below-z 0.0 \
+        --terrain-z-offset-only-below-z 0.03 \
         --metrics-grace-sec 5 \
         --post-trial-hold-sec 0 \
         --results-dir "$RESULTS_DIR" \

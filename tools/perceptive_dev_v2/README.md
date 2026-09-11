@@ -26,6 +26,45 @@ python3 tools/perceptive_dev_v2/run_trial.py \
 활성화될 때까지 수십 초 걸릴 수 있다. 러너는 최대 180초 기다리며 진행 상태를
 10초마다 출력한다. 이때 중간에 Ctrl+C를 누르면 컴파일이 중단된다.
 
+## 몸통 원점 odometry 변경 후 발 높이 검증
+
+Go2 MuJoCo의 `frame_pos`/`frame_vel`은 `base_link` 원점의 `base_odom`
+site를 측정한다. IMU 위치는 기존대로 유지한다. XML을 다시 읽도록 MuJoCo와
+컨트롤러를 재시작해야 하며, 바이너리 재빌드는 필요 없다.
+
+검증은 Robust OFF, 인식 높이 오차 0에서 평지 → 계단 순서로 수행한다.
+다음 명령은 실제 시뮬레이터를 실행한다.
+
+```bash
+python3 tools/perceptive_dev_v2/run_trial.py \
+  --scenario standing_trot_forward_only_reproduce --terrain scene \
+  --mode perceptive_dev_v2 --robust off --terrain-z-offset 0 \
+  --foothold-plan-log on --tag base_origin_flat
+
+python3 tools/perceptive_dev_v2/run_trial.py \
+  --scenario standing_trot_forward_only_reproduce --terrain basic_step_up_short_v2 \
+  --mode perceptive_dev_v2 --robust off --terrain-z-offset 0 \
+  --foothold-plan-log on --tag base_origin_step_up
+```
+
+- 평지: 안정된 실제 접촉 구간의 FK 발 프레임 높이는 약 0.022 m여야 한다.
+  초기 검증 기준은 이 값과의 차이 5 mm 이내로 잡는다. 기존 약 0.064 m가
+  계속 나오면 아직 IMU 원점 데이터나 이전 프로세스를 사용하는지 확인한다.
+- 계단: XML의 `pos.z + size.z`로 실제 상단 높이 H를 확인한다. 수평 박스
+  모서리를 넘을 때 발 충돌구 중심 높이에서 반지름 0.022 m를 뺀 값과 H를
+  비교한다. 2 cm 여유를 목표로 하면 중심 높이는 H + 0.022 + 0.02 m 이상이다.
+  목표 궤적과 측정 궤적을 FR/FL 각각 비교하고, 발이 모서리에 도달하기 전에
+  충분히 상승하는지 확인한다. 최고 높이만으로 통과 여부를 판정하지 않는다.
+- 충돌구 중심은 FK 발 프레임에 발 좌표계의 `(-0.002, 0, 0)` 오프셋을
+  회전시켜 더한 위치다. 앞면 접근 중에는 높이만 보지 말고 박스와 구 사이의
+  3차원 최단 거리도 확인한다. 최초 충돌 부위를 확정하려면 MuJoCo contact의
+  geom 쌍과 접촉 위치를 별도로 기록해야 한다.
+- Robust ON 검증은 위 기준을 확인한 뒤 진행한다. `foot_frame_offset=0.06`을
+  물리 접촉 높이로 그대로 사용하지 말고, 안정된 접촉에서 측정한
+  `n·(p_foot - p_plane)`로 재설정한다(평지에서는 약 0.022 m).
+  일부 기존 그래프는 이 파라미터를 접촉 높이선에도 더하므로, 해당 선만으로
+  좌표계 보정 성공 여부를 판단하지 않는다.
+
 ## 2. 단일 실험
 
 `task.info` 설정으로 **Robust ON만 1회** 실행하는 전용 스크립트:
