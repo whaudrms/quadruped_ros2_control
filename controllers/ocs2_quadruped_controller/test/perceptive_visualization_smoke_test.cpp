@@ -68,6 +68,20 @@ int main(int argc, char** argv)
         region.boundaryWithInset.insets.push_back(CgalPolygonWithHoles2d(square));
         region.bbox2d = square.bbox();
         terrain->planarRegions.push_back(region);
+        // Foothold selection requires a height map consistent with the tilted
+        // plane, as supplied by the real terrain publisher.
+        terrain->gridMap.setGeometry(grid_map::Length(3.0, 3.0), 0.03);
+        terrain->gridMap.add("elevation", 0.0);
+        const vector3_t normal = region.transformPlaneToWorld.linear().col(2);
+        const vector3_t origin = region.transformPlaneToWorld.translation();
+        const auto mapSize = terrain->gridMap.getSize();
+        for (int x = 0; x < mapSize.x(); ++x) for (int y = 0; y < mapSize.y(); ++y) {
+            const grid_map::Index index(x, y);
+            grid_map::Position xy;
+            terrain->gridMap.getPosition(index, xy);
+            terrain->gridMap.at("elevation", index) = origin.z() -
+                (normal.x() * (xy.x() - origin.x()) + normal.y() * (xy.y() - origin.y())) / normal.z();
+        }
         FixedFeet kinematics;
         ConvexRegionSelector selector(info, terrain, std::make_shared<std::mutex>(), kinematics, 16);
         SwingTrajectoryPlanner planner({}, 4);

@@ -61,6 +61,22 @@ cd ~/ros2_ws
 colcon build --packages-up-to ocs2_quadruped_controller  --symlink-install
 ```
 
+## Visible terrain for foothold selection
+
+The MuJoCo static terrain publisher removes lower surfaces hidden below box
+tops, including covered floor and overlapping platforms. Both region boundaries
+and projection insets are clipped; newly exposed obstacle edges have a 0.02 m
+inset margin. This uses the perceived heights after terrain offsets are applied.
+
+Foothold selection additionally rejects projections inconsistent with the raw
+`elevation` map (0.01 m tolerance, corrected for plane slope at the map cell
+center). If no valid candidate remains, it reports an error rather than selecting
+a buried plane. Smoothing remains available for body references.
+
+`visible_terrain_test` checks flat ground, step up/down, overlapping and rotated
+platforms, ramps, perception offsets, convex foothold boundaries, and preservation
+of holes through ROS message conversion. It can also accept scene XML paths.
+
 ## Robust phase timing
 
 `robustPhase.t_a` and `robustPhase.t_b` are nonnegative offsets in seconds

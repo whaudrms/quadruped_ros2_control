@@ -3,6 +3,7 @@
 //
 
 #include <ocs2_quadruped_controller/perceptive/interface/ConvexRegionSelector.h>
+#include <ocs2_quadruped_controller/perceptive/interface/VisibleTerrain.h>
 #include <ocs2_centroidal_model/AccessHelperFunctions.h>
 #include <ocs2_core/misc/Lookup.h>
 #include <ocs2_legged_robot/gait/MotionPhaseDefinition.h>
@@ -109,9 +110,7 @@ namespace ocs2::legged_robot
                     if (!numerics::almost_eq(standSelectionTime, lastStandMiddleTime))
                     {
                         vector3_t footPos = getNominalFoothold(leg, standSelectionTime, initState, targetTrajectories);
-                        auto penaltyFunction = [](const vector3_t& /*projectedPoint*/) { return 0.0; };
-                        const auto projection = getBestPlanarRegionAtPositionInWorld(
-                            footPos, planarTerrain_.planarRegions, penaltyFunction);
+                        const auto projection = selectVisibleTerrainProjection(planarTerrain_, footPos);
                         scalar_t growthFactor = 1.05;
                         const auto convexRegion = convex_plane_decomposition::growConvexPolygonInsideShape(
                             projection.regionPtr->boundaryWithInset.boundary, projection.positionInTerrainFrame,

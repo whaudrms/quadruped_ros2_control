@@ -40,6 +40,14 @@ foreach (Dependency IN ITEMS ${CONTROLLER_INCLUDE_DEPENDS})
     find_package(${Dependency} REQUIRED)
 endforeach ()
 
+add_library(perceptive_terrain STATIC
+        src/perceptive/publisher/StaticPlanarTerrain.cpp
+        src/perceptive/publisher/VisibleTerrain.cpp
+)
+set_target_properties(perceptive_terrain PROPERTIES POSITION_INDEPENDENT_CODE ON)
+target_include_directories(perceptive_terrain PUBLIC include)
+ament_target_dependencies(perceptive_terrain ${CONTROLLER_INCLUDE_DEPENDS})
+
 add_library(${PROJECT_NAME} SHARED
         src/Ocs2QuadrupedController.cpp
         src/FSM/StateOCS2.cpp
@@ -91,10 +99,11 @@ target_include_directories(${PROJECT_NAME}
         "$<INSTALL_INTERFACE:include/${PROJECT_NAME}>"
         PRIVATE
         src)
-ament_target_dependencies(${PROJECT_NAME}
+ament_target_dependencies(${PROJECT_NAME} PUBLIC
         ${CONTROLLER_INCLUDE_DEPENDS}
 )
 pluginlib_export_plugin_description_file(controller_interface ocs2_quadruped_controller.xml)
+target_link_libraries(${PROJECT_NAME} PRIVATE perceptive_terrain)
 
 add_executable(planar_terrain_publisher
         src/perceptive/publisher/StaticPlanarTerrainPublisher.cpp
@@ -109,6 +118,7 @@ target_include_directories(planar_terrain_publisher
 ament_target_dependencies(planar_terrain_publisher
         ${CONTROLLER_INCLUDE_DEPENDS}
 )
+target_link_libraries(planar_terrain_publisher perceptive_terrain)
 
 add_executable(planar_terrain_visualizer
         src/perceptive/publisher/PlanarTerrainVisualizer.cpp
@@ -162,6 +172,10 @@ ament_export_dependencies(${CONTROLLER_INCLUDE_DEPENDS})
 ament_export_targets(export_${PROJECT_NAME} HAS_LIBRARY_TARGET)
 
 if (BUILD_TESTING)
+    add_executable(visible_terrain_test test/visible_terrain_test.cpp)
+    target_link_libraries(visible_terrain_test perceptive_terrain)
+    ament_target_dependencies(visible_terrain_test ${CONTROLLER_INCLUDE_DEPENDS})
+    add_test(NAME visible_terrain_test COMMAND visible_terrain_test)
     add_executable(robust_width_test test/robust_width_test.cpp)
     target_link_libraries(robust_width_test ${PROJECT_NAME})
     ament_target_dependencies(robust_width_test ${CONTROLLER_INCLUDE_DEPENDS})
@@ -172,7 +186,8 @@ if (BUILD_TESTING)
     add_test(NAME robust_phase_timing_test COMMAND robust_phase_timing_test)
     add_executable(robust_contact_schedule_test test/robust_contact_schedule_test.cpp)
     target_include_directories(robust_contact_schedule_test PRIVATE include)
-    ament_target_dependencies(robust_contact_schedule_test ${CONTROLLER_INCLUDE_DEPENDS})
+    # This schedule-only test needs no controller, ROS or visualization libraries.
+    ament_target_dependencies(robust_contact_schedule_test ocs2_legged_robot grid_map_core)
     add_test(NAME robust_contact_schedule_test COMMAND robust_contact_schedule_test)
     add_executable(perceptive_visualization_smoke_test test/perceptive_visualization_smoke_test.cpp)
     target_link_libraries(perceptive_visualization_smoke_test ${PROJECT_NAME})
