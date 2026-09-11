@@ -12,6 +12,7 @@
 #include <SafetyChecker.h>
 #include <ocs2_centroidal_model/CentroidalModelRbdConversions.h>
 #include <ocs2_core/misc/Benchmark.h>
+#include <ocs2_oc/oc_data/PrimalSolution.h>
 #include <ocs2_quadruped_controller/control/CtrlComponent.h>
 #include <ocs2_quadruped_controller/wbc/WbcBase.h>
 #include <rclcpp/duration.hpp>
@@ -56,6 +57,7 @@ namespace ocs2::legged_robot
         double default_kd_ = 6;
 
         vector_t optimized_state_, optimized_input_;
+        PrimalSolution physical_visualization_policy_;
 
         // Per-tick CSV log of (t, optimized_state[24], optimized_input[24],
         // measured_rbd_state[36], planned_mode). Enabled by launch parameter

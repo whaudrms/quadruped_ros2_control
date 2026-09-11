@@ -11,6 +11,7 @@ import yaml
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+from paper_plot_style import apply_figure_font_sizes
 from matplotlib.lines import Line2D
 
 from paper_plot_style import (
@@ -226,6 +227,7 @@ def plot(results_dir: Path, out_dir: Path, _urdf_path: Path | None = None):
         edgecolor="0.35", facecolor="white",
     )
     legend.get_frame().set_linewidth(0.8)
+    apply_figure_font_sizes(fig, output)
     fig.tight_layout(pad=0.35)
     fig.savefig(output, dpi=300)
     fig.savefig(output.with_suffix(".pdf"))

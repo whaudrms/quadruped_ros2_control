@@ -11,6 +11,7 @@ import numpy as np
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+from paper_plot_style import apply_figure_font_sizes
 
 from paper_plot_style import (
     FAILURE_COLOR as PAPER_FAILURE_COLOR,
@@ -297,6 +298,7 @@ def _plot_overview(pairs: list[dict], output: Path, edges):
         "points: trials; lines: offset-bin means; bands: 95% intervals; red ×: failed trial",
         fontsize=15, fontweight="bold",
     )
+    apply_figure_font_sizes(fig, output)
     fig.tight_layout(rect=(0, 0, 1, 0.94))
     fig.savefig(output, dpi=160)
     plt.close(fig)
@@ -421,6 +423,7 @@ def _plot_paper_figure1(pairs: list[dict], output_dir: Path, edges) -> list[Path
         axis.set_xticks([0, 1], ["Baseline", "Proposed"])
         axis.set_ylim(0.0, 115.0)
         style_paper_axis(axis, grid_axis="y")
+        apply_figure_font_sizes(fig, outputs[0])
         fig.tight_layout(pad=0.35)
         _save_png_pdf(fig, outputs[0], preserve_canvas=True)
         plt.close(fig)
@@ -430,6 +433,7 @@ def _plot_paper_figure1(pairs: list[dict], output_dir: Path, edges) -> list[Path
             axis, pairs, "success", "Success rate [%]",
             edges, success=True, scatter=False,
         )
+        apply_figure_font_sizes(fig, outputs[1])
         fig.tight_layout(pad=0.35)
         _save_png_pdf(fig, outputs[1], preserve_canvas=True)
         plt.close(fig)
@@ -439,6 +443,7 @@ def _plot_paper_figure1(pairs: list[dict], output_dir: Path, edges) -> list[Path
             axis, pairs, "touchdown_normal_speed_mean_mps",
             r"Touchdown normal speed [m/s]", edges, scatter=True, show_ci=True,
         )
+        apply_figure_font_sizes(fig, outputs[2])
         fig.tight_layout(pad=0.35)
         _save_png_pdf(fig, outputs[2], preserve_canvas=True)
         plt.close(fig)
@@ -448,6 +453,7 @@ def _plot_paper_figure1(pairs: list[dict], output_dir: Path, edges) -> list[Path
             axis, pairs, "base_orientation_rmse_deg",
             r"Base orientation RMSE [deg]", edges, scatter=True, show_ci=True,
         )
+        apply_figure_font_sizes(fig, outputs[3])
         fig.tight_layout(pad=0.35)
         _save_png_pdf(fig, outputs[3], preserve_canvas=True)
         plt.close(fig)
@@ -457,6 +463,7 @@ def _plot_paper_figure1(pairs: list[dict], output_dir: Path, edges) -> list[Path
             axis, pairs, "base_position_rmse_m",
             r"Base position RMSE [m]", edges, scatter=True, show_ci=True,
         )
+        apply_figure_font_sizes(fig, outputs[4])
         fig.tight_layout(pad=0.35)
         _save_png_pdf(fig, outputs[4], preserve_canvas=True)
         plt.close(fig)
@@ -527,6 +534,7 @@ def _plot_paper_figure2(pairs: list[dict], output: Path):
                 bbox={"boxstyle": "square,pad=0.28", "facecolor": "white",
                       "edgecolor": "0.35", "alpha": 1.0},
             )
+        apply_figure_font_sizes(fig, output)
         fig.tight_layout(pad=0.35, w_pad=2.0)
         _save_png_pdf(fig, output, preserve_canvas=True)
         plt.close(fig)
@@ -641,6 +649,7 @@ def _write_paper_table(pairs: list[dict], output_dir: Path) -> Path:
         "Positive paired improvement favors Proposed.",
         transform=axis.transAxes, fontsize=9, color="0.35", va="bottom",
     )
+    apply_figure_font_sizes(fig, image_path)
     fig.tight_layout()
     _save_png_pdf(fig, image_path)
     plt.close(fig)
@@ -679,6 +688,7 @@ def _plot_paired(pairs: list[dict], output: Path, edges):
         "points: matched samples; lines: offset-bin means; title brackets: bootstrap 95% CI",
         fontsize=15, fontweight="bold",
     )
+    apply_figure_font_sizes(fig, output)
     fig.tight_layout(rect=(0, 0, 1, 0.93))
     fig.savefig(output, dpi=160)
     plt.close(fig)
@@ -701,6 +711,7 @@ def _plot_timing(pairs: list[dict], output: Path, edges) -> bool:
         "points: trials; lines: offset-bin means; bands: 95% mean intervals; red ×: failed trial",
         fontsize=15, fontweight="bold",
     )
+    apply_figure_font_sizes(fig, output)
     fig.tight_layout(rect=(0, 0, 1, 0.94))
     fig.savefig(output, dpi=160)
     plt.close(fig)

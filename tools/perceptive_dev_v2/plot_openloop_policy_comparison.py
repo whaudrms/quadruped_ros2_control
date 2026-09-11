@@ -10,6 +10,7 @@ import numpy as np
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+from paper_plot_style import apply_figure_font_sizes
 from matplotlib.lines import Line2D
 from matplotlib.patches import Patch
 
@@ -300,6 +301,7 @@ def plot(args):
         ncol=3,
     )
     top = 0.92 if match_failures else 0.97
+    apply_figure_font_sizes(fig, args.output)
     fig.subplots_adjust(left=0.09, right=0.985, top=top, bottom=0.25, wspace=0.10)
     args.output.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(args.output, dpi=300)

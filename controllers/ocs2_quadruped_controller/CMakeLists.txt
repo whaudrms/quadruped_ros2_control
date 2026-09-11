@@ -73,6 +73,7 @@ add_library(${PROJECT_NAME} SHARED
         src/perceptive/constraint/FootPlacementConstraint.cpp
         src/perceptive/constraint/RobustGuardApproachConstraint.cpp
         src/perceptive/constraint/RobustGuardBoundaryConstraint.cpp
+        src/perceptive/interface/ConstantParameterOcp.cpp
         src/perceptive/constraint/RobustGuardVelocityLowerBoundConstraint.cpp
         src/perceptive/constraint/SphereSdfConstraint.cpp
         src/perceptive/interface/ConvexRegionSelector.cpp
@@ -161,6 +162,18 @@ ament_export_dependencies(${CONTROLLER_INCLUDE_DEPENDS})
 ament_export_targets(export_${PROJECT_NAME} HAS_LIBRARY_TARGET)
 
 if (BUILD_TESTING)
+    add_executable(robust_width_test test/robust_width_test.cpp)
+    target_link_libraries(robust_width_test ${PROJECT_NAME})
+    ament_target_dependencies(robust_width_test ${CONTROLLER_INCLUDE_DEPENDS})
+    add_test(NAME robust_width_test COMMAND robust_width_test)
+    add_executable(robust_phase_timing_test test/robust_phase_timing_test.cpp)
+    target_include_directories(robust_phase_timing_test PRIVATE include)
+    ament_target_dependencies(robust_phase_timing_test ${CONTROLLER_INCLUDE_DEPENDS})
+    add_test(NAME robust_phase_timing_test COMMAND robust_phase_timing_test)
+    add_executable(robust_contact_schedule_test test/robust_contact_schedule_test.cpp)
+    target_include_directories(robust_contact_schedule_test PRIVATE include)
+    ament_target_dependencies(robust_contact_schedule_test ${CONTROLLER_INCLUDE_DEPENDS})
+    add_test(NAME robust_contact_schedule_test COMMAND robust_contact_schedule_test)
     add_executable(perceptive_visualization_smoke_test test/perceptive_visualization_smoke_test.cpp)
     target_link_libraries(perceptive_visualization_smoke_test ${PROJECT_NAME})
     ament_target_dependencies(perceptive_visualization_smoke_test ${CONTROLLER_INCLUDE_DEPENDS})

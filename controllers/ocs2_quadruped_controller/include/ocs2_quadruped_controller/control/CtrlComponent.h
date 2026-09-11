@@ -16,6 +16,7 @@
 #include <ocs2_mpc/SystemObservation.h>
 #include <ocs2_quadruped_controller/estimator/StateEstimateBase.h>
 #include <ocs2_quadruped_controller/interface/LeggedInterface.h>
+#include <ocs2_quadruped_controller/interface/RobustWindowData.h>
 #include <rclcpp_lifecycle/lifecycle_node.hpp>
 #include <ocs2_core/misc/Benchmark.h>
 #include <ocs2_mpc/MPC_MRT_Interface.h>
@@ -56,6 +57,11 @@ namespace ocs2::legged_robot
         std::shared_ptr<GaitManager> gait_manager_ptr_;
 
         SystemObservation observation_;
+        SystemObservation getMpcObservation() const;
+        void logRobustStanceEntry(size_t plannedMode, const ModeSchedule& policySchedule);
+        size_t robustParameterCount_ = 0;
+        scalar_t robustInitialWidth_ = 0.05;
+        vector_t robustWidthSeed_;
         vector_t measured_rbd_state_;
         std::atomic_bool mpc_running_{};
 
@@ -132,6 +138,10 @@ namespace ocs2::legged_robot
         feet_array_t<int>      sustained_robust_contact_ticks_{};
         feet_array_t<bool>     splice_requested_in_window_{};
         feet_array_t<scalar_t> candidate_event_time_{};
+        // Preserve the first tick's bounds even if MPC clamps t_a during debounce.
+        feet_array_t<RobustWindowData> candidate_contact_window_{};
+        contact_flag_t previous_wbc_contact_{};
+        feet_array_t<bool> robust_stance_entry_logged_{};
 
         bool enable_perceptive_ = false;
         bool enable_perceptive_reference_modification_ = true;

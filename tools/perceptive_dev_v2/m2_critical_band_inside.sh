@@ -24,9 +24,7 @@ run_one() {
         --terrain basic_step_short \
         --mode perceptive_dev_v2 \
         --robust "$robust" \
-        --robust-p 10 \
         --robust-d 0.03 \
-        --robust-v-max 0.6 \
         --robust-splice on \
         --robust-verbose on \
         --mpc-frequency 10 \

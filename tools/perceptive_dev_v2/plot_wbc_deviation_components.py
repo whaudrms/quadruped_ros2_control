@@ -9,6 +9,7 @@ import numpy as np
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+from paper_plot_style import apply_figure_font_sizes
 from matplotlib.lines import Line2D
 
 from paper_plot_style import (
@@ -242,6 +243,7 @@ def plot_one_offset(offset: float, on_data: dict | None, off_data: dict | None, 
         fig, handles=legend_handles, loc="upper center", bbox_to_anchor=(0.5, 0.955),
         ncol=3,
     )
+    apply_figure_font_sizes(fig, output)
     fig.tight_layout(rect=(0, 0, 1, 0.86))
     output.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(output, dpi=SAVE_DPI)

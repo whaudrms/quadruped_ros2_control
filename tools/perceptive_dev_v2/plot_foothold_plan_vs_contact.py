@@ -12,6 +12,7 @@ import numpy as np
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+from paper_plot_style import apply_figure_font_sizes
 from matplotlib.lines import Line2D
 from matplotlib.patches import Patch
 
@@ -277,6 +278,7 @@ def _plot(results_dir: Path, output: Path, urdf_path: Path):
         axes[0], handles=handles, loc="upper center", bbox_to_anchor=(1.02, -0.18),
         ncol=4,
     )
+    apply_figure_font_sizes(fig, output)
     fig.subplots_adjust(left=0.09, right=0.985, top=0.97, bottom=0.25, wspace=0.10)
     output.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(output, dpi=300)

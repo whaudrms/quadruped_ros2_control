@@ -5,17 +5,14 @@
 //     ġ ≥ -v_max       ⇔        h ≥ 0
 //
 // where ġ = n_l^T J_foot,l(q) v_pin(x,u) (foot velocity along the terrain
-// normal). v_max is read from RobustWindowData (loaded from
-// robustPhase.v_max in task.info, default 0.6 m/s).
+// normal). v_max is read from RobustWindowData, computed as 2*d_max/(t_b-t_a)
+// using the full absolute robust window (not the remaining MPC time).
 //
 // Active across the entire robust window [t_a, t_b] (same as the
 // RobustGuardApproachConstraint counterpart, which enforces the upper bound
 // ġ ≤ 0). Together they form an impact-velocity envelope -v_max ≤ ġ ≤ 0,
 // preventing the OCP from satisfying the boundary g(t_a)=+d, g(t_b)=-d
 // with arbitrarily large descent speed.
-//
-// Per chat7 priority #2 — added on top of the chat7 P/d/v_max physical-
-// consistency retuning (Stage 1a, P=10 → T_robust=0.20s with d=0.05).
 //
 // Soft constraint via RelaxedBarrierPenalty (same penalty config as
 // RobustGuardApproachConstraint).

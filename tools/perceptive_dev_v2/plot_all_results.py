@@ -17,6 +17,7 @@ import numpy as np
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+from paper_plot_style import apply_figure_font_sizes
 from matplotlib.lines import Line2D
 from matplotlib.patches import Patch
 
@@ -430,6 +431,7 @@ def plot_dashboard(records: list[dict], output: Path):
         fig, handles=legend_handles, loc="upper center", bbox_to_anchor=(0.5, 0.965),
         ncol=4,
     )
+    apply_figure_font_sizes(fig, output)
     fig.tight_layout(rect=(0, 0, 1, 0.90))
     fig.savefig(output, dpi=SAVE_DPI)
     plt.close(fig)
@@ -509,6 +511,7 @@ def plot_mpc_dashboard(records: list[dict], output: Path):
         fig, handles=legend_handles, loc="upper center", bbox_to_anchor=(0.5, 0.955),
         ncol=4,
     )
+    apply_figure_font_sizes(fig, output)
     fig.tight_layout(rect=(0, 0, 1, 0.88))
     fig.savefig(output, dpi=SAVE_DPI)
     plt.close(fig)
@@ -569,6 +572,7 @@ def plot_robust_dashboard(records: list[dict], output: Path):
         fig, handles=legend_handles, loc="upper center", bbox_to_anchor=(0.5, 0.945),
         ncol=len(legend_handles),
     )
+    apply_figure_font_sizes(fig, output)
     fig.tight_layout(rect=(0, 0, 1, 0.86))
     fig.savefig(output, dpi=SAVE_DPI)
     plt.close(fig)

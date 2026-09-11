@@ -14,6 +14,7 @@ import yaml
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+from paper_plot_style import apply_figure_font_sizes
 
 from terrain_descent_events import descent_times, load_or_detect_events
 
@@ -233,9 +234,10 @@ def main(argv=None):
         + textwrap.fill(args.trial_dir.name, width=105),
         fontsize=11,
     )
+    output_path = args.output or (args.trial_dir / "tracking_rmse.png")
+    apply_figure_font_sizes(fig, output_path)
     fig.tight_layout(rect=(0, 0, 1, 0.92))
 
-    output_path = args.output or (args.trial_dir / "tracking_rmse.png")
     output_path.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(output_path, dpi=130)
     plt.close(fig)

@@ -11,6 +11,7 @@ import numpy as np
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+from paper_plot_style import apply_figure_font_sizes
 
 from paper_plot_style import (
     LEGEND_SIZE,
@@ -320,6 +321,7 @@ def plot(
         ),
         y=0.995,
     )
+    apply_figure_font_sizes(fig, output)
     fig.tight_layout(rect=(0, 0, 1, 0.82), w_pad=2.2)
     output.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(output, dpi=SAVE_DPI)
@@ -443,6 +445,7 @@ def plot_single_trial(
         fig, handles=handles, labels=labels, loc="lower center",
         bbox_to_anchor=(0.5, 0.02), ncol=2, fontsize=min(12, LEGEND_SIZE),
     )
+    apply_figure_font_sizes(fig, output)
     fig.subplots_adjust(left=0.14, right=0.98, top=0.88, bottom=0.33)
 
     output.parent.mkdir(parents=True, exist_ok=True)

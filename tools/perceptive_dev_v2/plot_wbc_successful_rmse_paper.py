@@ -10,6 +10,7 @@ import numpy as np
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+from paper_plot_style import apply_figure_font_sizes
 from matplotlib.lines import Line2D
 
 from paper_plot_style import (
@@ -158,12 +159,12 @@ def _plot_metric(
     axis.axvline(
         0.0,
         color=REFERENCE_COLOR,
-        linestyle="-.",
+        linestyle="--",
         linewidth=1.1,
         alpha=0.75,
         zorder=2,
     )
-    axis.set_xlabel("Time relative to lower-step touchdown [s]")
+    axis.set_xlabel("Time [s]")
     axis.set_ylabel(ylabel)
     axis.set_xlim(*time_limits)
     axis.set_ylim(0.0, ci_ceiling / 0.72 if ci_ceiling > 0.0 else 1.0)
@@ -173,10 +174,15 @@ def _plot_metric(
         handles=[
             Line2D([], [], color=NOMINAL_COLOR, linewidth=2.25, label="Baseline"),
             Line2D([], [], color=PROPOSED_COLOR, linewidth=2.25, label="Proposed"),
+            Line2D(
+                [], [], color=REFERENCE_COLOR, linestyle="--", linewidth=1.1,
+                alpha=0.75, label="Lower step contact",
+            ),
         ],
         loc="upper right",
         fontsize=11,
     )
+    apply_figure_font_sizes(fig, output)
     fig.tight_layout(pad=0.35)
     output.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(output, dpi=SAVE_DPI)

@@ -13,7 +13,8 @@ Panels:
         - /Target Trajectories1/Target Feet Trajectories1/Marker3
         - /Target Trajectories1/Target Feet Trajectories1/Marker4
         - /Target Trajectories1/Target Base Trajectory1
-      Splitter Ratio: 0.5
+        - /GridMap1
+      Splitter Ratio: 0.6295503377914429
     Tree Height: 920
   - Class: rviz_common/Selection
     Name: Selection
@@ -280,9 +281,7 @@ Visualization Manager:
       Enabled: true
       Name: MPC Predicted Base and Feet
       Namespaces:
-        CoM Trajectory: true
-        EE Trajectories: true
-        Future footholds: true
+        {}
       Topic:
         Depth: 5
         Durability Policy: Volatile
@@ -367,7 +366,7 @@ Visualization Manager:
           Enabled: true
           Name: Target Base Trajectory
           Namespaces:
-            "": true
+            {}
           Topic:
             Depth: 5
             Durability Policy: Volatile
@@ -410,7 +409,7 @@ Visualization Manager:
       Buffer Length: 1
       Class: rviz_default_plugins/Path
       Color: 0; 200; 70
-      Enabled: true
+      Enabled: false
       Head Diameter: 0.10000000149011612
       Head Length: 0.10000000149011612
       Length: 0.30000001192092896
@@ -433,16 +432,12 @@ Visualization Manager:
         History Policy: Keep Last
         Reliability Policy: Reliable
         Value: /perceptive_reference/terrain_aware_base_path
-      Value: true
+      Value: false
     - Class: rviz_default_plugins/MarkerArray
       Enabled: true
       Name: Perceptive Foot Placement
       Namespaces:
-        Foot Placement Feasible Regions: true
-        Foot Placement Margin Fallback: true
-        Nominal Footholds: true
-        Projections: true
-        Raw Convex Regions: true
+        {}
       Topic:
         Depth: 1
         Durability Policy: Volatile
@@ -451,17 +446,17 @@ Visualization Manager:
         Value: /foot_placement
       Value: true
     - Class: rviz_default_plugins/MarkerArray
-      Enabled: true
+      Enabled: false
       Name: Swing Z Reference (XY interpolated)
       Namespaces:
-        Swing Z Reference (XY interpolated): true
+        {}
       Topic:
         Depth: 1
         Durability Policy: Volatile
         History Policy: Keep Last
         Reliability Policy: Reliable
         Value: /perceptive_reference/swing_trajectories
-      Value: true
+      Value: false
     - Class: rviz_default_plugins/MarkerArray
       Enabled: true
       Name: Terrain Boundaries
@@ -499,7 +494,7 @@ Visualization Manager:
       Invert Rainbow: false
       Max Color: 255; 255; 255
       Max Intensity: 10
-      Min Color: 0; 0; 0
+      Min Color: 125; 125; 125
       Min Intensity: 0
       Name: GridMap
       Show Grid Lines: true
@@ -510,7 +505,7 @@ Visualization Manager:
         History Policy: Keep Last
         Reliability Policy: Reliable
         Value: /convex_plane_decomposition_ros/filtered_map
-      Use Rainbow: true
+      Use Rainbow: false
       Value: true
   Enabled: true
   Global Options:
@@ -556,7 +551,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz_default_plugins/Orbit
-      Distance: 6.4410552978515625
+      Distance: 5.5650715827941895
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -571,10 +566,10 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.46539783477783203
+      Pitch: 0.4853978157043457
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz_default_plugins)
-      Yaw: 5.651790618896484
+      Yaw: 5.421790599822998
     Saved: ~
 Window Geometry:
   Displays:

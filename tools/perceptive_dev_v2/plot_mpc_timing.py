@@ -12,6 +12,7 @@ import numpy as np
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+from paper_plot_style import apply_figure_font_sizes
 
 
 MPC_TIMING_RE = re.compile(
@@ -187,9 +188,11 @@ def plot_mpc_timing(trial_dir: Path, output: Path | None = None) -> Path:
         f"load={mean_load:.1f}%{iteration_title}",
         fontsize=11,
     )
+    output = output or trial_dir / "mpc_timing.png"
+    apply_figure_font_sizes(fig, output)
     fig.tight_layout(rect=(0, 0, 1, 0.92))
 
-    output = output or trial_dir / "mpc_timing.png"
+    output.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(output, dpi=140)
     plt.close(fig)
     (trial_dir / "mpc_timing.json").write_text(

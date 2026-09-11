@@ -18,6 +18,7 @@ import numpy as np
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+from paper_plot_style import apply_figure_font_sizes
 from matplotlib.lines import Line2D
 
 from paper_plot_style import (
@@ -436,6 +437,7 @@ def plot_cohort(trials: list[dict], cohort: str, output_path: Path):
         fig, handles=legend_handles, loc="upper center", bbox_to_anchor=(0.5, 0.965),
         ncol=2,
     )
+    apply_figure_font_sizes(fig, output_path)
     fig.tight_layout(rect=(0, 0, 1, 0.89))
     output_path.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(output_path, dpi=SAVE_DPI)

@@ -266,7 +266,7 @@ def draw_robust_panel(ax: plt.Axes, settings: dict, show_replan: bool) -> None:
         fontsize=PHASE_FONT_SIZE,
     )
     ax.text(
-        robust_x[-1],
+        robust_x[-1] - 0.012,
         node_y + 0.105,
         "$\\mathcal{P}_{M\\!-\\!1}$",
         color=GREEN,
@@ -429,6 +429,7 @@ def draw_robust_panel(ax: plt.Axes, settings: dict, show_replan: bool) -> None:
 
 def save_figure(fig: plt.Figure, output_base: Path) -> None:
     fig.savefig(output_base.with_suffix(".pdf"))
+    fig.savefig(output_base.with_suffix(".svg"))
     fig.savefig(output_base.with_suffix(".png"), dpi=300)
     plt.close(fig)
 
@@ -504,7 +505,7 @@ def main() -> None:
         },
     }
     (output_dir / "robust_phase_metadata.json").write_text(json.dumps(metadata, indent=2), encoding="utf-8")
-    print(f"Wrote {output_base.with_suffix('.pdf')} and {output_base.with_suffix('.png')}")
+    print(f"Wrote {output_base.with_suffix('.pdf')}, {output_base.with_suffix('.svg')}, and {output_base.with_suffix('.png')}")
 
 
 if __name__ == "__main__":

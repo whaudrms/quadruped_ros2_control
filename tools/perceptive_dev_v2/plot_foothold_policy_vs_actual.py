@@ -11,6 +11,7 @@ import numpy as np
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+from paper_plot_style import apply_figure_font_sizes
 from matplotlib.lines import Line2D
 from matplotlib.patches import Patch
 
@@ -417,6 +418,7 @@ def plot(results_dir: Path, output: Path, urdf_path: Path, time_view: str = "swi
             edgecolor="0.35", facecolor="white",
         )
         legend.get_frame().set_linewidth(0.8)
+        apply_figure_font_sizes(fig, output)
         fig.tight_layout(rect=(0, 0, 1, 0.86), pad=0.45, w_pad=1.0)
     else:
         handles = [
@@ -438,6 +440,7 @@ def plot(results_dir: Path, output: Path, urdf_path: Path, time_view: str = "swi
             axes[0], handles=handles, loc="upper center",
             bbox_to_anchor=(1.02, -0.18), ncol=4,
         )
+        apply_figure_font_sizes(fig, output)
         fig.subplots_adjust(
             left=0.09, right=0.985, top=0.97, bottom=0.25, wspace=0.10
         )

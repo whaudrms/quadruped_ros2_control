@@ -20,6 +20,7 @@ Differences vs colleague:
 import argparse
 import csv
 import json
+import math
 import os
 import re
 import shlex
@@ -491,7 +492,7 @@ def replace_task_value(text: str, key: str, value: str, block: str | None = None
     return text[:start] + value + text[end:]
 
 
-def read_task_value(text: str, key: str, block: str | None = None) -> str:
+def read_task_value(text: str, key: str, block: str | None = None, default: str | None = None) -> str:
     search_text = text
     if block is not None:
         block_match = re.search(
@@ -505,6 +506,8 @@ def read_task_value(text: str, key: str, block: str | None = None) -> str:
     matches = list(
         re.finditer(rf"^\s*{re.escape(key)}\s+(\S+)", search_text, re.MULTILINE)
     )
+    if not matches and default is not None:
+        return default
     if len(matches) != 1:
         raise RuntimeError(f"Could not uniquely read '{key}' from {TASK_INFO_PATH}")
     return matches[0].group(1)
@@ -512,9 +515,9 @@ def read_task_value(text: str, key: str, block: str | None = None) -> str:
 
 def effective_task_parameters(text: str) -> dict:
     robust_keys = (
-        "enabled", "P", "d", "w_boundary", "w_v", "approach_barrier_mu",
+        "enabled", "optimize_d", "d_min", "d_max", "t_a", "t_b", "d", "w_boundary", "w_v", "approach_barrier_mu",
         "approach_barrier_delta", "terrain_source", "terrain_z_M1",
-        "foot_frame_offset", "v_max", "hard_boundary_start", "hard_boundary_end",
+        "foot_frame_offset", "hard_boundary_start", "hard_boundary_end",
         "slack_boundary_start", "slack_boundary_end",
         "slack_boundary_weight_start", "slack_boundary_weight_end",
         "enable_splice", "verbose_log",
@@ -523,7 +526,7 @@ def effective_task_parameters(text: str) -> dict:
         key: read_task_value(text, key, "robustPhase") for key in robust_keys
     }
     for key in (
-        "enabled", "hard_boundary_start", "hard_boundary_end",
+        "enabled", "optimize_d", "hard_boundary_start", "hard_boundary_end",
         "slack_boundary_start", "slack_boundary_end",
         "enable_splice", "verbose_log",
     ):
@@ -532,6 +535,10 @@ def effective_task_parameters(text: str) -> dict:
                 f"Invalid boolean robustPhase.{key}={robust[key]!r} in "
                 f"{TASK_INFO_PATH}; expected true or false"
             )
+    robust["w_d"] = read_task_value(text, "w_d", "robustPhase", default="0.0")
+    weight = float(robust["w_d"])
+    if not math.isfinite(weight) or weight < 0.0:
+        raise ValueError("robustPhase.w_d must be finite and nonnegative")
     bool_value = lambda key: robust[key].lower() in {"true", "1"}
     if bool_value("hard_boundary_start") and bool_value("slack_boundary_start"):
         raise ValueError(
@@ -545,21 +552,42 @@ def effective_task_parameters(text: str) -> dict:
         if float(robust[key]) <= 0.0:
             raise ValueError(f"robustPhase.{key} must be positive")
     dt = float(read_task_value(text, "dt", "sqp"))
-    robust_window = int(robust["P"]) * dt
-    minimum_traversal = 2.0 * float(robust["d"]) / float(robust["v_max"])
+    advance, delay, d = (float(robust[key]) for key in ("t_a", "t_b", "d"))
+    if not all(math.isfinite(value) for value in (advance, delay, d)):
+        raise ValueError("robustPhase.t_a, t_b and d must be finite")
+    robust_window = advance + delay
+    if advance < 0.0 or delay < 0.0 or not math.isfinite(robust_window) or robust_window <= 0.0:
+        raise ValueError("robustPhase.t_a/t_b must be nonnegative with a positive finite sum")
+    if d <= 0.0:
+        raise ValueError("robustPhase.d must be positive")
+    d_min, d_max = (float(robust[key]) for key in ("d_min", "d_max"))
+    if not all(math.isfinite(value) for value in (d_min, d_max)) or not 0.0 < d_min <= d <= d_max:
+        raise ValueError("robustPhase requires 0 < d_min <= d <= d_max (finite)")
+    # Config-level values, before any runtime liftoff clamp. The controller
+    # derives the actual per-window rate from its absolute endpoints.
     robust["T_robust_s"] = robust_window
-    robust["minimum_traversal_time_s"] = minimum_traversal
-    robust["velocity_envelope_feasible"] = robust_window >= minimum_traversal
+    robust["v_max"] = 2.0 * d_max / robust_window
+    if not math.isfinite(robust["v_max"]):
+        raise ValueError("derived robustPhase v_max must be finite")
+    robust["v_max_source"] = "2*d_max/(t_a+t_b), before runtime liftoff clamp"
     return {
         "mpcDesiredFrequency": read_task_value(text, "mpcDesiredFrequency"),
         "sqp.dt": dt,
         "sqp.sqpIteration": int(read_task_value(text, "sqpIteration", "sqp")),
+        "swing_trajectory_config.swingHeight": float(
+            read_task_value(text, "swingHeight", "swing_trajectory_config")
+        ),
         "robustPhase": robust,
     }
 
 
 def task_info_overrides(args) -> dict[str, str]:
     overrides: dict[str, str] = {}
+    swing_height = getattr(args, "swing_height", None)
+    if swing_height is not None:
+        if not math.isfinite(swing_height) or swing_height <= 0.0:
+            raise ValueError("--swing-height must be finite and positive")
+        overrides["swing_trajectory_config.swingHeight"] = f"{swing_height:g}"
     if args.mpc_frequency is not None:
         if args.mpc_frequency <= 0.0:
             raise ValueError("--mpc-frequency must be positive")
@@ -570,18 +598,16 @@ def task_info_overrides(args) -> dict[str, str]:
         overrides["sqp.sqpIteration"] = str(args.sqp_iterations)
     if args.robust != "keep":
         overrides["robustPhase.enabled"] = "true" if args.robust == "on" else "false"
-    if args.robust_p is not None:
-        if args.robust_p <= 0:
-            raise ValueError("--robust-p must be positive")
-        overrides["robustPhase.P"] = str(args.robust_p)
+    for option, key in (("robust_t_a", "t_a"), ("robust_t_b", "t_b")):
+        value = getattr(args, option, None)
+        if value is not None:
+            if not math.isfinite(value) or value < 0.0:
+                raise ValueError(f"--{option.replace('_', '-')} must be finite and nonnegative")
+            overrides[f"robustPhase.{key}"] = repr(value)
     if args.robust_d is not None:
-        if args.robust_d <= 0.0:
-            raise ValueError("--robust-d must be positive")
-        overrides["robustPhase.d"] = f"{args.robust_d:g}"
-    if args.robust_v_max is not None:
-        if args.robust_v_max <= 0.0:
-            raise ValueError("--robust-v-max must be positive")
-        overrides["robustPhase.v_max"] = f"{args.robust_v_max:g}"
+        if not math.isfinite(args.robust_d) or args.robust_d <= 0.0:
+            raise ValueError("--robust-d must be finite and positive")
+        overrides["robustPhase.d"] = repr(args.robust_d)
     if args.robust_hard_boundary_start != "keep":
         overrides["robustPhase.hard_boundary_start"] = (
             "true" if args.robust_hard_boundary_start == "on" else "false"
@@ -624,7 +650,12 @@ def task_info_overrides(args) -> dict[str, str]:
 def render_task_info(original_text: str, overrides: dict[str, str]) -> str:
     rendered = original_text
     for name, value in overrides.items():
-        if name.startswith("robustPhase."):
+        if name.startswith("swing_trajectory_config."):
+            rendered = replace_task_value(
+                rendered, name.removeprefix("swing_trajectory_config."),
+                value, "swing_trajectory_config"
+            )
+        elif name.startswith("robustPhase."):
             rendered = replace_task_value(
                 rendered, name.removeprefix("robustPhase."), value, "robustPhase"
             )
@@ -642,7 +673,8 @@ def append_trial_summary(summary_path: Path, result: dict, result_path: Path):
     robust = experiment["effective_task_parameters"]["robustPhase"]
     fieldnames = [
         "trial", "tag", "scenario", "terrain", "mode", "robust_enabled",
-        "robust_P", "robust_d", "robust_v_max", "robust_splice",
+        "robust_t_a", "robust_t_b", "robust_T_robust_s",
+        "robust_d", "robust_optimize_d", "robust_d_min", "robust_d_max", "robust_w_d", "robust_v_max", "robust_splice",
         "mpc_frequency", "sqp_iterations", "sqp_dt", "terrain_z_offset", "success",
         "fall_reason", "duration_executed", "body_frame_forward_progress",
         "command_active_body_frame_forward_progress", "body_frame_lateral_progress",
@@ -656,8 +688,14 @@ def append_trial_summary(summary_path: Path, result: dict, result_path: Path):
         "terrain": experiment["terrain"],
         "mode": experiment["mode"],
         "robust_enabled": robust["enabled"],
-        "robust_P": robust["P"],
+        "robust_t_a": robust["t_a"],
+        "robust_t_b": robust["t_b"],
+        "robust_T_robust_s": robust["T_robust_s"],
         "robust_d": robust["d"],
+        "robust_optimize_d": robust["optimize_d"],
+        "robust_d_min": robust["d_min"],
+        "robust_d_max": robust["d_max"],
+        "robust_w_d": robust.get("w_d", "0.0"),
         "robust_v_max": robust["v_max"],
         "robust_splice": robust["enable_splice"],
         "mpc_frequency": experiment["effective_task_parameters"]["mpcDesiredFrequency"],
@@ -817,6 +855,9 @@ def main():
                         help="Record every completed MPC FL optimized-policy and swing-reference snapshot in "
                              "foothold_plan_snapshots.csv. This preserves pre-contact plans "
                              "for plan-versus-actual analysis.")
+    parser.add_argument("--swing-height", type=float, default=None,
+                        help="Temporarily override swing_trajectory_config.swingHeight [m] "
+                             "for this trial; restore the original value afterward")
     parser.add_argument("--mpc-frequency", type=float, default=None,
                         help="Override mpcDesiredFrequency in the active task.info for this trial. "
                              "The original file is restored after the trial. sqp.dt is unchanged.")
@@ -824,12 +865,14 @@ def main():
                         help="Override sqp.sqpIteration for this trial")
     parser.add_argument("--robust", choices=["keep", "on", "off"], default="keep",
                         help="Temporarily set robustPhase.enabled (default: keep task.info value)")
-    parser.add_argument("--robust-p", type=int, default=None,
-                        help="Temporarily set robustPhase.P [MPC nodes]")
+    parser.add_argument("--robust-t-a", type=float, default=None,
+                        help="Advance robust start before nominal touchdown [s]; default: task.info")
+    parser.add_argument("--robust-t-b", type=float, default=None,
+                        help="Delay robust end after nominal touchdown [s]; default: task.info")
+    parser.add_argument("--robust-p", type=int, default=None, help=argparse.SUPPRESS)
     parser.add_argument("--robust-d", type=float, default=None,
                         help="Temporarily set robustPhase.d [m]")
-    parser.add_argument("--robust-v-max", type=float, default=None,
-                        help="Temporarily set robustPhase.v_max [m/s]")
+    parser.add_argument("--robust-v-max", type=float, default=None, help=argparse.SUPPRESS)
     parser.add_argument("--robust-hard-boundary-start", choices=["keep", "on", "off"], default="keep",
                         help="Temporarily set robustPhase.hard_boundary_start (g(t_a) >= d)")
     parser.add_argument("--robust-hard-boundary-end", choices=["keep", "on", "off"], default="keep",
@@ -864,6 +907,10 @@ def main():
     parser.add_argument("--dry-run", action="store_true",
                         help="Validate paths and print resolved commands/overrides without launching")
     args = parser.parse_args()
+
+    if args.robust_p is not None or args.robust_v_max is not None:
+        parser.error("--robust-p/--robust-v-max were removed; use --robust-t-a and --robust-t-b "
+                     "in seconds. v_max is derived as 2*d_max/(window_end-window_start).")
 
     if args.robust == "on" and args.mode != "perceptive_dev_v2":
         parser.error("--robust on requires --mode perceptive_dev_v2")
@@ -964,16 +1011,6 @@ def main():
     print(f"[run_trial] results   : {run_dir}")
     print(f"[run_trial] overrides : {overrides or {'task.info': 'unchanged'}}")
     print(f"[run_trial] effective : {effective_parameters}")
-    robust_parameters = effective_parameters["robustPhase"]
-    if (
-        robust_parameters["enabled"] == "true"
-        and not robust_parameters["velocity_envelope_feasible"]
-    ):
-        print(
-            "[run_trial] WARNING: T_robust is shorter than 2*d/v_max; "
-            "the boundary and velocity-envelope targets are not jointly feasible"
-        )
-
     if args.dry_run:
         print(f"[dry-run] mujoco    : {mujoco_cmd}")
         print(f"[dry-run] controller: {controller_cmd}")
@@ -1039,7 +1076,12 @@ def main():
         controller = launch_process(controller_cmd, controller_log_path)
         controller_log_stream = threading.Thread(
             target=stream_matching_log_lines,
-            args=(controller_log_path, controller_log_stream_stop, ("[MPC timing]",)),
+            args=(controller_log_path, controller_log_stream_stop, (
+                "[MPC timing]",
+                "[robust_event]",
+                "[robust_contact_splice]",
+                "[robust_stance_enter]",
+            )),
             daemon=True,
         )
         controller_log_stream.start()

@@ -62,7 +62,7 @@ mpc
 
   debugPrint                      false
 
-  mpcDesiredFrequency             20   ; [Hz] — good_data v2 ablation reproduction setting
+  mpcDesiredFrequency             50   ; [Hz] — good_data v2 ablation reproduction setting
   mrtDesiredFrequency             1000 ; [Hz] Useless
 }
 
@@ -195,9 +195,23 @@ frictionConeSoftConstraint
 ; M1'' = flat-ground sanity check: n = e_z, p_plane.z = terrain_z_M1.
 robustPhase
 {
-  enabled                  true   ; toggled ON/OFF per reproduction trial
-  P                        10      ; window length in nodes (T_robust = P*sqp.dt). Was 5; bumped per chat7 peer review for physical consistency: d=0.05 + standing_trot swing=0.25s requires T_robust>=2d/v_max. P=10 gives T_robust=0.20s, avg required |ġ|=0.5 m/s, leaves 0.05s normal swing for liftoff.
-  d                        0.05    ; uncertainty half-width [m] for the good_data v2 ablation
+  enabled                  false   ; toggled ON/OFF per reproduction trial
+  ; RF/LH: swing [0.00,0.25), stance [0.25,0.60); LF/RH는 0.30 s 위상차.
+  ; t_a/t_b는 절대시각이 아닌 0 이상 offset [s]:
+  ; 아래 값의 standing_trot 예: nominal swing=0.20 s, robust=0.10 s, stance=0.30 s.
+  ; RF/LH: nominal swing [0.00,0.20), robust [0.20,0.30), stance [0.30,0.60).
+  ; v_max=2*d_max/(robust 종료-시작) 자동 계산: d_max=0.05, T=0.10이면 1.0 m/s.
+
+  t_a                      0.1    ; nominal touchdown보다 앞당길 시간 [s]
+  t_b                      0.0    ; nominal touchdown보다 뒤로 미룰 시간 [s]
+  optimize_d               true    ; enabled=true일 때 다리별 d_i를 SQP로 최적화 (MPC x=28, u=24)
+  d                        0.05    ; 초기 추정값 [m]; optimize_d=false이면 고정 band 반폭
+  d_min                    0.02    ; 최적화 하한 [m], 0 < d_min <= d <= d_max
+  d_max                    0.05    ; 최적화 상한 [m], 속도 상한은 항상 2*d_max/T
+  ; 각 solve에서 다리별 첫 미완료 robust window의 d_i를 horizon 전체에 일정하게 유지.
+  w_d                      5.0    ; 활성 robust 구간 running cost에 -w_d*d_i 추가; 0이면 보상 끄기
+  ; SQP가 dt를 곱해 적분. 큰 d_i를 선호하도록 유도하나 d_min 회피를 보장하지는 않음.
+  ; splice로 제거된 window, robust 구간 밖, optimize_d=false에서는 보상 없음.
   hard_boundary_start      false   ; add hard g(t_a)>=d while retaining the boundary cost at both endpoints
   hard_boundary_end        false  ; add hard g(t_b)<=-d; normally false because this can command terrain penetration
   slack_boundary_start     true  ; quadratic slack on g(t_a)>=d; mutually exclusive with hard_boundary_start
@@ -211,8 +225,7 @@ robustPhase
   terrain_source           convex_region  ; "flat" (M1'') or "convex_region" (M2 — per-leg stance projection)
   terrain_z_M1             0.0     ; M1'' flat-ground fallback z [m] (used by "flat" mode; also fallback if projection.regionPtr is null)
   foot_frame_offset        0.06    ; URDF FL_foot frame z above contact along n [m] (ankle frame, contact ~6 cm below)
-  v_max                    0.6     ; impact-velocity lower bound [m/s]: -v_max <= ġ <= 0 envelope (chat7 #2). Must satisfy T_robust >= 2d/v_max; with d=0.05, T_robust=0.20s, avg required |ġ|=0.5 — 0.6 leaves 20% margin.
-  enable_splice            false   ; good_data ablation: robust OCP ON with schedule splice disabled
+  enable_splice            true   ; 접촉 확인 시 해당 발의 남은 robust 구간을 stance로 전환
   verbose_log              true   ; emit per-cycle [robust_phase] std::cerr (off for hardware/RT)
 }
 

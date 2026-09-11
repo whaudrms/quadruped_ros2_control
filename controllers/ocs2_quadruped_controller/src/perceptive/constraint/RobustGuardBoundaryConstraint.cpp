@@ -65,9 +65,10 @@ vector_t RobustGuardBoundaryConstraint::getValue(scalar_t time, const vector_t& 
     const RobustWindowData w = referenceManagerPtr_->getRobustWindow(contactPointIndex_);
     const vector3_t p_foot = endEffectorKinematicsPtr_->getPosition(state).front();
     const scalar_t g = w.n.dot(p_foot - w.p_plane) - w.foot_frame_offset;
-    const scalar_t target = targetAt(time, w);
+    const scalar_t targetSign = targetAt(time, w) > 0.0 ? 1.0 : -1.0;
+    const scalar_t target = targetSign * (w.d_state_index >= 0 ? state(w.d_state_index) : w.d);
     scalar_t residual = g - target;
-    if (formulation_ == Formulation::TraversalInequality && target < 0.0) {
+    if (formulation_ == Formulation::TraversalInequality && targetSign < 0.0) {
         residual = -residual;  // near t_b: -(g - (-d)) = -g - d >= 0
     }
     vector_t value(1);
@@ -79,13 +80,15 @@ VectorFunctionLinearApproximation RobustGuardBoundaryConstraint::getLinearApprox
     scalar_t time, const vector_t& state, const PreComputation& /*preComp*/) const {
     const RobustWindowData w = referenceManagerPtr_->getRobustWindow(contactPointIndex_);
     const auto positionApprox = endEffectorKinematicsPtr_->getPositionLinearApproximation(state).front();
-    const scalar_t target = targetAt(time, w);
+    const scalar_t targetSign = targetAt(time, w) > 0.0 ? 1.0 : -1.0;
+    const scalar_t target = targetSign * (w.d_state_index >= 0 ? state(w.d_state_index) : w.d);
 
     VectorFunctionLinearApproximation approx = VectorFunctionLinearApproximation::Zero(1, state.size(), 0);
     const scalar_t sign =
-        (formulation_ == Formulation::TraversalInequality && target < 0.0) ? -1.0 : 1.0;
+        (formulation_ == Formulation::TraversalInequality && targetSign < 0.0) ? -1.0 : 1.0;
     approx.f(0) = sign * (w.n.dot(positionApprox.f - w.p_plane) - w.foot_frame_offset - target);
     approx.dfdx = sign * w.n.transpose() * positionApprox.dfdx;  // 1 x nx
+    if (w.d_state_index >= 0) approx.dfdx(0, w.d_state_index) -= sign * targetSign;
     return approx;
 }
 

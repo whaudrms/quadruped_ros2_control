@@ -11,6 +11,7 @@ import numpy as np
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+from paper_plot_style import apply_figure_font_sizes
 from matplotlib.lines import Line2D
 
 from paper_plot_style import (
@@ -320,6 +321,7 @@ def plot_paired(
             edgecolor="0.35", facecolor="white",
         )
         legend.get_frame().set_linewidth(0.8)
+        apply_figure_font_sizes(fig, figure_output)
         fig.tight_layout(pad=0.45)
         fig.savefig(figure_output, dpi=300)
         fig.savefig(figure_output.with_suffix(".pdf"))

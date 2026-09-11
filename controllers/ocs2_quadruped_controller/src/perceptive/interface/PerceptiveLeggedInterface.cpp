@@ -27,6 +27,10 @@
 #include <boost/property_tree/ptree.hpp>
 
 #include <memory>
+#include <ocs2_oc/rollout/TimeTriggeredRollout.h>
+#include "ocs2_quadruped_controller/perceptive/interface/ConstantParameterOcp.h"
+#include "ocs2_quadruped_controller/perceptive/constraint/RobustWidthBounds.h"
+#include "ocs2_quadruped_controller/perceptive/cost/RobustWidthReward.h"
 
 namespace ocs2::legged_robot
 {
@@ -74,11 +78,19 @@ namespace ocs2::legged_robot
         auto robustSettings = loadRobustPhaseSettings(taskFile, verbose);
         robustSettings.dt_mpc = sqp_settings_.dt;
         perceptiveRefManager.setRobustPhaseSettings(robustSettings);
+        robustSettings = perceptiveRefManager.getRobustPhaseSettings();
 
         // Robust phase soft penalty weights (separate from the constraint settings, since they
         // parameterize how strongly the boundary equality and ġ² cost are enforced).
         scalar_t w_boundary = 100.0;
         scalar_t w_v = 1.0;
+        // Missing w_d preserves older task files; malformed weights must fail
+        // explicitly rather than being swallowed by the legacy penalty loader.
+        boost::property_tree::ptree rewardSettings;
+        boost::property_tree::read_info(taskFile, rewardSettings);
+        const scalar_t w_d = rewardSettings.get<scalar_t>("robustPhase.w_d", 0.0);
+        if (!std::isfinite(w_d) || w_d < 0.0)
+            throw std::invalid_argument("robustPhase.w_d must be finite and nonnegative");
         RelaxedBarrierPenalty::Config approachBarrierConfig(1e-2, 1e-3);
         if (robustSettings.enabled)
         {
@@ -128,6 +140,51 @@ namespace ocs2::legged_robot
                     std::make_unique<StateSoftConstraint>(std::move(footCollisionConstraint), std::move(collisionPenalty)));
             }
 
+
+        }
+
+        // For collision avoidance Soft Constraint
+        scalar_t calfExcess = 0.02;
+
+        std::vector<std::string> collisionLinks = {"FL_calf", "FR_calf", "RL_calf", "RR_calf"};
+        const std::vector<scalar_t>& maxExcesses = {calfExcess, calfExcess, calfExcess, calfExcess};
+
+        pinocchioSphereInterfacePtr_ = std::make_shared<PinocchioSphereInterface>(
+            *pinocchio_interface_ptr_, collisionLinks, maxExcesses, 0.6);
+
+        CentroidalModelPinocchioMapping pinocchioMapping(centroidal_model_info_);
+        auto sphereKinematicsPtr = std::make_unique<PinocchioSphereKinematics>(
+            *pinocchioSphereInterfacePtr_, pinocchioMapping);
+
+        if (enableBodyCollisionConstraint_)
+        {
+            std::unique_ptr<SphereSdfConstraint> sphereSdfConstraint(
+                new SphereSdfConstraint(*sphereKinematicsPtr, signedDistanceFieldPtr_));
+            std::unique_ptr<PenaltyBase> bodyCollisionPenalty(
+                new RelaxedBarrierPenalty(RelaxedBarrierPenalty::Config(1e-3, 1e-3)));
+            problem_ptr_->stateSoftConstraintPtr->add(
+                "sdfConstraint",
+                std::make_unique<StateSoftConstraint>(std::move(sphereSdfConstraint), std::move(bodyCollisionPenalty)));
+        }
+        if (robustSettings.enabled && robustSettings.optimize_d) {
+            const auto nx = centroidal_model_info_.stateDim;
+            appendConstantParameters(*problem_ptr_, nx, centroidal_model_info_.numThreeDofContacts);
+            initializer_ptr_ = parameterInitializer(*initializer_ptr_, nx);
+            rollout_ptr_ = std::make_unique<TimeTriggeredRollout>(*problem_ptr_->dynamicsPtr, rollout_settings_);
+            problem_ptr_->stateInequalityConstraintPtr->add("robustWidthBounds",
+                std::make_unique<RobustWidthBounds>(perceptiveRefManager, nx));
+            problem_ptr_->finalInequalityConstraintPtr->add("robustWidthBounds",
+                std::make_unique<RobustWidthBounds>(perceptiveRefManager, nx));
+            for (size_t leg = 0; leg < centroidal_model_info_.numThreeDofContacts; ++leg) {
+                problem_ptr_->stateCostPtr->add(modelSettings().contactNames3DoF[leg] + "_robustWidthReward",
+                    std::make_unique<RobustWidthReward>(perceptiveRefManager, leg, w_d));
+            }
+        }
+        for (size_t i = 0; i < centroidal_model_info_.numThreeDofContacts; ++i) {
+            const auto& footName = modelSettings().contactNames3DoF[i];
+            auto eeKinematicsPtr = getEeKinematicsPtr({footName}, footName);
+            if (robustSettings.enabled && robustSettings.optimize_d)
+                eeKinematicsPtr = parameterKinematics(*eeKinematicsPtr, centroidal_model_info_.stateDim);
             // Robust phase boundary cost plus optional hard endpoint constraints,
             // followed by the soft velocity envelope/rate cost.
             if (robustSettings.enabled)
@@ -223,30 +280,6 @@ namespace ocs2::legged_robot
                             *reference_manager_ptr_, *eeKinematicsPtr, i),
                         std::make_unique<RelaxedBarrierPenalty>(approachBarrierConfig)));
             }
-        }
-
-        // For collision avoidance Soft Constraint
-        scalar_t calfExcess = 0.02;
-
-        std::vector<std::string> collisionLinks = {"FL_calf", "FR_calf", "RL_calf", "RR_calf"};
-        const std::vector<scalar_t>& maxExcesses = {calfExcess, calfExcess, calfExcess, calfExcess};
-
-        pinocchioSphereInterfacePtr_ = std::make_shared<PinocchioSphereInterface>(
-            *pinocchio_interface_ptr_, collisionLinks, maxExcesses, 0.6);
-
-        CentroidalModelPinocchioMapping pinocchioMapping(centroidal_model_info_);
-        auto sphereKinematicsPtr = std::make_unique<PinocchioSphereKinematics>(
-            *pinocchioSphereInterfacePtr_, pinocchioMapping);
-
-        if (enableBodyCollisionConstraint_)
-        {
-            std::unique_ptr<SphereSdfConstraint> sphereSdfConstraint(
-                new SphereSdfConstraint(*sphereKinematicsPtr, signedDistanceFieldPtr_));
-            std::unique_ptr<PenaltyBase> bodyCollisionPenalty(
-                new RelaxedBarrierPenalty(RelaxedBarrierPenalty::Config(1e-3, 1e-3)));
-            problem_ptr_->stateSoftConstraintPtr->add(
-                "sdfConstraint",
-                std::make_unique<StateSoftConstraint>(std::move(sphereSdfConstraint), std::move(bodyCollisionPenalty)));
         }
     }
 

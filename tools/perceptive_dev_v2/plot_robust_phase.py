@@ -29,6 +29,7 @@ import matplotlib
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+from paper_plot_style import apply_figure_font_sizes
 import pinocchio as pin
 
 from terrain_descent_events import load_or_detect_events
@@ -270,6 +271,7 @@ def main(argv=None):
         f"purple = partial-clamped (only t_b); dashed/dotted lines = terrain descent",
         fontsize=10,
     )
+    apply_figure_font_sizes(fig, out_png)
     fig.tight_layout(rect=(0, 0, 1, 0.91))
     fig.savefig(out_png, dpi=110)
     print(f"saved {out_png}")

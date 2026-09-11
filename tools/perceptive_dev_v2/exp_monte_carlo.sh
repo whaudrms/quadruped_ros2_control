@@ -4,6 +4,8 @@
 # For every sampled terrain perception error, run Robust ON and OFF with the
 # same sample. The first mode is randomized per pair to reduce run-order bias.
 # Samples are generated once in samples.csv and reused when the batch resumes.
+# To append samples, keep RESULTS_DIR and MASTER_SEED and increase N_SAMPLES
+# to the desired total. Existing samples are verified and backed up first.
 #
 # Default uncertainty model:
 #   terrain_z_offset ~ Uniform(-0.05, +0.05) m
@@ -11,7 +13,15 @@
 # run_trial.py has no MuJoCo RNG seed option, so it does not seed simulator
 # internals such as contact dynamics or scheduler timing.
 #
+# OCP parameters default to task.info: robustPhase (d, bounds, weights,
+# hard/slack boundaries, splice, logging), mpc.mpcDesiredFrequency, and
+# sqp.sqpIteration. Only robustPhase.enabled is toggled for the paired trials.
+# v_max is derived as 2*d_max/(t_a+t_b) before runtime liftoff clamping.
+# Optional ROBUST_T_A/ROBUST_T_B explicitly override task.info timing for a batch.
+# Use a new RESULTS_DIR when changing parameters.
 # Examples:
+#   ROBUST_T_A=0.05 ROBUST_T_B=0.05 DRY_RUN=1 N_SAMPLES=1 \
+#     bash tools/perceptive_dev_v2/exp_monte_carlo.sh
 #   DRY_RUN=1 N_SAMPLES=2 bash tools/perceptive_dev_v2/exp_monte_carlo.sh
 #   N_SAMPLES=50 MASTER_SEED=20260831 \
 #     bash tools/perceptive_dev_v2/exp_monte_carlo.sh
@@ -22,13 +32,16 @@ set -Eeuo pipefail
 
 cd "$(dirname "$0")/../.."
 
-N_SAMPLES="${N_SAMPLES:-50}"
-MASTER_SEED="${MASTER_SEED:-20260831}"
+N_SAMPLES="${N_SAMPLES:-10}"
+MASTER_SEED="${MASTER_SEED:-20260909}"
 OFFSET_MIN="${OFFSET_MIN:--0.05}"
 OFFSET_MAX="${OFFSET_MAX:-0.05}"
 RESULTS_DIR="${RESULTS_DIR:-tools/perceptive_dev_v2/results/monte_carlo_n${N_SAMPLES}_seed${MASTER_SEED}}"
 DDS_COOLDOWN_SEC="${DDS_COOLDOWN_SEC:-3}"
 DRY_RUN="${DRY_RUN:-0}"
+# Empty values inherit task.info; optional per-batch offsets are seconds.
+ROBUST_T_A="${ROBUST_T_A:-}"
+ROBUST_T_B="${ROBUST_T_B:-}"
 MANIFEST="$RESULTS_DIR/samples.csv"
 failures=0
 
@@ -54,7 +67,9 @@ python3 - "$MANIFEST" "$N_SAMPLES" "$MASTER_SEED" "$OFFSET_MIN" "$OFFSET_MAX" <<
 import csv
 import os
 import random
+import shutil
 import sys
+import time
 from pathlib import Path
 
 manifest = Path(sys.argv[1])
@@ -78,16 +93,17 @@ fieldnames = [
     "offset_max",
 ]
 
+rows = []
 if manifest.exists():
     with manifest.open(newline="", encoding="utf-8") as stream:
         reader = csv.DictReader(stream)
         rows = list(reader)
     if reader.fieldnames != fieldnames:
         raise SystemExit(f"existing manifest has an incompatible header: {manifest}")
-    if len(rows) != n_samples:
+    if len(rows) > n_samples:
         raise SystemExit(
             f"existing manifest contains {len(rows)} samples, requested {n_samples}: "
-            f"use its original N_SAMPLES or choose another RESULTS_DIR"
+            f"N_SAMPLES cannot shrink an existing batch; choose another RESULTS_DIR"
         )
     for row in rows:
         if int(row["master_seed"]) != master_seed:
@@ -100,35 +116,44 @@ if manifest.exists():
                 "existing manifest uses a different offset range: use its original "
                 "OFFSET_MIN/OFFSET_MAX or choose another RESULTS_DIR"
             )
-    print(f"[monte_carlo] reusing manifest: {manifest}")
-    raise SystemExit(0)
+    if len(rows) == n_samples:
+        print(f"[monte_carlo] reusing manifest: {manifest}")
+        raise SystemExit(0)
 
 manifest.parent.mkdir(parents=True, exist_ok=True)
 temporary = manifest.with_suffix(manifest.suffix + ".tmp")
 master_rng = random.Random(master_seed)
 
+generated = []
+for sample_id in range(1, n_samples + 1):
+    sample_seed = master_rng.randrange(2**32)
+    sample_rng = random.Random(sample_seed)
+    offset = sample_rng.uniform(offset_min, offset_max)
+    first_mode = "on" if sample_rng.getrandbits(1) == 0 else "off"
+    generated.append({
+        "sample_id": str(sample_id),
+        "sample_seed": str(sample_seed),
+        "terrain_z_offset": f"{offset:.8f}",
+        "first_mode": first_mode,
+        "master_seed": str(master_seed),
+        "offset_min": f"{offset_min:.8f}",
+        "offset_max": f"{offset_max:.8f}",
+    })
+
+if rows != generated[:len(rows)]:
+    raise SystemExit("existing samples differ from the seeded sequence; refusing to change them")
+
 with temporary.open("w", newline="", encoding="utf-8") as stream:
     writer = csv.DictWriter(stream, fieldnames=fieldnames)
     writer.writeheader()
-    for sample_id in range(1, n_samples + 1):
-        sample_seed = master_rng.randrange(2**32)
-        sample_rng = random.Random(sample_seed)
-        offset = sample_rng.uniform(offset_min, offset_max)
-        first_mode = "on" if sample_rng.getrandbits(1) == 0 else "off"
-        writer.writerow(
-            {
-                "sample_id": sample_id,
-                "sample_seed": sample_seed,
-                "terrain_z_offset": f"{offset:.8f}",
-                "first_mode": first_mode,
-                "master_seed": master_seed,
-                "offset_min": f"{offset_min:.8f}",
-                "offset_max": f"{offset_max:.8f}",
-            }
-        )
+    writer.writerows(generated)
 
+if manifest.exists():
+    backup = manifest.with_name(f"samples.before_extend_{time.time_ns()}.csv")
+    shutil.copy2(manifest, backup)
+    print(f"[monte_carlo] original manifest backup: {backup}")
 os.replace(temporary, manifest)
-print(f"[monte_carlo] generated manifest: {manifest}")
+print(f"[monte_carlo] manifest: {manifest}; samples {len(rows)} -> {n_samples}")
 PY
 
 trial_exists() {
@@ -170,24 +195,20 @@ run_one() {
         run_mode_args+=(--dry-run)
     fi
 
+    if [[ -n "$ROBUST_T_A" ]]; then
+        run_mode_args+=(--robust-t-a "$ROBUST_T_A")
+    fi
+    if [[ -n "$ROBUST_T_B" ]]; then
+        run_mode_args+=(--robust-t-b "$ROBUST_T_B")
+    fi
+
+    # Omit task.info override flags so edits to the OCP configuration take effect.
+    # Scenario, terrain, uncertainty sampling and runner options remain here.
     if ! python3 tools/perceptive_dev_v2/run_trial.py \
         --scenario standing_trot_forward_only_reproduce \
         --terrain basic_step_short_v2 \
         --mode perceptive_dev_v2 \
         --robust "$robust" \
-        --robust-p 10 \
-        --robust-d 0.05 \
-        --robust-v-max 0.6 \
-        --robust-hard-boundary-start off \
-        --robust-hard-boundary-end off \
-        --robust-slack-boundary-start on \
-        --robust-slack-boundary-end on \
-        --robust-slack-weight-start 20 \
-        --robust-slack-weight-end 20 \
-        --robust-splice off \
-        --robust-verbose on \
-        --mpc-frequency 10 \
-        --sqp-iterations 2 \
         --terrain-z-offset "$offset" \
         --terrain-z-offset-only-below-z 0.15 \
         --metrics-grace-sec 5 \

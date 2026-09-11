@@ -2,6 +2,9 @@
 """Shared plotting style adapted from ``~/paper_quality_plot.matlab``."""
 
 import matplotlib.pyplot as plt
+from pathlib import Path
+from matplotlib.legend import Legend
+from matplotlib.text import Text
 
 
 # Okabe-Ito orange/blue pair (candidate B).
@@ -69,6 +72,39 @@ def apply_paper_style():
             "ps.fonttype": 42,
         }
     )
+
+
+def apply_figure_font_sizes(fig, output_path):
+    """Match Fig. 1(b) only for result-gallery plots, before layout."""
+    results_root = Path(__file__).resolve().parent / "results"
+    try:
+        relative = Path(output_path).resolve().relative_to(results_root.resolve())
+    except ValueError:
+        return
+    if not {"all_visualization", "all_visualizations"}.intersection(relative.parts[:-1]):
+        return
+    for text in fig.findobj(match=Text):
+        text.set_fontsize(TICK_LABEL_SIZE)
+    for axis in fig.axes:
+        for coordinate in (axis.xaxis, axis.yaxis):
+            coordinate.label.set_fontsize(AXIS_LABEL_SIZE)
+            coordinate.set_tick_params(which="both", labelsize=TICK_LABEL_SIZE)
+            coordinate.get_offset_text().set_fontsize(TICK_LABEL_SIZE)
+        for title in (axis.title, axis._left_title, axis._right_title):
+            title.set_fontsize(TITLE_SIZE)
+        for table in axis.tables:
+            table.auto_set_font_size(False)
+            table.set_fontsize(TICK_LABEL_SIZE)
+    for legend in fig.findobj(match=Legend):
+        for text in legend.get_texts():
+            text.set_fontsize(LEGEND_SIZE)
+        legend.get_title().set_fontsize(LEGEND_SIZE)
+    for name, size in (("_suptitle", TITLE_SIZE),
+                       ("_supxlabel", AXIS_LABEL_SIZE),
+                       ("_supylabel", AXIS_LABEL_SIZE)):
+        text = getattr(fig, name, None)
+        if text is not None:
+            text.set_fontsize(size)
 
 
 def style_paper_axis(axis, *, minor=False, grid_axis="both"):

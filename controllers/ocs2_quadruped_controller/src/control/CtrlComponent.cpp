@@ -183,10 +183,8 @@ namespace ocs2::legged_robot
             yaw_last, observation_.state(9));
         observation_.mode = estimator_->getMode();
 
-        // Track ② step (a) — detection-only contact-event logging. Reads
-        // measured-vs-scheduled contact and emits [robust_event] lines on
-        // mismatches inside the robust window; does NOT modify the schedule
-        // or the WBC contact flags. (b) will add the splice + override.
+        // Detect robust-window contacts and queue bounded stance overrides.
+        // WBC receives the revised contact mode through the next MPC policy.
         detectAndLogContactEvents();
 
         visualizer_->update(observation_);
@@ -204,7 +202,7 @@ namespace ocs2::legged_robot
         // Compute target trajectory
         target_manager_->update(observation_);
         // Update the current state of the system
-        mpc_mrt_interface_->setCurrentObservation(observation_);
+        mpc_mrt_interface_->setCurrentObservation(getMpcObservation());
     }
 
     void CtrlComponent::detectAndLogContactEvents()
@@ -214,12 +212,8 @@ namespace ocs2::legged_robot
         if (!refMgrPtr) return;
         const auto& refMgr = *refMgrPtr;
 
-        // Splice requests route through the perceptive reference manager
-        // (NOT GaitManager) so the actual schedule mutation runs at the start
-        // of modifyReferences — BEFORE the line-180 getModeSchedule() read
-        // that feeds terrain projection / swing planner / robust windows in
-        // the same MPC solve. Falls back gracefully if the reference manager
-        // isn't perceptive (no robust phase, no splice).
+        // The MPC reference update applies queued overrides to a copy of the
+        // nominal gait before terrain, swing and robust-window computation.
         auto* perceptiveRefMgr = dynamic_cast<PerceptiveLeggedReferenceManager*>(
             legged_interface_->getReferenceManagerPtr().get());
 
@@ -245,6 +239,7 @@ namespace ocs2::legged_robot
             {
                 robust_contact_logged_in_window_[leg] = false;
                 splice_requested_in_window_[leg]      = false;
+                robust_stance_entry_logged_[leg]      = false;
                 sustained_robust_contact_ticks_[leg]  = 0;
                 candidate_event_time_[leg]            = 0.0;
             }
@@ -253,7 +248,8 @@ namespace ocs2::legged_robot
             // still says swing AND we are inside the robust window [t_a, t_b].
             // Both paper-side "early" (g_event > 0) and "late" (g_event < 0)
             // hits land here.
-            const bool robust_contact_now = refMgr.isInRobustWindow(leg, t) && m && !s;
+            const auto window = refMgr.getRobustWindow(leg);
+            const bool robust_contact_now = window.active && t >= window.t_a && t <= window.t_b && m && !s;
 
             // Capture the FIRST contact tick's time for use as event_time when
             // the splice is later confirmed at 5 ticks. Without this we'd send
@@ -263,6 +259,7 @@ namespace ocs2::legged_robot
             if (robust_contact_now) {
                 if (sustained_robust_contact_ticks_[leg] == 0) {
                     candidate_event_time_[leg] = t;  // rising edge
+                    candidate_contact_window_[leg] = window;
                 }
                 ++sustained_robust_contact_ticks_[leg];
             } else {
@@ -304,11 +301,52 @@ namespace ocs2::legged_robot
                 !splice_requested_in_window_[leg] &&
                 perceptiveRefMgr != nullptr)
             {
-                perceptiveRefMgr->requestRobustContactSplice(leg, candidate_event_time_[leg]);
+                perceptiveRefMgr->requestRobustContactSplice(
+                    leg, candidate_event_time_[leg], candidate_contact_window_[leg]);
                 splice_requested_in_window_[leg] = true;
             }
 
             prev_scheduled_contact_[leg] = s;
+        }
+    }
+
+    void CtrlComponent::logRobustStanceEntry(size_t plannedMode, const ModeSchedule& policySchedule)
+    {
+        const auto contacts = modeNumber2StanceLeg(plannedMode);
+        const auto previousContacts = previous_wbc_contact_;
+        previous_wbc_contact_ = contacts;
+        const auto* manager = dynamic_cast<const PerceptiveLeggedReferenceManager*>(
+            legged_interface_->getReferenceManagerPtr().get());
+        if (!manager || !manager->getRobustPhaseSettings().enabled ||
+            !manager->getRobustPhaseSettings().enable_splice) return;
+        if (policySchedule.modeSequence.size() != policySchedule.eventTimes.size() + 1) return;
+
+        for (size_t leg = 0; leg < contacts.size(); ++leg) {
+            if (previousContacts[leg] || !contacts[leg] || !splice_requested_in_window_[leg] ||
+                robust_stance_entry_logged_[leg]) continue;
+            const auto& window = candidate_contact_window_[leg];
+            const auto contactTime = candidate_event_time_[leg];
+            if (!window.active || contactTime < window.t_a || contactTime >= window.t_b ||
+                observation_.time <= contactTime) continue;
+
+            // A queued request alone does not prove splice reached WBC. Require
+            // its exact swing->stance event in the policy actually used by WBC,
+            // so rejected requests and ordinary touchdown do not emit this log.
+            const auto event = std::lower_bound(policySchedule.eventTimes.begin(),
+                                                policySchedule.eventTimes.end(), contactTime);
+            if (event == policySchedule.eventTimes.end() || *event != contactTime) continue;
+            const auto index = static_cast<size_t>(event - policySchedule.eventTimes.begin());
+            if (modeNumber2StanceLeg(policySchedule.modeSequence[index])[leg] ||
+                !modeNumber2StanceLeg(policySchedule.modeSequence[index + 1])[leg]) continue;
+
+            const char* foot = leg < feet_names_.size() ? feet_names_[leg].c_str() : "unknown";
+            RCLCPP_INFO(node_->get_logger(),
+                        "[robust_stance_enter] leg=%zu foot=%s transition=robust->stance "
+                        "contact_t=%.6f wbc_t=%.6f delay_ms=%.3f "
+                        "window=[%.6f,%.6f] planned_mode=%zu",
+                        leg, foot, contactTime, observation_.time,
+                        1000.0 * (observation_.time - contactTime), window.t_a, window.t_b, plannedMode);
+            robust_stance_entry_logged_[leg] = true;
         }
     }
 
@@ -357,7 +395,9 @@ namespace ocs2::legged_robot
     {
         if (mpc_running_ == false)
         {
-            mpc_mrt_interface_->setCurrentObservation(observation_);
+            previous_wbc_contact_ = modeNumber2StanceLeg(observation_.mode);
+            robust_stance_entry_logged_.fill(false);
+            mpc_mrt_interface_->setCurrentObservation(getMpcObservation());
 
             const TargetTrajectories target_trajectories({observation_.time},
                                                          {observation_.state},
@@ -426,12 +466,36 @@ namespace ocs2::legged_robot
     /**
      * Set up the SQP MPC, Gait Manager and Reference Manager
      */
+    SystemObservation CtrlComponent::getMpcObservation() const
+    {
+        SystemObservation result = observation_;
+        if (robustParameterCount_ == 0) return result;
+        const auto physicalDim = result.state.size();
+        result.state.conservativeResize(physicalDim + robustParameterCount_);
+        result.state.tail(robustParameterCount_).setConstant(robustInitialWidth_);
+        // Widths are planning parameters, not sensor measurements. Use the
+        // current nominal policy tail for feedback and the next warm-start seed.
+        if (robustWidthSeed_.size() == static_cast<Eigen::Index>(robustParameterCount_))
+            result.state.tail(robustParameterCount_) = robustWidthSeed_;
+        return result;
+    }
+
     void CtrlComponent::setupMpc()
     {
-        mpc_ = std::make_shared<SqpMpc>(legged_interface_->mpcSettings(),
+        auto sqpMpc = std::make_shared<SqpMpc>(legged_interface_->mpcSettings(),
                                         legged_interface_->sqpSettings(),
                                         legged_interface_->getOptimalControlProblem(),
                                         legged_interface_->getInitializer());
+
+        if (const auto* manager = dynamic_cast<const PerceptiveLeggedReferenceManager*>(
+                legged_interface_->getReferenceManagerPtr().get())) {
+            const auto& settings = manager->getRobustPhaseSettings();
+            robustParameterCount_ = settings.enabled && settings.optimize_d ? 4 : 0;
+            robustInitialWidth_ = settings.d;
+        }
+        robustWidthSeed_ = vector_t::Constant(robustParameterCount_, robustInitialWidth_);
+        sqpMpc->getSolverPtr()->setNumFreeInitialStates(robustParameterCount_);
+        mpc_ = std::move(sqpMpc);
 
         // Initialize the reference manager
         gait_manager_ptr_ = std::make_shared<GaitManager>(

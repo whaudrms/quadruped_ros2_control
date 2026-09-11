@@ -12,6 +12,7 @@
 #include <vector>
 
 #include "ocs2_quadruped_controller/perceptive/interface/ConvexRegionSelector.h"
+#include "ocs2_quadruped_controller/perceptive/interface/RobustPhaseTiming.h"
 
 #include <ocs2_quadruped_controller/interface/SwitchedModelReferenceManager.h>
 
@@ -71,8 +72,12 @@ namespace ocs2::legged_robot
         // PerceptiveLeggedInterface). Applied during modifyReferences().
         struct RobustPhaseSettings {
             bool      enabled = false;
-            int       P = 5;            // window length in nodes
-            scalar_t  d = 0.05;         // uncertainty half-width [m]
+            scalar_t  t_a = 0.05;       // seconds BEFORE nominal touchdown
+            scalar_t  t_b = 0.05;       // seconds AFTER nominal touchdown
+            scalar_t  d = 0.05;         // fixed width / optimized-width initial guess [m]
+            bool      optimize_d = false;
+            scalar_t  d_min = 0.02;
+            scalar_t  d_max = 0.05;
             // Add hard one-sided endpoint constraints independently alongside
             // the boundary cost, which always remains active at both endpoints.
             // Must be configured before startup.
@@ -97,12 +102,8 @@ namespace ocs2::legged_robot
             scalar_t  terrain_z_M1 = 0.0;       // M1'' flat-ground guard reference
             scalar_t  foot_frame_offset = 0.0;  // FK foot-frame z above contact point along n
             scalar_t  dt_mpc = 0.015;           // SQP shooting interval [s]
-            // Impact-velocity lower bound: -v_max ≤ ġ. Used by
-            // RobustGuardVelocityLowerBoundConstraint. Per chat7 priority #2;
-            // must satisfy T_robust ≥ 2d/v_max (feasibility floor). Stored
-            // per-window in RobustWindowData.v_max so constraints don't need
-            // a separate settings handle.
-            scalar_t  v_max = 0.6;
+            // v_max is derived per window as 2*d_max/(absolute end - start).
+            // It stays constant as the MPC horizon advances into that window.
             // Ablation: when false, robust OCP (boundary, ġ envelope, ġ²
             // cost) stays active but the event-triggered schedule splice is
             // disabled — requestRobustContactSplice becomes a no-op. Useful
@@ -112,7 +113,19 @@ namespace ocs2::legged_robot
             bool      enable_splice = true;
             bool      verbose_log = false;      // emit per-cycle [robust_phase] std::cerr
         };
-        void setRobustPhaseSettings(const RobustPhaseSettings& settings) { robustPhaseSettings_ = settings; }
+        void setRobustPhaseSettings(const RobustPhaseSettings& settings) {
+            validateRobustPhaseTiming(settings.t_a, settings.t_b, settings.d);
+            if (!std::isfinite(settings.d_min) || !std::isfinite(settings.d_max) ||
+                settings.d_min <= 0.0 || settings.d_min > settings.d_max ||
+                settings.d < settings.d_min || settings.d > settings.d_max) {
+                throw std::invalid_argument("robustPhase requires 0 < d_min <= d <= d_max (finite)");
+            }
+            robustPhaseSettings_ = settings;
+            // Equal bounds are the fixed-width problem; avoid redundant zero-width inequalities.
+            if (settings.d_min == settings.d_max) robustPhaseSettings_.optimize_d = false;
+        }
+
+        const RobustPhaseSettings& getRobustPhaseSettings() const { return robustPhaseSettings_; }
 
         // Overrides from SwitchedModelReferenceManager.
         bool isInRobustWindow(size_t leg, scalar_t time) const override;
@@ -134,19 +147,11 @@ namespace ocs2::legged_robot
         // in CtrlComponent::detectAndLogContactEvents). Queued requests drain
         // at the start of the next modifyReferences call.
         //
-        //   requestRobustContactSplice — measured contact inside [t_a, t_b]
-        //     while the schedule still says swing; flips leg to stance from
-        //     event_time forward, with forward propagation through subsequent
-        //     swing phases until the gait template's natural touchdown.
-        //
-        // Splice ordering: this method's effect is visible in the SAME MPC
-        // solve because applyPendingSplices runs at the top of modifyReferences,
-        // BEFORE the line-180 getModeSchedule(...) read that feeds terrain
-        // projection / swing planner / robust-window computation.
-        // (Previously this lived in GaitManager::preSolverRun, which runs AFTER
-        // modifyReferences per OCS2 SolverBase::preRun:77-82 ordering — splice
-        // mutations were invisible to the same solve's reference work.)
-        void requestRobustContactSplice(size_t leg, scalar_t event_time);
+        // Capture this touchdown's window and queue a stance override confined
+        // to [event_time, configured robust end). The next modifyReferences
+        // applies it after touchdown delays and before reference computations.
+        // GaitSchedule itself and other legs' event times remain unchanged.
+        void requestRobustContactSplice(size_t leg, scalar_t event_time, const RobustWindowData& contactWindow);
 
         bool getLatestReferencePaths(
             std::vector<vector3_t, Eigen::aligned_allocator<vector3_t>>& rawBasePath,
@@ -183,36 +188,18 @@ namespace ocs2::legged_robot
         // For M1'': hard-coded n = e_z, p_plane.z = robustPhaseSettings_.terrain_z_M1.
         // For M2: pull (n, p_plane) from ConvexRegionSelector stance-side projection.
         void computeRobustWindows(scalar_t initTime, scalar_t finalTime, const ModeSchedule& modeSchedule,
-                                  const vector_t& initState);
+                                  const std::vector<RobustTouchdownTiming>& timings);
 
         // Saves the first upcoming FL swing reference after the swing planner
         // and robust window have both been updated for the current MPC solve.
         void updateLatestFootholdPlanSnapshot(scalar_t initTime, scalar_t finalTime,
                                               const ModeSchedule& modeSchedule);
 
-        // Drains pending robust-contact-event splice requests and applies them
-        // to gait_schedule_ptr_. Called at the START of modifyReferences (MPC
-        // thread, BEFORE the line-180 getGaitSchedule()->getModeSchedule(...)
-        // read), so the subsequent reference-manager work (terrain projection,
-        // swing planner, robust windows) all see the spliced schedule in the
-        // SAME solve cycle.
-        //
-        // initState is used to compute g_event = n·(p_foot − p_plane) −
-        // foot_frame_offset at splice time for diagnostic logging. g_event > 0
-        // means high-side hit (paper "early"), < 0 means low-side hit (paper
-        // "late"); both go through the same splice path.
-        //
-        // Requests from different legs within one dt_mpc interval are applied
-        // as one atomic mode transition at the latest measured contact time.
-        // This prevents sub-shooting-interval intermediate modes while retaining
-        // the previous SQP solution for trajectory spreading / warm start.
-        //
-        // Includes numerical merge guards for existing schedule events: merge
-        // within dt_mpc after the preceding event (including a robust splice
-        // applied in the previous MPC cycle), or within ~2*dt_mpc before the
-        // next event. This avoids sub-shooting-interval SQP/WBC phases. These
-        // guards are engineering additions, not part of the paper's robust OCP.
-        void applyPendingSplices(scalar_t initTime, scalar_t finalTime, const vector_t& initState);
+        // Drain requests and reapply bounded contact overrides to the delayed
+        // schedule copy on every MPC solve. initState is only used for logging
+        // guard displacement at apply time. Each leg retains its own event time.
+        void applyPendingSplices(scalar_t initTime, scalar_t finalTime, const vector_t& initState,
+                                 ModeSchedule& modeSchedule);
 
         const CentroidalModelInfo info_;
         feet_array_t<vector3_t> lastLiftoffPos_;
@@ -235,13 +222,11 @@ namespace ocs2::legged_robot
         mutable std::mutex robustWindowsMutex_;
         feet_array_t<RobustWindowData> robustWindows_{};
 
-        // Robust-window contact event splice queue (drained at start of
-        // modifyReferences). Per leg, at most one pending request at a time
-        // (later request with a later time is dropped — we anchor on the
-        // EARLIEST event for that leg, the moment of first measured contact).
+        // Requests capture original window bounds; only the queue is shared
+        // with the controller thread. Persistent overlays belong to the MPC thread.
         std::mutex splice_mutex_;
-        feet_array_t<bool>     robust_contact_splice_pending_{};
-        feet_array_t<scalar_t> robust_contact_splice_time_{};
+        std::vector<RobustContactOverride> robustContactSplicePending_;
+        std::vector<RobustContactOverride> robustContactOverrides_;
 
         mutable std::mutex latestReferenceTrajectoriesMutex_;
         std::vector<vector3_t, Eigen::aligned_allocator<vector3_t>> latestRawBasePath_;
@@ -257,7 +242,7 @@ namespace ocs2::legged_robot
     };
 
     // Free function: parse `robustPhase` block from task.info.
-    // Defaults: enabled=false, P=5, d=0.05, terrain_z_M1=0.0, dt_mpc=0.015.
+    // Defaults: enabled=false, t_a=t_b=0.05, d=0.05, terrain_z_M1=0.0, dt_mpc=0.015.
     // The caller is expected to override dt_mpc with the actual `sqp.dt` from task.info.
     PerceptiveLeggedReferenceManager::RobustPhaseSettings loadRobustPhaseSettings(
         const std::string& taskFile, bool verbose);

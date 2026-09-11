@@ -127,12 +127,21 @@ namespace ocs2::legged_robot
             }
         }
 
+        if (ctrl_component_->robustParameterCount_ > 0) {
+            const auto& policy = ctrl_component_->mpc_mrt_interface_->getPolicy();
+            const vector_t nominal = LinearInterpolation::interpolate(
+                ctrl_component_->observation_.time, policy.timeTrajectory_, policy.stateTrajectory_);
+            ctrl_component_->robustWidthSeed_ = nominal.tail(ctrl_component_->robustParameterCount_);
+        }
         // Evaluate the current policy
         size_t planned_mode = 0; // The mode that is active at the time the policy is evaluated at.
         ctrl_component_->mpc_mrt_interface_->evaluatePolicy(ctrl_component_->observation_.time,
-                                                            ctrl_component_->observation_.state,
+                                                            ctrl_component_->getMpcObservation().state,
                                                             optimized_state_,
                                                             optimized_input_, planned_mode);
+
+        const vector_t optimizedWidths = optimized_state_.tail(ctrl_component_->robustParameterCount_);
+        optimized_state_.conservativeResize(ctrl_component_->observation_.state.size());
 
         // Whole body control
         ctrl_component_->observation_.input = optimized_input_;
@@ -142,6 +151,8 @@ namespace ocs2::legged_robot
                                   planned_mode,
                                   period.seconds());
         wbc_timer_.endTimer();
+        ctrl_component_->logRobustStanceEntry(
+            planned_mode, ctrl_component_->mpc_mrt_interface_->getPolicy().modeSchedule_);
 
         // Per-tick CSV log (only when tick_log_ is open).
         // Layout: t,opt_state[0..23],opt_input[0..23],meas_rbd[0..35],planned_mode,
@@ -157,7 +168,10 @@ namespace ocs2::legged_robot
                 for (int i = 0;
                      i < static_cast<int>(ctrl_component_->measured_rbd_state_.size()); ++i)
                     tick_log_ << ",meas_rbd" << i;
-                tick_log_ << ",planned_mode,measured_mode,wbc_solve_ms,control_period_s\n";
+                tick_log_ << ",planned_mode,measured_mode,wbc_solve_ms,control_period_s";
+                for (size_t leg = 0; leg < ctrl_component_->robustParameterCount_; ++leg)
+                    tick_log_ << ",opt_d" << leg;
+                tick_log_ << "\n";
                 tick_log_header_written_ = true;
             }
             tick_log_ << ctrl_component_->observation_.time;
@@ -170,7 +184,9 @@ namespace ocs2::legged_robot
             tick_log_ << "," << planned_mode
                       << "," << ctrl_component_->observation_.mode
                       << "," << wbc_timer_.getLastIntervalInMilliseconds()
-                      << "," << period.seconds() << "\n";
+                      << "," << period.seconds();
+            for (Eigen::Index leg = 0; leg < optimizedWidths.size(); ++leg) tick_log_ << "," << optimizedWidths(leg);
+            tick_log_ << "\n";
         }
 
         vector_t torque = x.tail(12);
@@ -192,8 +208,22 @@ namespace ocs2::legged_robot
         }
 
         // Visualization
-        ctrl_component_->visualizer_->update(ctrl_component_->mpc_mrt_interface_->getPolicy(),
-                                             ctrl_component_->mpc_mrt_interface_->getCommand());
+        const auto& policy = ctrl_component_->mpc_mrt_interface_->getPolicy();
+        if (ctrl_component_->robustParameterCount_ > 0) {
+            // Pinocchio visualization also expects the physical state. Cache
+            // the stripped trajectory once per policy, without cloning feedback.
+            if (policyUpdated || physical_visualization_policy_.timeTrajectory_.empty()) {
+                physical_visualization_policy_.timeTrajectory_ = policy.timeTrajectory_;
+                physical_visualization_policy_.stateTrajectory_ = policy.stateTrajectory_;
+                physical_visualization_policy_.modeSchedule_ = policy.modeSchedule_;
+                for (auto& state : physical_visualization_policy_.stateTrajectory_)
+                    state.conservativeResize(ctrl_component_->observation_.state.size());
+            }
+            ctrl_component_->visualizer_->update(physical_visualization_policy_,
+                                                 ctrl_component_->mpc_mrt_interface_->getCommand());
+        } else {
+            ctrl_component_->visualizer_->update(policy, ctrl_component_->mpc_mrt_interface_->getCommand());
+        }
     }
 
     void StateOCS2::exit()
@@ -241,7 +271,7 @@ namespace ocs2::legged_robot
             {
                 foothold_plan_log_ << ",opt_x" << stateIndex;
             }
-            foothold_plan_log_ << ",optimized_mode\n";
+            foothold_plan_log_ << ",optimized_mode,opt_d0,opt_d1,opt_d2,opt_d3,v_max,d_init\n";
             foothold_plan_log_header_written_ = true;
         }
 
@@ -271,7 +301,7 @@ namespace ocs2::legged_robot
                 << "," << window.n.x()
                 << "," << window.n.y()
                 << "," << window.n.z()
-                << "," << window.d
+                << "," << (window.d_state_index >= 0 ? optimizedState(window.d_state_index) : window.d)
                 << "," << window.foot_frame_offset
                 << "," << policyStartTime
                 << "," << sampleIndex
@@ -285,7 +315,10 @@ namespace ocs2::legged_robot
                                            : std::numeric_limits<scalar_t>::quiet_NaN();
                 foothold_plan_log_ << "," << value;
             }
-            foothold_plan_log_ << "," << optimizedMode << "\n";
+            foothold_plan_log_ << "," << optimizedMode;
+            for (size_t leg = 0; leg < 4; ++leg)
+                foothold_plan_log_ << "," << (optimizedState.size() == 28 ? optimizedState(24 + leg) : window.d);
+            foothold_plan_log_ << "," << window.v_max << "," << window.d << "\n";
         }
         // This diagnostic is only enabled for focused foothold experiments.
         // Flush once per MPC update so a forced controller shutdown does not

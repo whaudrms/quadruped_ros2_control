@@ -110,9 +110,7 @@ run_one() {
         --terrain basic_step_short_v2 \
         --mode perceptive_dev_v2 \
         --robust "$robust" \
-        --robust-p 10 \
         --robust-d "$ROBUST_D" \
-        --robust-v-max 0.6 \
         --robust-hard-boundary-start off \
         --robust-hard-boundary-end off \
         --robust-slack-boundary-start on \

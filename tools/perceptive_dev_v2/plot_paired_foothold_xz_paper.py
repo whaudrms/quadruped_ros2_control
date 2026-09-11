@@ -11,6 +11,7 @@ import pinocchio as pin
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+from paper_plot_style import apply_figure_font_sizes
 from matplotlib.lines import Line2D
 
 from paper_plot_style import (
@@ -252,6 +253,7 @@ def plot_paired_xz(results_dir: Path, output: Path, urdf_path: Path):
         edgecolor="0.35", facecolor="white",
     )
     legend.get_frame().set_linewidth(0.8)
+    apply_figure_font_sizes(fig, output)
     fig.tight_layout(rect=(0, 0, 1, 0.82), pad=0.35)
 
     output.parent.mkdir(parents=True, exist_ok=True)

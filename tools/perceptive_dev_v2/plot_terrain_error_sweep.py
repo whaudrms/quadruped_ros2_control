@@ -14,6 +14,7 @@ import numpy as np
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+from paper_plot_style import apply_figure_font_sizes
 
 from plot_all_results import (
     DASHBOARD_METRICS,
@@ -206,6 +207,7 @@ def plot_response_dashboard(records: list[dict], output: Path):
         fontsize=14,
         fontweight="bold",
     )
+    apply_figure_font_sizes(fig, output)
     fig.tight_layout(rect=(0, 0, 1, 0.96))
     fig.savefig(output, dpi=140)
     plt.close(fig)
@@ -257,6 +259,7 @@ def plot_success_tolerance(records: list[dict], output: Path):
         axis.grid(True, alpha=0.3)
     axes[1].set_xticks(offsets)
     fig.suptitle("Robust-phase empirical tolerance to terrain perception error", fontweight="bold")
+    apply_figure_font_sizes(fig, output)
     fig.tight_layout(rect=(0, 0, 1, 0.96))
     fig.savefig(output, dpi=140)
     plt.close(fig)
@@ -294,6 +297,7 @@ def plot_descent_timing(records: list[dict], output: Path):
         axis.legend()
     axes[1].set_xticks(offsets)
     fig.suptitle("Terrain-descent timing response", fontweight="bold")
+    apply_figure_font_sizes(fig, output)
     fig.tight_layout(rect=(0, 0, 1, 0.96))
     fig.savefig(output, dpi=140)
     plt.close(fig)
@@ -411,6 +415,7 @@ def plot_wbc_heatmap(aggregates: dict[float, dict], cohort: str, output: Path):
         fig.colorbar(mesh, ax=axis, pad=0.01)
     axes[-1].set_xlabel("Command-active time [s]")
     fig.suptitle(f"WBC tracking-error heatmap — {cohort}", fontweight="bold")
+    apply_figure_font_sizes(fig, output)
     fig.tight_layout(rect=(0, 0, 1, 0.96))
     fig.savefig(output, dpi=140)
     plt.close(fig)
@@ -462,6 +467,7 @@ def plot_wbc_deviation_traces(aggregates: dict[float, dict], cohort: str, output
         f"WBC deviation across terrain errors — {cohort} — shared row scales",
         fontweight="bold",
     )
+    apply_figure_font_sizes(fig, output)
     fig.tight_layout(rect=(0, 0, 1, 0.95))
     fig.savefig(output, dpi=130)
     plt.close(fig)

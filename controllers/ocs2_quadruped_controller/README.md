@@ -61,6 +61,60 @@ cd ~/ros2_ws
 colcon build --packages-up-to ocs2_quadruped_controller  --symlink-install
 ```
 
+## Robust phase timing
+
+`robustPhase.t_a` and `robustPhase.t_b` are nonnegative offsets in seconds
+relative to the **original gait touchdown**: start = touchdown - t_a,
+end = touchdown + t_b. Defaults are 0.05 s each. Start is capped at liftoff;
+end must precede the next liftoff. Without confirmed contact, the foot stays
+in swing until robust end. The nominal gait is kept separately, so the delay
+is applied once and later liftoffs and gait periods do not drift.
+
+For `standing_trot`, nominal per-leg swing/stance are 0.25/0.35 s with a 0.60 s
+period. The default offsets give 0.20 s nominal swing, 0.10 s robust swing,
+and 0.30 s stance. Other gaits have different durations; the Go2 `task.info`
+contains these reference timings next to the parameters.
+
+`v_max = 2*d_max/(end-start)` is calculated for each full window. At d_max=0.05 m and
+T=0.10 s this is 1.0 m/s. Neither the offsets nor this rate change when MPC
+replans halfway through the window; elapsed start boundary costs are skipped.
+The old `P` and fixed `v_max` settings are ignored with a migration message.
+The velocity envelope remains a soft constraint.
+
+## Robust contact splice
+
+With `robustPhase.enabled=true` and `robustPhase.enable_splice=true`, five
+consecutive controller ticks of measured contact during scheduled swing inside
+the robust window confirm a contact. The first tick's time and window bounds
+are retained through debounce. The next MPC reference update overlays stance
+only for that leg from its contact time to its configured robust end (the
+delayed touchdown). This also supports contact after the original touchdown.
+
+The nominal `GaitSchedule` is retained separately. Relative to the schedule
+with configured touchdown delays, splice preserves all event times, other
+legs' contact intervals, and subsequent liftoffs. Contacts
+are neither snapped to nearby events nor batched at another leg's time; even
+sub-shooting-interval phases retain their measured timestamps. Exactly coincident
+events share one boundary, using OCS2's existing pre-event convention at the
+boundary itself. Recent overlays are reapplied on each solve and discarded if
+their delayed touchdown is no longer valid after a gait change.
+
+The revised schedule feeds terrain references, swing planning, robust-window
+recomputation and the MPC policy in the same solve. WBC uses the new policy's
+planned mode, so stance execution follows contact confirmation and MPC latency.
+Contact transitions emit logs even when `robustPhase.verbose_log=false`:
+
+- `[robust_event]`: the first detected contact tick.
+- `[robust_contact_splice]` with `stage=mpc_schedule`: MPC accepts the stance
+  overlay at `apply_t`.
+- `[robust_stance_enter]`: WBC first uses the spliced stance mode, once per leg
+  and contact window. `contact_t` is the first contact tick, `wbc_t` is the WBC
+  observation time, and `delay_ms` includes debounce and MPC latency in
+  observation time. The log also identifies the foot, robust window and mode.
+
+The `robust_contact_schedule_test` regression test checks interval preservation,
+nearby/coincident contacts, subsequent swings and stale requests.
+
 ## 3. Launch
 
 supported robot description:
@@ -117,3 +171,41 @@ ros2 launch ocs2_quadruped_controller mujoco.launch.py pkg_description:=go2_desc
 source ~/ros2_ws/install/setup.bash
 ros2 launch ocs2_quadruped_controller gazebo.launch.py pkg_description:=go2_description
 ```
+
+
+### Optimized robust band width
+
+With `robustPhase.enabled=true` and `optimize_d=true`, SQP optimizes four
+constant parameters, one for each leg's first unfinished robust window.
+The MPC state is `[x_physical(24), d_i(4)]`, with `dot(d_i)=0`; inputs remain
+24-dimensional. A QP-only initialization stage frees the four initial widths
+while keeping the physical initial state fixed. No extra stage is exported in
+the MPC policy. Physical model terms receive only the first 24 states, and WBC
+receives the same physical state/input dimensions as before.
+
+`d` is the initial guess (and the fixed width when `optimize_d=false`). The GO2
+configuration enables optimization with `d=0.05`, `d_min=0.02`, `d_max=0.05` m.
+Hard inequalities enforce the bounds, including the initial and terminal nodes.
+A leg without an unfinished robust window retains the same bounds, but its
+width is unused by boundary costs. Equal bounds automatically select the
+fixed-width formulation.
+The speed envelope uses `2*d_max/T` and has no derivative with respect to `d_i`.
+The running cost includes `-w_d*d_i` for each active window on `[t_a,t_b)`.
+GO2 starts with `w_d=10.0`; zero disables the reward, and older task files without
+this key default to zero. The exact state gradient is `-w_d` in the width column
+and the Hessian is zero. SQP multiplies the running cost by its integration dt;
+there is no extra division by window duration. The reward stops when splice
+removes the window, and fixed-width mode has no reward. Larger weights favor
+larger widths, but competing costs/constraints can still select `d_min`.
+The total incentive decreases with the remaining robust duration after replanning.
+
+Optional tick CSVs append `opt_d0` through `opt_d3` in model contact order
+(FL, FR, RL, RR for GO2). Foothold-plan CSVs record the solved FL width in `d`,
+the configured guess in `d_init`, all four `opt_d*` values and the actual window
+`v_max`. Reference-manager `[robust_phase]` lines are pre-solve metadata: their
+`d` still means the configured guess. For fixed-width A/B trials, set
+`optimize_d=false` in task.info; `run_trial.py` preserves that setting.
+
+Validation targets: `robust_width_test` checks the augmented OCP, physical
+constraint projection and endpoint Jacobians; SQP `FreeInitialState.*` checks
+interior optima, both bounds, fixed bounds, warm starts and policy feedback.
